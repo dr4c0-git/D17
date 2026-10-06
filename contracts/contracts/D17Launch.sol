@@ -439,8 +439,9 @@ contract D17Launch {
     }
 
     /// @notice LP tokens that will pair with totalLiquidityWeth(). Scaled to the share of the
-    /// sale that actually sold, so the pool always opens near the average sale price instead
-    /// of at a price set by an unsold allocation; the unused part is burned at finalization.
+    /// sale that actually sold, so the opening price tracks the average sale price (equal to
+    /// it net of fees when lpTokens == saleTokens) instead of being set by an unsold
+    /// allocation; the unused part is burned at finalization.
     function poolTokenAllocation() public view returns (uint256) {
         if (finalized) return effectiveLpTokens;
         return lpTokens * _soldSaleTokenAmount() / saleTokens;

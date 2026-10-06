@@ -129,10 +129,20 @@ relaie vers le nœud et `page.clock` calé sur l'heure de la chaîne. Restaurer 
 manifest, supprimer `.env.local` et `git checkout apps/web/next-env.d.ts` (réécrit par
 `next dev`).
 
+## Documentation (à maintenir avec le code)
+
+- `docs/V15_HARDENING.md` : divulgation publique des changements V15 et du frais.
+- `docs/CONTRACTS_TECHNICAL.md` : référence V15 avec citations `Fichier.sol:ligne` —
+  **toute modif de contrat décale des lignes : revérifier les citations.**
+- `contracts/docs/ABI_TRACEABILITY.md` : 364 entrées classées (consommateur, indexé ou non).
+  Après un changement d'ABI, reprendre la classification V15 existante et classer à la main
+  les nouvelles entrées (pas de générateur dans le dépôt).
+- `docs/blog/` : 9 essais V15 (le 09 explique le frais de protocole).
+- Prix d'ouverture : il suit le prix moyen payé et lui est égal (net des frais) seulement si
+  `lpTokens == saleTokens` ; ne jamais écrire qu'il est toujours égal.
+
 ## Reste à faire
 
-- Réécrire `docs/CONTRACTS_TECHNICAL.md`, `contracts/docs/ABI_TRACEABILITY.md` et le
-  blog pour V15 (actuellement une note de version renvoie à `docs/V15_HARDENING.md`).
 - Tests de fuzzing/invariants ; test des planchers mainnet (nœud avec chainId 1).
 - Audit externe.
 - Optionnel : ajouter une ligne de copyright du fork dans `LICENSE` (sans retirer l'existante).

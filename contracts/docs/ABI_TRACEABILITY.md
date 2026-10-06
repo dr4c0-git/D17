@@ -1,40 +1,45 @@
-# D17 ABI Traceability Matrix
+# D17 ABI Traceability Matrix (V15)
 
-> **Version note.** This matrix classifies the upstream V14 ABI (310 entries). The V15
-> ABI (11 contracts, 364 entries) is rendered in full in `docs/contract-explorer.html`;
-> the consumer classification below has not been redone for the V15 additions.
+Purpose: enumerate every public ABI surface of the V15 contract set and assign its
+intended consumer. Rows follow `contracts/abi/*.abi.json` (the same order as
+`docs/contract-explorer.html`). "Mainnet Indexed" says whether the bundled API ingests
+the event (`event_only` = the function itself is not indexed, only the events it emits).
 
-Purpose: enumerate every public ABI surface and assign its intended consumer.
-
-- ABI entries: 310
+- Contracts: 11
+- ABI entries: 364
 - Unclassified entries: 0
+- Removed since V14: `D17Launch.burnUnsoldSaleTokens()` (unsold tokens are always burned),
+  `D17Launch.previewSettlement(address)` (alias of `previewVaultSettlement`),
+  `D17Launch.UnsoldSaleTokensPaid` event.
 
 ## Consumer Counts
 
-- api_frontend_readonly_verification: 198
-- indexer_api_activity: 44
-- d17_factory_only: 1
-- deployment: 9
-- deployment_admin_once: 7
-- deployment_admin_recovery: 1
-- erc20_standard_wallet_dex: 6
-- frontend_deploy_wallet: 1
+- api_frontend_readonly_verification: 230
+- indexer_api_activity: 47
+- deployment: 11
+- deployment_admin_once: 9
+- launch_factory_only: 9
 - frontend_participant_wallet: 7
-- launch_factory_only: 8
-- locker_factory_only: 1
+- deployment_verification: 6
+- erc20_standard_wallet_dex: 6
 - locker_only: 6
-- owner_recovery: 2
-- permissionless_lifecycle: 3
-- public_recovery: 4
+- permissionless_lifecycle: 6
 - safety_revert_surface: 6
-- tests_and_error_mapping: 4
+- tests_and_error_mapping: 5
+- fee_admin: 4
+- public_recovery: 4
+- owner_recovery: 2
 - vault_only: 2
+- d17_factory_only: 1
+- deployment_admin_recovery: 1
+- frontend_deploy_wallet: 1
+- locker_factory_only: 1
 
 ## Matrix
 
 | Contract | Type | Name | Mutability | Consumer | Mainnet Indexed | Keep Reason |
 |---|---|---|---|---|---|---|
-| D17Factory | constructor | `constructor` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17Factory | constructor | `constructor(address,address,address,address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
 | D17Factory | event | `LaunchCreated(address,address,address,address,bytes32)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Factory | event | `LaunchFactoryPinned(address)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Factory | event | `LaunchMetadataPublished(address,bytes32,string,string,string[],string[])` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
@@ -45,6 +50,8 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Factory | function | `BPS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `D17_FACTORY_ID()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `LOGO_SVG_BASE64_PREFIX()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Factory | function | `MAINNET_MIN_START_DELAY()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Factory | function | `MAINNET_MIN_WINDOW_SECONDS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `MAX_DESCRIPTION_BYTES()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `MAX_LINKS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `MAX_LINK_TYPE_BYTES()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
@@ -60,10 +67,12 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Factory | function | `MIN_ANCHOR_PRICE_WAD()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `MIN_COMMIT_WETH()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `MIN_LP_TOKENS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Factory | function | `MIN_REFUND_PENALTY_BPS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `MIN_ROUND_ALLOCATION_TOKENS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `MIN_ROUND_SECONDS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `ROUND_COUNT()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `createLaunch(tuple)` | nonpayable | frontend_deploy_wallet | event_only | Public launch creation entrypoint signed by deployer wallet. |
+| D17Factory | function | `feeConfig()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `isCanonicalLaunch(address,bytes32)` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `isLocker(address)` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Factory | function | `launchFactory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
@@ -76,17 +85,26 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Factory | function | `pinLaunchFactory(address)` | nonpayable | deployment_admin_once | event_only | One-shot factory pin during suite deployment. |
 | D17Factory | function | `pinLockerFactory(address)` | nonpayable | deployment_admin_once | event_only | One-shot locker factory pin during suite deployment. |
 | D17Factory | function | `registerLockerFor(address,address)` | nonpayable | locker_factory_only | event_only | Canonical locker registration called only by D17LockerFactory. |
-| D17Factory | function | `renounceOwnership()` | nonpayable | deployment_admin_once | event_only | Final mainnet trust-minimization step after pins. |
+| D17Factory | function | `renounceOwnership()` | nonpayable | deployment_admin_once | event_only | Required before any launch can be created (enforced on-chain by D17Factory/D17LaunchFactory). |
 | D17Factory | function | `router()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17Factory | function | `transferOwnership(address)` | nonpayable | deployment_admin_recovery | event_only | Pre-renounce ownership management; not used after mainnet renounce. |
+| D17Factory | function | `transferOwnership(address)` | nonpayable | deployment_admin_recovery | event_only | Pre-renounce ownership management; launches are refused until the owner is renounced. |
 | D17Factory | function | `weth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17LaunchFactory | constructor | `constructor` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
-| D17LaunchFactory | function | `CANONICAL_DEAD_RECIPIENT()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17LaunchFactory | function | `d17Factory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17LaunchFactory | function | `deployLaunch(tuple,address)` | nonpayable | d17_factory_only | event_only | Only D17Factory may deploy a launch trio. |
-| D17LaunchFactory | function | `liquidityVaultFactory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17LaunchFactory | function | `tokenFactory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17TokenFactory | constructor | `constructor` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17FeeConfig | constructor | `constructor(address,address,uint16)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17FeeConfig | event | `OwnershipTransferStarted(address,address)` | - | deployment_verification | no | Suite-level event; contract not watched by the bundled API, read by deployment verification and explorers. |
+| D17FeeConfig | event | `OwnershipTransferred(address,address)` | - | deployment_verification | no | Suite-level event; contract not watched by the bundled API, read by deployment verification and explorers. |
+| D17FeeConfig | event | `ProtocolFeeUpdated(address,uint16)` | - | deployment_verification | no | Public record of every protocol fee change (applies to future launches only); not watched by the bundled API. |
+| D17FeeConfig | function | `D17_FEE_CONFIG_ID()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17FeeConfig | function | `MAX_PROTOCOL_FEE_BPS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17FeeConfig | function | `acceptOwnership()` | nonpayable | fee_admin | event_only | Pending owner completes the two-step handover. |
+| D17FeeConfig | function | `currentFee()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17FeeConfig | function | `feeRecipient()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17FeeConfig | function | `owner()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17FeeConfig | function | `pendingOwner()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17FeeConfig | function | `protocolFeeBps()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17FeeConfig | function | `renounceOwnership()` | nonpayable | fee_admin | event_only | Optional: freezes the protocol fee forever. |
+| D17FeeConfig | function | `setProtocolFee(address,uint16)` | nonpayable | fee_admin | event_only | Fee multisig sets rate (≤ 2%) and recipient for future launches only. |
+| D17FeeConfig | function | `transferOwnership(address)` | nonpayable | fee_admin | event_only | Starts the two-step handover of fee control to a new multisig. |
+| D17TokenFactory | constructor | `constructor(address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
 | D17TokenFactory | event | `LaunchFactoryPinned(address)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17TokenFactory | event | `OwnershipTransferred(address,address)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17TokenFactory | event | `TokenCreated(address,string,string,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
@@ -96,8 +114,8 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17TokenFactory | function | `launchFactoryPinned()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17TokenFactory | function | `owner()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17TokenFactory | function | `pinLaunchFactory(address)` | nonpayable | deployment_admin_once | event_only | One-shot launch factory pin during suite deployment. |
-| D17TokenFactory | function | `renounceOwnership()` | nonpayable | deployment_admin_once | event_only | Final mainnet trust-minimization step after pin. |
-| D17LiquidityVaultFactory | constructor | `constructor` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17TokenFactory | function | `renounceOwnership()` | nonpayable | deployment_admin_once | event_only | Required before any launch can be created (enforced on-chain by D17Factory/D17LaunchFactory). |
+| D17LiquidityVaultFactory | constructor | `constructor(address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
 | D17LiquidityVaultFactory | event | `LaunchFactoryPinned(address)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17LiquidityVaultFactory | event | `LiquidityVaultCreated(address,address,address)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17LiquidityVaultFactory | event | `OwnershipTransferred(address,address)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
@@ -107,30 +125,51 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17LiquidityVaultFactory | function | `launchFactoryPinned()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVaultFactory | function | `owner()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVaultFactory | function | `pinLaunchFactory(address)` | nonpayable | deployment_admin_once | event_only | One-shot launch factory pin during suite deployment. |
-| D17LiquidityVaultFactory | function | `renounceOwnership()` | nonpayable | deployment_admin_once | event_only | Final mainnet trust-minimization step after pin. |
-| D17LockerFactory | constructor | `constructor` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17LiquidityVaultFactory | function | `renounceOwnership()` | nonpayable | deployment_admin_once | event_only | Required before any launch can be created (enforced on-chain by D17Factory/D17LaunchFactory). |
+| D17LaunchDeployer | constructor | `constructor(address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17LaunchDeployer | event | `LaunchDeployed(address)` | - | deployment_verification | no | Suite-level event; contract not watched by the bundled API, read by deployment verification and explorers. |
+| D17LaunchDeployer | event | `LaunchFactoryPinned(address)` | - | deployment_verification | no | Suite-level event; contract not watched by the bundled API, read by deployment verification and explorers. |
+| D17LaunchDeployer | event | `OwnershipTransferred(address,address)` | - | deployment_verification | no | Suite-level event; contract not watched by the bundled API, read by deployment verification and explorers. |
+| D17LaunchDeployer | function | `D17_LAUNCH_DEPLOYER_ID()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LaunchDeployer | function | `deployLaunch(bytes)` | nonpayable | launch_factory_only | event_only | Only D17LaunchFactory deploys launch contracts (split out for code size). |
+| D17LaunchDeployer | function | `launchFactory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LaunchDeployer | function | `launchFactoryPinned()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LaunchDeployer | function | `owner()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LaunchDeployer | function | `pinLaunchFactory(address)` | nonpayable | deployment_admin_once | event_only | One-shot launch factory pin during suite deployment. |
+| D17LaunchDeployer | function | `renounceOwnership()` | nonpayable | deployment_admin_once | event_only | Required before any launch can be created (enforced on-chain by D17Factory/D17LaunchFactory). |
+| D17LaunchFactory | constructor | `constructor(address,address,address,address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17LaunchFactory | function | `CANONICAL_DEAD_RECIPIENT()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LaunchFactory | function | `d17Factory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LaunchFactory | function | `deployLaunch(tuple,address,address,uint16)` | nonpayable | d17_factory_only | event_only | Only D17Factory may deploy a launch trio. |
+| D17LaunchFactory | function | `launchDeployer()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LaunchFactory | function | `liquidityVaultFactory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LaunchFactory | function | `tokenFactory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LockerFactory | constructor | `constructor(address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
 | D17LockerFactory | event | `LockerCreated(address,address)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17LockerFactory | function | `createLockerFor(address)` | nonpayable | frontend_participant_wallet | event_only | Participant creates canonical personal locker. |
 | D17LockerFactory | function | `d17Factory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17Launch | constructor | `constructor` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17Launch | constructor | `constructor(tuple)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
 | D17Launch | error | `BurnFailed()` | - | tests_and_error_mapping | no | Custom revert surface for tests, API/user error handling, and review. |
 | D17Launch | error | `TransferFailed()` | - | tests_and_error_mapping | no | Custom revert surface for tests, API/user error handling, and review. |
 | D17Launch | event | `Finalized(uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
-| D17Launch | event | `LateVaultSettlementClaimed(address,uint256,uint256,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
+| D17Launch | event | `LateVaultSettlementClaimed(address,uint256,uint256,uint256,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Launch | event | `LaunchFailedRefunded(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Launch | event | `LiquidityPoolCreated(address,address,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Launch | event | `LiquidityVaultConfigured(address)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
+| D17Launch | event | `ResidualTokensBurned(uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Launch | event | `RoundCommitted(address,uint8,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Launch | event | `RoundRefunded(address,uint8,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Launch | event | `UnexpectedEthSwept(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Launch | event | `UnsoldSaleTokensBurned(uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
-| D17Launch | event | `UnsoldSaleTokensPaid(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
+| D17Launch | event | `UnusedLpTokensBurned(uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Launch | event | `VaultLiquidityTokensClaimed(address,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
-| D17Launch | event | `VaultSettlementClaimed(address,uint256,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
+| D17Launch | event | `VaultSettlementClaimed(address,uint256,uint256,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Launch | fallback | `fallback` | payable | safety_revert_surface | no | Rejects unsupported ETH/calls or exists as Solidity ABI surface. |
 | D17Launch | function | `BPS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `CANONICAL_DEAD_RECIPIENT()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `D17_LAUNCH_ID()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `EARLY_REFUND_PENALTY_BPS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `EARLY_REFUND_ROUNDS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `FINAL_ROUND()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `MIN_ANCHOR_PRICE_WAD()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `MIN_COMMIT_WETH()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
@@ -152,7 +191,7 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Launch | function | `allFinalCommitmentsSettled()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `anchorPriceWad()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `anchorReady()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17Launch | function | `burnUnsoldSaleTokens()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `burnResidualTokens()` | nonpayable | permissionless_lifecycle | event_only | Anyone burns per-position rounding dust once every commitment has settled. |
 | D17Launch | function | `claimLateSettlement()` | nonpayable | locker_only | event_only | Post-pool late top-up settlement path. |
 | D17Launch | function | `claimVaultLiquidityTokens()` | nonpayable | vault_only | event_only | Vault claims initial proportional LP token share. |
 | D17Launch | function | `claimVaultSettlement()` | nonpayable | locker_only | event_only | On-time settlement path. |
@@ -160,6 +199,7 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Launch | function | `contributedBy(address,uint8)` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `deadRecipient()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `deadTokens()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `effectiveLpTokens()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `factory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `finalCommittedWeth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `finalRoundTokenPool()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
@@ -172,6 +212,7 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Launch | function | `lateSettledLiquidityWeth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `launchFailed()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `launchPhase()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `liquidityBps()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `liquidityPoolCreated()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `liquidityVault()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `lockerPositionState(address)` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
@@ -192,10 +233,13 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Launch | function | `poolCreationOpensAt()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `poolSettledCommittedWeth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `poolSettledLiquidityWeth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `poolTokenAllocation()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `previewFinalSaleTokens(address)` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `previewRoundTokens(address,uint8)` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17Launch | function | `previewSettlement(address)` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `previewVaultSettlement(address)` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `protocolFeeBps()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `protocolFeeRecipient()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `protocolFeeWethPaid()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `recordRoundCommitment(uint8,uint256)` | nonpayable | locker_only | event_only | Locker records a participant round commitment. |
 | D17Launch | function | `refundPenaltyBps()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `refundSeconds()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
@@ -233,12 +277,13 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Launch | function | `treasuryWethPaid()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `unsoldSaleTokensBurned()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `unsoldSaleTokensSettled()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17Launch | function | `unusedLpTokensBurned()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `vaultConfigurator()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `vaultLiquidityClaimed()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `vaultLiquidityTokensClaimed()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `weth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | receive | `receive` | payable | safety_revert_surface | no | Rejects unsupported ETH/calls or exists as Solidity ABI surface. |
-| D17Locker | constructor | `constructor` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17Locker | constructor | `constructor(address,address,address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
 | D17Locker | error | `TransferFailed()` | - | tests_and_error_mapping | no | Custom revert surface for tests, API/user error handling, and review. |
 | D17Locker | event | `ClaimedTokensWithdrawn(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Locker | event | `ExcessWethRecovered(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
@@ -246,7 +291,7 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Locker | event | `NativeEthRecovered(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Locker | event | `RoundCommitted(address,uint8,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Locker | event | `RoundRefunded(address,uint8,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
-| D17Locker | event | `VaultSettlementCompleted(address,address,address,address,uint256,uint256,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
+| D17Locker | event | `VaultSettlementCompleted(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Locker | event | `WethWithdrawn(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Locker | fallback | `fallback` | payable | safety_revert_surface | no | Rejects unsupported ETH/calls or exists as Solidity ABI surface. |
 | D17Locker | function | `EXPECTED_LAUNCH_ID()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
@@ -270,27 +315,40 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17Locker | function | `withdrawUnlockedWeth(address,uint256)` | nonpayable | frontend_participant_wallet | event_only | Owner withdraws residual/refunded WETH. |
 | D17Locker | function | `withdrawableWeth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Locker | receive | `receive` | payable | safety_revert_surface | no | Rejects unsupported ETH/calls or exists as Solidity ABI surface. |
-| D17LiquidityVault | constructor | `constructor` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17LiquidityVault | constructor | `constructor(address,address,address,address,address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17LiquidityVault | error | `BurnFailed()` | - | tests_and_error_mapping | no | Custom revert surface for tests, API/user error handling, and review. |
 | D17LiquidityVault | error | `TransferFailed()` | - | tests_and_error_mapping | no | Custom revert surface for tests, API/user error handling, and review. |
+| D17LiquidityVault | event | `CreatorTokensReleased(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17LiquidityVault | event | `ExcessWethSwept(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
-| D17LiquidityVault | event | `LateLiquidityAdded(address,address,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
+| D17LiquidityVault | event | `FailedLaunchPenaltiesBurned(uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
+| D17LiquidityVault | event | `LateLiquidityAdded(address,address,uint256,uint256,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17LiquidityVault | event | `OfficialPoolCreated(address,uint256,uint256,uint256,uint256,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17LiquidityVault | event | `UnexpectedEthSwept(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17LiquidityVault | event | `UnsupportedTokenRecovered(address,address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17LiquidityVault | fallback | `fallback` | payable | safety_revert_surface | no | Rejects unsupported ETH/calls or exists as Solidity ABI surface. |
+| D17LiquidityVault | function | `BURN_ADDRESS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LiquidityVault | function | `CREATOR_VESTING_SECONDS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `D17_LIQUIDITY_VAULT_ID()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LiquidityVault | function | `burnFailedLaunchPenalties()` | nonpayable | permissionless_lifecycle | event_only | Anyone burns the phase-one refund penalties of a failed launch. |
 | D17LiquidityVault | function | `createOfficialPool(uint256,uint256)` | nonpayable | permissionless_lifecycle | event_only | Permissionless official pool creation. |
+| D17LiquidityVault | function | `creatorTokensReleased()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LiquidityVault | function | `failedLaunchPenaltyWethBurned()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `lateLpMinted()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `lateTokenUsedForLp()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LiquidityVault | function | `lateTokensBurned()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LiquidityVault | function | `lateWethBurned()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `lateWethUsedForLp()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `launch()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LiquidityVault | function | `lockedCreatorTokens()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `lpMinted()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `mintLateLiquidity(uint256,uint256)` | nonpayable | locker_only | event_only | Registered locker performs atomic late liquidity top-up. |
 | D17LiquidityVault | function | `officialPair()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `poolCreated()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LiquidityVault | function | `poolCreatedAt()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `preseededTokenReserve()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `preseededWethReserve()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `recoverUnsupportedTokenToTreasury(address,uint256)` | nonpayable | public_recovery | event_only | Recovery for unsupported token donations. |
+| D17LiquidityVault | function | `releaseCreatorTokens()` | nonpayable | permissionless_lifecycle | event_only | Anyone releases vested creator tokens to the fixed recipient (terminal Trading-stage button). |
 | D17LiquidityVault | function | `router()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `routerFactory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `sweepExcessWethToTreasury()` | nonpayable | public_recovery | event_only | Recovery for unexpected loose WETH donations only. |
@@ -298,10 +356,11 @@ Purpose: enumerate every public ABI surface and assign its intended consumer.
 | D17LiquidityVault | function | `token()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `tokenUsedForPool()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `treasury()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
+| D17LiquidityVault | function | `vestedCreatorTokens()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `weth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `wethUsedForPool()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | receive | `receive` | payable | safety_revert_surface | no | Rejects unsupported ETH/calls or exists as Solidity ABI surface. |
-| D17Token | constructor | `constructor` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
+| D17Token | constructor | `constructor(address,string,string,uint256)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
 | D17Token | event | `Approval(address,address,uint256)` | - | erc20_standard_wallet_dex | no | Required ERC-20 event; deliberately excluded from D17 mainnet activity indexing. |
 | D17Token | event | `ContractURIUpdated()` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Token | event | `MintingClosed()` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |

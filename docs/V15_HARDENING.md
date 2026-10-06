@@ -79,8 +79,10 @@ The creator never receives refund penalties, unsold sale tokens or unused LP tok
   V15 the final round sells at or above the round-1 anchor price, like rounds 2–4; what
   it cannot sell at that price is burned.
 - **Opening price.** The LP allocation is scaled to the share of the sale that actually
-  sold, so the pool opens near the average sale price net of fees instead of at a price
-  set by tokens nobody bought.
+  sold, so the opening price follows the average sale price instead of being set by
+  tokens nobody bought. It equals the average sale price net of fees when the LP
+  allocation equals the sale allocation; otherwise it differs by the published
+  `saleTokens / lpTokens` ratio.
 - **Late liquidity sandwich.** In V14 a late settler's liquidity was added at the
   launch ratio even after the market moved, donating a one-sided surplus a sandwich could
   capture. V15 adds it at the pair's live ratio and burns what cannot be paired.
