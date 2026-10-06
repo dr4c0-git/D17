@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { connect } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -179,7 +179,8 @@ try {
   assert(schema.ok, "schema ok");
   assert(schema.data?.chainId === 1, "mainnet chain id");
   assert(schema.data?.contractVersion === "D17_CURRENT", "current contract family");
-  assert(schema.data?.contracts?.d17Factory === "0x4103c658141447DFc3a70aE2D5C7a5Ad8d970844", "factory manifest");
+  const bundledMainnet = JSON.parse(await readFile(path.join(root, "deployments/mainnet.json"), "utf8"));
+  assert(schema.data?.contracts?.d17Factory === bundledMainnet.contracts.d17Factory, "factory manifest");
   assert(schema.data?.mainnetHostedDeployEnabled === false, "mainnet hosted deploy fail-closed");
   assert(Array.isArray(schema.data?.knownContractGaps) && schema.data.knownContractGaps.length === 0, "no known contract gaps");
 

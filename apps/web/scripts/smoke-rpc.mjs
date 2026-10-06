@@ -13,15 +13,19 @@ if (!rpcUrl) throw new Error(`Set RPC_URL or the ${networkName} frontend RPC var
 
 const deploymentFile = process.env.DEPLOYMENT_FILE || path.resolve("deployments", `${networkName}.json`);
 const deployment = JSON.parse(readFileSync(deploymentFile, "utf8"));
+if (deployment.status !== "deployed") {
+  console.log(`D17 V15 is not deployed on ${networkName} yet (manifest status "${deployment.status}"); RPC smoke skipped.`);
+  process.exit(0);
+}
 const abi = JSON.parse(readFileSync(path.resolve("public/abi/D17Factory.abi.json"), "utf8"));
 const provider = new ethers.JsonRpcProvider(rpcUrl, requestedChainId, { batchMaxCount: 1 });
-const expectedFactoryId = ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE"));
+const expectedFactoryId = ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V15_HARDENED"));
 const expectedConfigFields = [
   "tokenName", "tokenSymbol", "description", "logoSvgUri", "links",
   "tokenSupply", "saleTokens", "lpTokens", "manualDistributionTokens", "deadTokens",
   "deadRecipient", "treasury", "startTime", "roundSeconds", "refundSeconds",
   "settlementSeconds", "minCommitWeth", "minPhase1Weth", "minAnchorPriceWad",
-  "roundSharesBps", "treasuryBps", "refundPenaltyBps", "burnUnsoldSaleTokens",
+  "roundSharesBps", "treasuryBps", "refundPenaltyBps", "maxProtocolFeeBps",
 ];
 const createLaunch = abi.find((entry) => entry.type === "function" && entry.name === "createLaunch");
 const configFields = createLaunch?.inputs?.[0]?.components?.map((component) => component.name) || [];

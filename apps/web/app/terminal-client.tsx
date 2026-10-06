@@ -34,7 +34,7 @@ import {
 } from "@/lib/d17Api";
 import { NetworkSwitch } from "@/components/network-switch";
 import { ACTIVE_NETWORK, d17Href } from "@/lib/d17Network";
-import { PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
+import { PROTOCOL_DEPLOYED, PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
 import { commitIfCurrentGeneration, isCurrentGeneration } from "@/lib/refresh-guard.mjs";
 import { dedupeActivityActions, dedupeActivityForDisplay } from "@/lib/activity-dedupe.mjs";
 import { loadActivityHistory } from "@/lib/activity-history.mjs";
@@ -92,9 +92,11 @@ const DEFAULT_RULES_HASH = process.env.NEXT_PUBLIC_D17_RULES_HASH || "";
 const ROUND_COUNT = 5;
 const REFUND_STAGE_COUNT = 4;
 // Contract refund schedule: refund windows follow rounds 1-4; the first
-// FREE_REFUND_ROUNDS windows are free, the rest charge refundPenaltyBps,
-// and the final round has no window.
-const FREE_REFUND_ROUNDS = 2;
+// EARLY_REFUND_ROUNDS windows charge the fixed early penalty, the rest charge
+// refundPenaltyBps, and the final round has no window. Every penalty is paid into
+// the official pool (or burned if the launch fails), never to the creator.
+const EARLY_REFUND_ROUNDS = 2;
+const EARLY_REFUND_PENALTY_PCT = 1;
 const NO_ROUND = 255;
 
 const PHASE = {
@@ -258,7 +260,7 @@ async function discoverRpcLaunches(): Promise<KnownLaunch[]> {
 // LaunchMetadataPublished event and the contractURI JSON must all agree with
 // the hash recomputed from the on-chain fields. Any disagreement → unverified.
 
-const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V14_1_REFUND_SCHEDULE_BURN_GATE"));
+const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V15_HARDENED"));
 
 function parseContractUriJson(uri: string): Record<string, unknown> | null {
   const prefixes = ["data:application/json;charset=utf-8,", "data:application/json;utf8,"];
@@ -511,6 +513,7 @@ type LaunchStats = {
 type LaunchConfig = {
   refundPenaltyPct: number; // e.g. 17
   treasuryPct: number; // WETH % to treasury, e.g. 1
+  protocolFeePct: number; // WETH % protocol fee, fixed at launch creation (V15)
   settlementSeconds: number; // claim-window length — settlement countdown fallback
   saleTokens: bigint;
   lpTokens: bigint;
@@ -590,6 +593,7 @@ type PositionSnapshot = {
   liquidityVault: string;
   wethSentToVault: string;
   treasuryWeth: string;
+  protocolFeeWeth: string;
   finalSaleTokensClaimed: boolean;
 };
 
@@ -691,7 +695,7 @@ type ActivityMode = "activity" | "lockers" | "locker";
 const defaultRounds: RoundTerm[] = Array.from({ length: ROUND_COUNT }, (_, index) => ({
   id: index + 1,
   allocationPct: index === 0 ? 40 : 15,
-  deflectionCostPct: index >= FREE_REFUND_ROUNDS && index < REFUND_STAGE_COUNT ? 17 : 0,
+  deflectionCostPct: index < EARLY_REFUND_ROUNDS ? EARLY_REFUND_PENALTY_PCT : index < REFUND_STAGE_COUNT ? 17 : 0,
   startAt: 0,
   endAt: 0,
   refundStartAt: 0,
@@ -1722,6 +1726,7 @@ function ParticipantsTerminal() {
         setLaunchConfig({
           refundPenaltyPct: Number(config.refundPenaltyBps ?? 0) / 100,
           treasuryPct: Number(config.treasuryBps ?? tokenomics.treasuryBps ?? 0) / 100,
+          protocolFeePct: Number(config.protocolFeeBps ?? detail.protocolFeeBps ?? 0) / 100,
           settlementSeconds: Number(config.settlementSeconds ?? 0),
           saleTokens: toWei(tokenomics.saleTokens),
           lpTokens: toWei(tokenomics.lpTokens),
@@ -1867,6 +1872,7 @@ function ParticipantsTerminal() {
         loadedManualTokens,
         loadedTreasuryBps,
         loadedSettlementSeconds,
+        loadedProtocolFeeBps,
       ] = await Promise.all([
         launch.rulesHash() as Promise<string>,
         launch.token() as Promise<string>,
@@ -1886,6 +1892,7 @@ function ParticipantsTerminal() {
         launch.manualDistributionTokens().catch(() => 0n) as Promise<bigint>,
         launch.treasuryBps().catch(() => 0n) as Promise<bigint>,
         launch.settlementSeconds().catch(() => 0n) as Promise<bigint>,
+        launch.protocolFeeBps().catch(() => 0n) as Promise<bigint>,
       ]);
       if (isStale()) return;
 
@@ -1894,6 +1901,7 @@ function ParticipantsTerminal() {
       setLaunchConfig({
         refundPenaltyPct: Number(loadedRefundPenaltyBps) / 100,
         treasuryPct: Number(loadedTreasuryBps) / 100,
+        protocolFeePct: Number(loadedProtocolFeeBps) / 100,
         settlementSeconds: Number(loadedSettlementSeconds),
         saleTokens: loadedSaleTokens,
         lpTokens: loadedLpTokens,
@@ -1937,7 +1945,11 @@ function ParticipantsTerminal() {
           id: round + 1,
           allocationPct: Number(shareBps) / 100,
           deflectionCostPct:
-            round < FREE_REFUND_ROUNDS ? 0 : round < REFUND_STAGE_COUNT ? Number(loadedRefundPenaltyBps) / 100 : 0,
+            round < EARLY_REFUND_ROUNDS
+              ? EARLY_REFUND_PENALTY_PCT
+              : round < REFUND_STAGE_COUNT
+                ? Number(loadedRefundPenaltyBps) / 100
+                : 0,
           startAt: Number(startAt),
           endAt: Number(endAt),
           refundStartAt,
@@ -3080,6 +3092,11 @@ function ParticipantsTerminal() {
   return (
     <CurrencyContext.Provider value={currency}>
     <main className="flex min-h-dvh flex-col bg-paper text-ink xl:h-dvh xl:overflow-hidden">
+      {!PROTOCOL_DEPLOYED && (
+        <p className="shrink-0 border-b border-hairline px-4 py-2 font-mono text-[10px] uppercase tracking-[0.02em] text-alert sm:px-6" role="status">
+          The D17 V15 contracts are not deployed on {CHAIN_NAME} yet — no launch can be created or joined on this network.
+        </p>
+      )}
       <header className="shrink-0 border-b border-hairline">
         <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
           <p className="flex items-baseline gap-3 font-mono text-[10px] uppercase tracking-[0.02em]">
@@ -4319,6 +4336,8 @@ function LaunchMasthead({
       if (config.deadTokens > 0n) tokenomics.push({ label: "Dead address", value: pct(config.deadTokens) });
     }
     if (config.treasuryPct > 0) tokenomics.push({ label: "Treasury", value: `${config.treasuryPct}% ETH` });
+    if (config.protocolFeePct > 0) tokenomics.push({ label: "Protocol fee", value: `${config.protocolFeePct}% ETH` });
+    if (config.manualTokens > 0n) tokenomics.push({ label: "Deployer vesting", value: "180d linear" });
   }
   // Prefer the served SVG endpoint (relative to the API base) over the inline
   // data URI; fall back to initials so the block never collapses.
@@ -5691,24 +5710,27 @@ function toPositionSnapshot(raw: ethers.Result | null, lockedWeth: bigint, withd
       liquidityVault: "",
       wethSentToVault: "0",
       treasuryWeth: "0",
+      protocolFeeWeth: "0",
       finalSaleTokensClaimed: false,
     };
   }
 
   return {
-    known: Boolean(raw[0]),
+    // Named fields: the V15 locker struct inserted protocolFeeWeth after treasuryWeth.
+    known: Boolean(raw.known),
     lockedWeth: formatEth(lockedWeth),
     withdrawableWeth: formatEth(withdrawableWeth),
     withdrawableWethExact: ethers.formatEther(withdrawableWeth),
-    residualWeth: formatEth(raw[14] as bigint),
-    withdrawableTokens: formatToken(raw[13] as bigint),
-    withdrawableTokensExact: ethers.formatUnits(raw[13] as bigint, 18),
-    claimedSaleTokens: formatToken(raw[9] as bigint),
-    liquiditySettled: Boolean(raw[1]),
-    liquidityVault: raw[3] as string,
-    wethSentToVault: formatEth(raw[10] as bigint),
-    treasuryWeth: formatEth(raw[12] as bigint),
-    finalSaleTokensClaimed: Boolean(raw[15]),
+    residualWeth: formatEth(raw.residualWeth as bigint),
+    withdrawableTokens: formatToken(raw.withdrawableTokens as bigint),
+    withdrawableTokensExact: ethers.formatUnits(raw.withdrawableTokens as bigint, 18),
+    claimedSaleTokens: formatToken(raw.claimedSaleTokens as bigint),
+    liquiditySettled: Boolean(raw.liquiditySettled),
+    liquidityVault: raw.liquidityVault as string,
+    wethSentToVault: formatEth(raw.wethSentToVault as bigint),
+    treasuryWeth: formatEth(raw.treasuryWeth as bigint),
+    protocolFeeWeth: formatEth(raw.protocolFeeWeth as bigint),
+    finalSaleTokensClaimed: Boolean(raw.finalSaleTokensClaimed),
   };
 }
 
@@ -6573,8 +6595,15 @@ function parseContractError(error: unknown) {
     MIN_COMMIT_ZERO: "Minimum commit must be greater than zero.",
     MIN_PHASE1_WETH: "Round 1 minimum WETH must be at least the minimum commit amount.",
     MIN_ANCHOR_PRICE_ZERO: "Minimum anchor price must be greater than zero.",
-    TREASURY_BPS: "Treasury fee is above the allowed maximum.",
-    REFUND_PENALTY_BPS: "Refund penalty is above the allowed maximum.",
+    TREASURY_BPS: "Treasury fee is above the allowed maximum (10%).",
+    REFUND_PENALTY_BPS: "Refund penalty must be between 1% and 25%.",
+    START_TOO_SOON: "The launch must start later (mainnet requires at least 24 hours of public notice).",
+    PROTOCOL_FEE_ABOVE_MAX: "The protocol fee changed above the rate you accepted. Review it and try again.",
+    FACTORY_NOT_RENOUNCED: "This factory still has an owner key; launches are refused until it is renounced.",
+    FACTORIES_NOT_RENOUNCED: "A creation-path factory still has an owner key; launches are refused until it is renounced.",
+    NOTHING_VESTED: "No creator tokens are vested and unreleased yet.",
+    SETTLEMENT_OPEN: "Residual tokens can only be burned once every commitment has settled.",
+    FEE_ABOVE_CAP: "The protocol fee cannot exceed 2%.",
     ROUND_SECONDS: "One or more round durations are outside the allowed range.",
     ROUND_SECONDS_ZERO: "Round duration must be greater than zero.",
     ROUND_SHARE_ZERO: "Each round must have a non-zero allocation share.",

@@ -20,7 +20,7 @@ import {
   READ_RPC_URL,
   SITE_MODE,
 } from "@/lib/d17Api";
-import { LOCAL_DEPLOYER_SCHEMA, PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
+import { LOCAL_DEPLOYER_SCHEMA, PROTOCOL_DEPLOYED, PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
 import { d17Href } from "@/lib/d17Network";
 
 declare global {
@@ -34,7 +34,7 @@ const CHAIN_ID_BIG = BigInt(CHAIN_ID);
 // Writes are pinned to the public deployment manifest bundled with this build.
 const DEFAULT_FACTORY = PUBLIC_DEPLOYMENT?.contracts.d17Factory || "";
 const DEAD_RECIPIENT = "0x000000000000000000000000000000000000dEaD";
-const EXPECTED_FACTORY_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE"));
+const EXPECTED_FACTORY_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V15_HARDENED"));
 const MAX_START_DELAY_SECONDS = 365 * 24 * 60 * 60;
 const MAX_REFUND_SECONDS = 30 * 24 * 60 * 60;
 const MAX_SETTLEMENT_SECONDS = 30 * 24 * 60 * 60;
@@ -44,6 +44,7 @@ const MIN_ROUND_ALLOCATION_TOKENS = 1n;
 const MIN_ANCHOR_PRICE_WAD = 1_000_000n;
 // Fixed by the deployed contract (uint16[5]/uint32[5] config arrays).
 const ROUND_COUNT = 5;
+const FEE_CONFIG_ABI = ["function currentFee() view returns (address recipient, uint16 bps)"];
 
 type LinkRow = { linkType: string; url: string };
 
@@ -53,7 +54,7 @@ type DeployerSchema = {
   hostedPublicDeployEnabled?: boolean;
   profile?: string;
   mainnetHostedDeployEnabled?: boolean;
-  manualDistribution?: { maxBpsOfSupply?: number };
+  manualDistribution?: { maxBpsOfSupply?: number; vestingDays?: number };
   contracts?: { d17Factory?: string };
   createLaunch?: { abi?: ethers.InterfaceAbi };
   validation?: {
@@ -61,9 +62,12 @@ type DeployerSchema = {
     tokenSymbolBytes?: { min?: number; max?: number };
     descriptionBytes?: { max?: number };
     links?: { max?: number; linkTypeBytes?: { max?: number; pattern?: string }; urlBytes?: { max?: number } };
+    earlyRefundPenaltyBps?: number;
     refundPenaltyBps?: { min?: number; max?: number };
     treasuryBps?: { min?: number; max?: number };
     roundSeconds?: { length?: number; min?: number; max?: number };
+    windowSeconds?: { min?: number };
+    startDelaySeconds?: { min?: number };
   };
   knownContractGaps?: { id?: string }[];
 };
@@ -192,7 +196,9 @@ function DeployForm() {
 
   const [minPhase1Weth, setMinPhase1Weth] = useState("1");
   const [minAnchorPrice, setMinAnchorPrice] = useState("0.00000005");
-  const [burnUnsold, setBurnUnsold] = useState(true);
+  // Protocol fee read from D17FeeConfig; the creator consents to exactly this rate
+  // (maxProtocolFeeBps), so a fee raised before the transaction lands reverts it.
+  const [protocolFeeBps, setProtocolFeeBps] = useState<number | null>(null);
   const [factoryAddress] = useState(DEFAULT_FACTORY);
 
   const [walletAddress, setWalletAddress] = useState("");
@@ -204,6 +210,22 @@ function DeployForm() {
   // until mounted, then tick every 30s so "opens in" stays honest.
   const [mounted, setMounted] = useState(false);
   const [, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!PROTOCOL_DEPLOYED || !READ_RPC_URL) return;
+    let cancelled = false;
+    const provider = new ethers.JsonRpcProvider(READ_RPC_URL, CHAIN_ID, { batchMaxCount: 1 });
+    const feeConfig = new ethers.Contract(PUBLIC_DEPLOYMENT.contracts.feeConfig, FEE_CONFIG_ABI, provider);
+    (feeConfig.currentFee() as Promise<[string, bigint]>)
+      .then(([, bps]) => {
+        if (!cancelled) setProtocolFeeBps(Number(bps));
+      })
+      .catch(() => undefined)
+      .finally(() => provider.destroy());
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -228,6 +250,7 @@ function DeployForm() {
   const deadAddressPct = supplyTokens > 0 ? Math.round((deadAddressTokens / supplyTokens) * 100) : 0;
   const overAllocated = salePct + lpPct + (supportsManualDistribution ? depPct : 0) > 100;
 
+  const earlyRefundPct = (LOCAL_DEPLOYER_SCHEMA.validation.earlyRefundPenaltyBps ?? 100) / 100;
   const startTime = useMemo(() => {
     if (customStart) {
       const at = new Date(customStart).getTime();
@@ -246,17 +269,18 @@ function DeployForm() {
       const closes = opens + roundMinutes[index] * 60;
       const hasRefund = index < ROUND_COUNT - 1;
       at = hasRefund ? closes + refundMinutes * 60 : closes;
-      // Contract policy: rounds 1-2 refund free, rounds 3-4 pay the configured
-      // penalty, and the final round has no normal refund window.
+      // Contract policy: rounds 1-2 pay the fixed early penalty, rounds 3-4 the
+      // configured penalty, the final round has no normal refund window. Every
+      // penalty deepens the official pool; none goes to the creator.
       return {
         id: index + 1,
         pct,
         opens,
         closes,
-        refund: hasRefund ? (index >= 2 ? `${refundCostPct}%` : "Free") : "None",
+        refund: hasRefund ? (index >= 2 ? `${refundCostPct}%` : `${earlyRefundPct}%`) : "None",
       };
     });
-  }, [sharesPct, roundMinutes, refundMinutes, refundCostPct, startTime]);
+  }, [sharesPct, roundMinutes, refundMinutes, refundCostPct, startTime, earlyRefundPct]);
 
   const validLinks = links.filter((link) => link.url.trim());
   // Limits come from the bundled schema; literals remain defensive fallbacks.
@@ -282,9 +306,13 @@ function DeployForm() {
   );
 
   const manualMaxBps = schema?.manualDistribution?.maxBpsOfSupply ?? 1000;
-  const refundPenaltyMaxBps = rules?.refundPenaltyBps?.max ?? 5000;
-  const treasuryMaxBps = rules?.treasuryBps?.max ?? 2000;
+  const refundPenaltyMinBps = rules?.refundPenaltyBps?.min ?? 100;
+  const refundPenaltyMaxBps = rules?.refundPenaltyBps?.max ?? 2500;
+  const treasuryMaxBps = rules?.treasuryBps?.max ?? 1000;
   const roundSecondsMin = rules?.roundSeconds?.min ?? 60;
+  const windowSecondsMin = rules?.windowSeconds?.min ?? 1;
+  const startDelayMin = rules?.startDelaySeconds?.min ?? 0;
+  const vestingDays = schema?.manualDistribution?.vestingDays ?? 180;
   const roundSecondsMax = rules?.roundSeconds?.max ?? 7776000; // 90 days
 
   const problems: string[] = [];
@@ -310,10 +338,17 @@ function DeployForm() {
   if (decimalToWei(minAnchorPrice) < MIN_ANCHOR_PRICE_WAD) problems.push("anchor price below contract minimum");
   if (!ethers.isAddress(factoryAddress) || ethers.getAddress(factoryAddress) !== ethers.getAddress(DEFAULT_FACTORY)) problems.push("factory address mismatch");
   if (treasury && !ethers.isAddress(treasury)) problems.push("treasury address");
+  if (!PROTOCOL_DEPLOYED) problems.push(`protocol not deployed on ${CHAIN_NAME} yet`);
+  if (protocolFeeBps === null && PROTOCOL_DEPLOYED) problems.push("protocol fee not loaded");
   if (startTime <= Math.floor(Date.now() / 1000)) problems.push("start time is in the past");
+  else if (startTime < Math.floor(Date.now() / 1000) + startDelayMin)
+    problems.push(`start must be announced at least ${Math.round(startDelayMin / 3600)}h ahead`);
   if (startTime > Math.floor(Date.now() / 1000) + MAX_START_DELAY_SECONDS) problems.push("start time is over 365 days away");
   if (supportsManualDistribution && depPct * 100 > manualMaxBps) problems.push(`deployer allocation over ${manualMaxBps / 100}% of supply`);
-  if (refundCostPct * 100 > refundPenaltyMaxBps) problems.push(`refund cost over ${refundPenaltyMaxBps / 100}%`);
+  if (refundCostPct * 100 > refundPenaltyMaxBps || refundCostPct * 100 < refundPenaltyMinBps)
+    problems.push(`refund cost outside ${refundPenaltyMinBps / 100}%–${refundPenaltyMaxBps / 100}%`);
+  if (Math.round(refundMinutes * 60) < windowSecondsMin || Math.round(settlementMinutes * 60) < windowSecondsMin)
+    problems.push(`refund and claim windows need at least ${Math.round(windowSecondsMin / 60)}m`);
   if (treasuryPct * 100 > treasuryMaxBps) problems.push(`treasury share over ${treasuryMaxBps / 100}%`);
   if (roundMinutes.some((minutes) => Math.round(minutes * 60) < roundSecondsMin || Math.round(minutes * 60) > roundSecondsMax))
     problems.push(`round length outside ${Math.ceil(roundSecondsMin / 60)}m–${Math.round(roundSecondsMax / 86400)}d`);
@@ -352,7 +387,7 @@ function DeployForm() {
     roundSharesBps: sharesPct.map((pct) => Math.round(pct * 100)) as [number, number, number, number, number],
     treasuryBps: Math.round(treasuryPct * 100),
     refundPenaltyBps: Math.round(refundCostPct * 100),
-    burnUnsoldSaleTokens: burnUnsold,
+    maxProtocolFeeBps: protocolFeeBps ?? 0,
   });
 
   const connectWallet = async () => {
@@ -549,7 +584,8 @@ function DeployForm() {
           <section className="mt-6 border-t border-hairline pt-5">
             <h2 className={H2}>02 · Economics</h2>
             <p className={HINT}>
-              Set sale, LP, and deployer — the remainder goes to the canonical dead address. Deployer tokens go to your wallet.
+              Set sale, LP, and deployer — the remainder goes to the canonical dead address. Deployer tokens vest to your
+              wallet linearly over {vestingDays} days once trading opens.
             </p>
             <div className="mt-3 flex h-4 border border-hairline" aria-hidden>
               <div style={{ width: `${Math.min(salePct, 100)}%` }} className="bg-ink" />
@@ -582,12 +618,12 @@ function DeployForm() {
                 <span className="font-semibold text-ink tabular-nums">
                   {depTokens.toLocaleString("en-US")} {tokenSymbol.trim() || "tokens"}
                 </span>{" "}
-                minted to your wallet at deploy
+                vest to your wallet over {vestingDays} days after trading opens
               </p>
             )}
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               <label className="block">
-                <span className={LABEL}>Treasury % (ETH)</span>
+                <span className={LABEL}>Treasury % (ETH, max {treasuryMaxBps / 100}%)</span>
                 <input type="number" min={0} max={100} step="0.5" value={treasuryPct} onChange={(event) => setTreasuryPct(clampPct(event.target.value))} className={FIELD} />
               </label>
               <label className="block">
@@ -599,6 +635,18 @@ function DeployForm() {
                 <input className={FIELD} value={minCommit} onChange={(event) => setMinCommit(event.target.value)} inputMode="decimal" />
               </label>
             </div>
+            <p className={HINT}>
+              Protocol fee:{" "}
+              <span className="font-semibold text-ink">
+                {protocolFeeBps === null ? "—" : `${protocolFeeBps / 100}%`}
+              </span>{" "}
+              of each successful commitment (hard cap 2%, fixed into your launch&apos;s rules). Never charged on refunds or a
+              failed launch. With your treasury share, participants see{" "}
+              <span className="font-semibold text-ink">
+                {protocolFeeBps === null ? "—" : `${100 - treasuryPct - protocolFeeBps / 100}%`}
+              </span>{" "}
+              of every successful commitment locked in the official pool.
+            </p>
           </section>
 
           <section className="mt-6 border-t border-hairline pt-5">
@@ -610,6 +658,7 @@ function DeployForm() {
                 <option value="15">in 15 min</option>
                 <option value="30">in 30 min</option>
                 <option value="60">in 1 hour</option>
+                <option value="1500">in 25 hours</option>
                 <option value="custom">at a set time</option>
               </select>
               {customStart ? (
@@ -637,7 +686,7 @@ function DeployForm() {
                   {roundMinutes[index] >= 60 && <span className="text-quiet whitespace-nowrap">= {humanMinutes(roundMinutes[index])}</span>}
                 </span>
                 <span className={`text-right ${index >= ROUND_COUNT - 1 ? "text-quiet" : index >= 2 ? "" : "text-live"}`}>
-                  {index >= ROUND_COUNT - 1 ? "None" : index >= 2 ? `${refundCostPct}%` : "Free"}
+                  {index >= ROUND_COUNT - 1 ? "None" : index >= 2 ? `${refundCostPct}%` : `${earlyRefundPct}%`}
                 </span>
               </div>
             ))}
@@ -650,8 +699,8 @@ function DeployForm() {
                 <input type="number" min={1} value={refundMinutes} onChange={(event) => setRefundMinutes(Math.max(1, Number(event.target.value) || 1))} className={FIELD} />
               </label>
               <label className="block">
-                <span className={LABEL}>Refund cost % (rounds 3–4)</span>
-                <input type="number" min={0} max={100} value={refundCostPct} onChange={(event) => setRefundCostPct(clampPct(event.target.value))} className={FIELD} />
+                <span className={LABEL}>Refund cost % (rounds 3–4, {refundPenaltyMinBps / 100}–{refundPenaltyMaxBps / 100}%)</span>
+                <input type="number" min={refundPenaltyMinBps / 100} max={refundPenaltyMaxBps / 100} value={refundCostPct} onChange={(event) => setRefundCostPct(clampPct(event.target.value))} className={FIELD} />
               </label>
               <label className="block">
                 <span className={LABEL}>Claim window · minutes{settlementMinutes >= 60 ? ` = ${humanMinutes(settlementMinutes)}` : ""}</span>
@@ -679,16 +728,12 @@ function DeployForm() {
             </div>
             <p className={HINT}>
               Round 1 sets the anchor price (raised ÷ its allocation). If it raises less than the floor — or the price lands
-              below the anchor floor — the launch fails and everyone refunds free. Later rounds size their targets off the anchor.
+              below the anchor floor — the launch fails and every remaining commitment refunds in full. No round, including the
+              final one, sells below the anchor price.
             </p>
-            <label className="mt-2 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.02em] text-dim">
-              <input type="checkbox" checked={burnUnsold} onChange={(event) => setBurnUnsold(event.target.checked)} />
-              Burn unsold sale tokens after finalize
-            </label>
             <p className={HINT}>
-              {burnUnsold
-                ? "Any sale tokens left unsold at finalization are burned and reduce total supply."
-                : "Any sale tokens left unsold at finalization are transferred to the published treasury."}
+              Unsold sale tokens and the matching share of the LP allocation are always burned at finalization. Refund
+              penalties deepen the official pool. Your treasury only receives its published ETH share.
             </p>
             {!ready && (
               <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">
@@ -782,7 +827,8 @@ function DeployForm() {
                 </>
               )}{" "}
               · Dead address <span className="font-semibold text-dim">{overAllocated ? "—" : `${deadAddressPct}%`}</span> · Treasury{" "}
-              <span className="font-semibold text-dim">{treasuryPct}% ETH</span>
+              <span className="font-semibold text-dim">{treasuryPct}% ETH</span> · Protocol{" "}
+              <span className="font-semibold text-dim">{protocolFeeBps === null ? "—" : `${protocolFeeBps / 100}%`} ETH</span>
             </p>
           </div>
 
@@ -801,7 +847,7 @@ function DeployForm() {
                 <span className="text-right">
                   {clock(round.opens)} → {clock(round.closes)}
                 </span>
-                <span className={`text-right ${round.refund === "Free" ? "text-live" : ""}`}>{round.refund}</span>
+                <span className={`text-right ${round.id <= 2 ? "text-live" : ""}`}>{round.refund}</span>
               </div>
             ))}
           </div>
@@ -860,7 +906,7 @@ function byteLength(value: string) {
 }
 
 async function assertDeployFactorySuite(factory: ethers.Contract) {
-  const [factoryId, weth, router, launchFactory, lockerFactory, owner, launchPinned, lockerPinned] = await Promise.all([
+  const [factoryId, weth, router, launchFactory, lockerFactory, owner, launchPinned, lockerPinned, feeConfig] = await Promise.all([
     factory.D17_FACTORY_ID(),
     factory.weth(),
     factory.router(),
@@ -869,6 +915,7 @@ async function assertDeployFactorySuite(factory: ethers.Contract) {
     factory.owner(),
     factory.launchFactoryPinned(),
     factory.lockerFactoryPinned(),
+    factory.feeConfig(),
   ]);
   if (factoryId !== EXPECTED_FACTORY_ID) throw new Error("The bundled address is not the expected D17 factory.");
   if (!sameAddress(weth, PUBLIC_DEPLOYMENT.weth) || !sameAddress(router, PUBLIC_DEPLOYMENT.router)) {
@@ -877,6 +924,7 @@ async function assertDeployFactorySuite(factory: ethers.Contract) {
   if (
     !sameAddress(launchFactory, PUBLIC_DEPLOYMENT.contracts.launchFactory)
     || !sameAddress(lockerFactory, PUBLIC_DEPLOYMENT.contracts.lockerFactory)
+    || !sameAddress(feeConfig, PUBLIC_DEPLOYMENT.contracts.feeConfig)
   ) {
     throw new Error("The D17 factory-suite wiring does not match the bundled deployment manifest.");
   }

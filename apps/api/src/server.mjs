@@ -127,7 +127,7 @@ const REFRESH_SNAPSHOTS_ON_REQUEST = process.env.REFRESH_SNAPSHOTS_ON_REQUEST ==
 const REFRESH_LOCKER_BALANCES_ON_REQUEST = process.env.REFRESH_LOCKER_BALANCES_ON_REQUEST === "1";
 
 // This exact string is the immutable identity of the deployed contract family.
-const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V14_1_REFUND_SCHEDULE_BURN_GATE"));
+const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V15_HARDENED"));
 
 const ABI_DIR = path.join(root, "abi");
 const ABI = {
@@ -951,7 +951,8 @@ async function refreshLaunchSnapshot(launchAddress) {
     () => withRetry(() => contract.lpTokens(), "lpTokens"),
     () => withRetry(() => contract.deadTokens(), "deadTokens"),
     () => safeCall(contract, "deadRecipient"),
-    () => safeCall(contract, "burnUnsoldSaleTokens", false),
+    // V15 has no unsold-token option: unsold sale tokens are always burned.
+    () => Promise.resolve(true),
     () => safeCall(contract, "officialPair"),
     () => safeCall(contract, "officialTokenUsedForLp", 0n),
     () => safeCall(contract, "officialWethUsedForLp", 0n),
@@ -1038,6 +1039,16 @@ async function refreshLaunchSnapshot(launchAddress) {
     lpTokens,
     deadTokens
   });
+  // V15 fields, read separately so the long positional list above stays unchanged.
+  const [protocolFeeBps, protocolFeeRecipient, protocolFeeWethPaid, effectiveLpTokens, unusedLpTokensBurned] = await runLimited([
+    () => safeCall(contract, "protocolFeeBps", 0n),
+    () => safeCall(contract, "protocolFeeRecipient"),
+    () => safeCall(contract, "protocolFeeWethPaid", 0n),
+    () => safeCall(contract, "effectiveLpTokens", 0n),
+    () => safeCall(contract, "unusedLpTokensBurned", 0n),
+  ]);
+  const finalizedFlag = Boolean(finalized);
+
   const updatedLaunch = {
     ...launch,
     launchId,
@@ -1099,7 +1110,17 @@ async function refreshLaunchSnapshot(launchAddress) {
     lateTokenUsedForLp: lateTokenUsedForLp.toString(),
     lateWethUsedForLp: lateWethUsedForLp.toString(),
     lateLpMinted: lateLpMinted.toString(),
-    reservedLpTokensRemaining: reservedLpTokens(lpTokens, vaultLiquidityTokensClaimed, lateLpTokensReleased),
+    reservedLpTokensRemaining: reservedLpTokens(
+      finalizedFlag && effectiveLpTokens > 0n ? effectiveLpTokens : lpTokens,
+      vaultLiquidityTokensClaimed,
+      lateLpTokensReleased
+    ),
+    protocolFeeBps: Number(protocolFeeBps),
+    protocolFeeRecipient: normalizeOptionalAddress(protocolFeeRecipient),
+    protocolFeeWethPaid: protocolFeeWethPaid.toString(),
+    effectiveLpTokens: effectiveLpTokens.toString(),
+    unusedLpTokensBurned: unusedLpTokensBurned.toString(),
+    creatorVestingSeconds: 180 * 24 * 60 * 60,
     rounds,
     apiSnapshotRefreshedAt: new Date().toISOString(),
   };
@@ -1386,15 +1407,22 @@ function deployerSchema() {
       minCommitWeth: { minWei: "1000000000000000" },
       minPhase1Weth: { minRule: "minPhase1Weth >= minCommitWeth" },
       minAnchorPriceWad: { min: "1000000" },
-      treasuryBps: { min: 0, max: 2000 },
-      refundPenaltyBps: { min: 0, max: 5000 }
+      treasuryBps: { min: 0, max: 1000 },
+      refundPenaltyBps: { min: 100, max: 2500 },
+      maxProtocolFeeBps: { min: 0, max: 200, rule: "creation reverts if D17FeeConfig's fee is above this value" },
+      mainnetMinimums: { startDelaySeconds: 86400, roundSeconds: 3600, refundSeconds: 3600, settlementSeconds: 3600 }
+    },
+    protocolFee: {
+      source: "D17FeeConfig, snapshotted into each launch's immutables and rulesHash",
+      maxBps: 200,
+      chargedOn: "successful settlement only (never refunds, penalties or failed launches)"
     },
     refundPolicy: {
       source: "contract-fixed",
-      contractVersion: "D17_CURRENT",
+      contractVersion: "D17_V15_HARDENED",
       appliesRefundPenaltyField: "refundPenaltyBps",
       configurableByDeployer: false,
-      note: "Display rounds 1-2 are penalty-free, display rounds 3-4 charge refundPenaltyBps, and display round 5 has no normal refund window.",
+      note: "Display rounds 1-2 charge the fixed 1% early penalty, display rounds 3-4 charge refundPenaltyBps, display round 5 has no normal refund window. Every penalty is paid into the official pool (burned if the launch fails), never to the creator.",
       rounds: refundPolicyScheduleDto({ launchId: CURRENT_LAUNCH_ID, refundPenaltyBps: null })
     },
     manualDistribution: {
@@ -1403,7 +1431,7 @@ function deployerSchema() {
       recipient: "launch creator / msg.sender",
       maxBpsOfSupply: 1000,
       contractChangeRequired: false,
-      expectedMint: "D17LaunchFactory mints manualDistributionTokens to the launch creator before minting closes.",
+      expectedMint: "D17LaunchFactory mints manualDistributionTokens into the liquidity vault, which vests them linearly to the creator over 180 days from pool creation.",
       splitRule: "saleTokens + lpTokens + manualDistributionTokens + deadTokens == tokenSupply"
     },
     revertStrings: {
@@ -1480,7 +1508,7 @@ function createLaunchConfigFields(createLaunch) {
     "roundSharesBps",
     "treasuryBps",
     "refundPenaltyBps",
-    "burnUnsoldSaleTokens"
+    "maxProtocolFeeBps"
   ];
 }
 
@@ -1761,6 +1789,9 @@ function launchConfigDto(launch) {
     minAnchorPriceWad: decimalString(launch.minAnchorPriceWad),
     treasuryBps: numberOrNull(launch.treasuryBps),
     treasury: launch.treasury || "",
+    protocolFeeBps: numberOrNull(launch.protocolFeeBps),
+    protocolFeeRecipient: launch.protocolFeeRecipient || "",
+    creatorVestingSeconds: numberOrNull(launch.creatorVestingSeconds),
     officialPair: launch.officialPair || "",
     allFinalCommitmentsSettled: Boolean(launch.allFinalCommitmentsSettled),
     poolCreationRequiresAllSettled: false
@@ -1879,7 +1910,11 @@ function refundPolicyForRound(launch, round) {
   const contractRound = Number(round.round ?? 0);
   const refundable = contractRound < REFUND_STAGE_COUNT;
   const appliesPenalty = refundable && refundPenaltyAppliesForRound(launch, contractRound);
-  const penaltyBps = refundable ? appliesPenalty ? Number(launch.refundPenaltyBps || 0) : 0 : null;
+  const penaltyBps = !refundable
+    ? null
+    : contractRound < EARLY_REFUND_ROUNDS
+      ? EARLY_REFUND_PENALTY_BPS
+      : Number(launch.refundPenaltyBps || 0);
   return {
     refundable,
     reason: refundable ? null : "final-round-no-normal-refund-window",
@@ -1892,9 +1927,13 @@ function refundPolicyForRound(launch, round) {
   };
 }
 
+// V15: every refund window charges a penalty (fixed 1% in contract rounds 0-1,
+// refundPenaltyBps in rounds 2-3); the final round has no window.
+const EARLY_REFUND_ROUNDS = 2;
+const EARLY_REFUND_PENALTY_BPS = 100;
+
 function refundPenaltyAppliesForRound(launch, contractRound) {
-  if (contractRound >= REFUND_STAGE_COUNT) return false;
-  return contractRound >= 2;
+  return contractRound < REFUND_STAGE_COUNT;
 }
 
 function refundPolicyScheduleDto(launch) {
@@ -1903,9 +1942,9 @@ function refundPolicyScheduleDto(launch) {
     const appliesPenalty = refundable && refundPenaltyAppliesForRound(launch, contractRound);
     const penaltyBps = !refundable
       ? null
-      : appliesPenalty
-        ? launch?.refundPenaltyBps != null ? Number(launch.refundPenaltyBps || 0) : null
-        : 0;
+      : contractRound < EARLY_REFUND_ROUNDS
+        ? EARLY_REFUND_PENALTY_BPS
+        : launch?.refundPenaltyBps != null ? Number(launch.refundPenaltyBps || 0) : null;
     return {
       round: contractRound,
       displayRound: contractRound + 1,
@@ -2260,22 +2299,24 @@ async function refreshLockerBalance(launchAddress, locker, blockTag = state.inde
   }), 2);
   if (lockedWeth == null && withdrawableWeth == null && accountedWeth == null && position == null) return;
   const serializedPosition = position == null ? null : {
-    known: Boolean(position[0]),
-    liquiditySettled: Boolean(position[1]),
-    token: normalizeOptionalAddress(position[2]),
-    liquidityVault: normalizeOptionalAddress(position[3]),
-    rulesHash: position[4],
-    ethCommitted: decimalString(position[5]),
-    wethCommitted: decimalString(position[6]),
-    wethRefunded: decimalString(position[7]),
-    penaltyPaid: decimalString(position[8]),
-    claimedSaleTokens: decimalString(position[9]),
-    wethSentToVault: decimalString(position[10]),
-    wethForLp: decimalString(position[11]),
-    treasuryWeth: decimalString(position[12]),
-    withdrawableTokens: decimalString(position[13]),
-    residualWeth: decimalString(position[14]),
-    finalSaleTokensClaimed: Boolean(position[15]),
+    // Named fields: the V15 locker struct inserted protocolFeeWeth after treasuryWeth.
+    known: Boolean(position.known),
+    liquiditySettled: Boolean(position.liquiditySettled),
+    token: normalizeOptionalAddress(position.token),
+    liquidityVault: normalizeOptionalAddress(position.liquidityVault),
+    rulesHash: position.rulesHash,
+    ethCommitted: decimalString(position.ethCommitted),
+    wethCommitted: decimalString(position.wethCommitted),
+    wethRefunded: decimalString(position.wethRefunded),
+    penaltyPaid: decimalString(position.penaltyPaid),
+    claimedSaleTokens: decimalString(position.claimedSaleTokens),
+    wethSentToVault: decimalString(position.wethSentToVault),
+    wethForLp: decimalString(position.wethForLp),
+    treasuryWeth: decimalString(position.treasuryWeth),
+    protocolFeeWeth: decimalString(position.protocolFeeWeth),
+    withdrawableTokens: decimalString(position.withdrawableTokens),
+    residualWeth: decimalString(position.residualWeth),
+    finalSaleTokensClaimed: Boolean(position.finalSaleTokensClaimed),
     rounds: exactRounds.filter(Boolean)
   };
   state.lockers[locker] = {
