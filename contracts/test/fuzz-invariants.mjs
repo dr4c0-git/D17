@@ -262,8 +262,11 @@ async function main() {
         await setTime(provider, Number(await launch.roundStart(round)) + 1);
         if (round > 0 && !(await launch.anchorReady())) { failedLaunch = true; break; }
         const committers = shuffle(lockers).slice(0, int(round === 0 ? 2 : 0, PARTICIPANTS));
-        for (const l of committers) {
-          const value = amount();
+        // Three campaigns out of four get one phase-one commitment big enough for the anchor,
+        // so the traded path is covered as often as the failed one is.
+        const anchorCommit = round === 0 && chance(0.75);
+        for (const [index, l] of committers.entries()) {
+          const value = anchorCommit && index === 0 ? cfg.minPhase1Weth + amount() : amount();
           await act(`commit r${round} ${ethers.formatEther(value)}`, async () => {
             await wait(await l.contract.commitToRound(L, round, rules, { value }));
           });
@@ -350,9 +353,13 @@ async function main() {
       if (pending.length > 0 && (await launch.finalized())) {
         await expectRevert(`[${campaign}] third party waits for the grace boundary`, () => pending[0].contract.connect(stranger).settleAfterGrace.staticCall(L), "GRACE_OPEN");
       }
-      await setTime(provider, Number(await launch.poolCreationOpensAt()) + 1);
       // settleAfterGrace needs a finalized launch; finalization itself is permissionless.
+      // Finalize first: the grace boundary is fixed at finalization (finalizedAt +
+      // settlementSeconds), so a late finalization pushes it back on purpose.
       if (!(await launch.finalized())) await act("finalize (permissionless)", async () => { await wait(await launch.connect(stranger).finalizeLaunch()); });
+      invariant("grace boundary leaves owners a full settlement window",
+        (await launch.poolCreationOpensAt()) >= (await launch.finalizedAt()) + (await launch.settlementSeconds()));
+      await setTime(provider, Number(await launch.poolCreationOpensAt()) + 1);
       if ((await launch.settledLiquidityWeth()) === 0n) await settle(pending.shift(), "third-party");
       while (pending.length > 0 && chance(0.3)) await settle(pending.shift(), "third-party");
 
