@@ -7,6 +7,7 @@ Documentation for the D17 open-source experiment.
 - [User guide](./GUIDE.md)
 - [Contracts explained for humans](./CONTRACTS.md)
 - [Technical contract reference](./CONTRACTS_TECHNICAL.md)
+- [V15 changes and protocol fee](./V15_HARDENING.md)
 - [Self-hosting](./SELF_HOSTING.md)
 - [Short essays](./blog/README.md)
 
@@ -15,7 +16,7 @@ Documentation for the D17 open-source experiment.
 - `apps/web` - one Sepolia/mainnet participant terminal and deployer.
 - `apps/api` - optional provider-neutral RPC indexer and read API.
 - `contracts` - Solidity source, tests, ABIs, and deployment tools.
-- `deployments` - public Sepolia and mainnet factory manifests.
+- `deployments` - public Sepolia and mainnet factory manifests (V15: not deployed yet).
 - `release` - reproducible contract build and public deployment provenance.
 
 ## Status

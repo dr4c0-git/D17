@@ -122,7 +122,7 @@ At deployment, the complete supply is minted once. Minting is then closed and to
 
 ### Unsold tokens are always burned
 
-At finalization, unsold sale tokens are burned, and so is the matching share of the LP allocation (the LP allocation is scaled to the share of the sale that actually sold, so the pool opens near the average sale price). Nobody, including the treasury, receives tokens the market did not buy. *Enforced by `D17Launch`.*
+At finalization, unsold sale tokens are burned, and so is the matching share of the LP allocation (the LP allocation is scaled to the share of the sale that actually sold, so the opening price follows what buyers actually paid instead of being set by tokens nobody bought; it equals the average sale price net of fees when the LP allocation equals the sale allocation). Nobody, including the treasury, receives tokens the market did not buy. *Enforced by `D17Launch`.*
 
 ### Tokens cannot circulate before the official pool opens
 

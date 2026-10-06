@@ -27,7 +27,7 @@
     ]
   },
   "standardJsonInput": "solc-input.json",
-  "standardJsonInputSha256": "e565ab457cb95441e6dbc6c750759d25182d5180a40987f287f6540012c557fe",
+  "standardJsonInputSha256": "71bf2c31e824a80069799cf916c5cbb407861b38c0f8c9d438267915787db3ac",
   "identities": {
     "factory": {
       "literal": "D17_FACTORY_V15_HARDENED",
@@ -73,7 +73,7 @@
       "sha256": "a97ce96944182518514e880027ff981af7b1ea63b24832196927a7ee3df7fd01"
     },
     "contracts/contracts/D17Launch.sol": {
-      "sha256": "20f63bce3330f79c41dd657e4fd53e6527d9bff8cc81d030a22c751be95dbddc"
+      "sha256": "415764d7330feaec774c38c03ef9694daeb3559b1c2b8b42bfc9bf7d5f58cf9b"
     },
     "contracts/contracts/D17LaunchFactory.sol": {
       "sha256": "b4bccce5836d3abe34805c7145b2572fb6f40fec604d6e55617fe9ba132af98f"
