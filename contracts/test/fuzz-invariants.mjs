@@ -218,7 +218,10 @@ async function main() {
           sold += s;
           if (r > 0 && s > 0n && anchor > 0n) {
             const price = await launch.roundDiscoveredPriceWad(r);
-            invariant(`round ${r} never sells below the anchor`, price * 1_000_000_000n >= anchor * 999_999_999n, `${price} < ${anchor}`);
+            // Prices are integers in WAD (1e-18 ETH per token). Both the anchor and the
+            // discovered price are floored, so at very low prices (anchor ~1e8 WAD) one WAD unit
+            // is a large relative step. Allow exactly that: one WAD unit plus 1e-12 relative.
+            invariant(`round ${r} never sells below the anchor`, price + 1n + anchor / 1_000_000_000_000n >= anchor, `${price} < ${anchor}`);
           }
         }
         if (!failed) invariant("sold tokens never exceed the sale allocation", sold <= saleTokens);
