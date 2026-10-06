@@ -243,6 +243,10 @@ async function main() {
       }
       async function act(label, fn) {
         context = `campaign ${campaign} (${style}) · ${label}`;
+        // The node's clock follows wall time, and invariant checks take real seconds (more
+        // so with parallel runs). Pin the next block to latest + 1 so chain time only moves
+        // when the fuzzer decides, never because the checks were slow.
+        await provider.send("evm_setNextBlockTimestamp", [(await now(provider)) + 1]);
         try {
           await fn();
         } catch (error) {
