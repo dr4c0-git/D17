@@ -33,11 +33,12 @@ check(launch?.poolComposition?.initial?.tokenUsedForLp != null, "poolComposition
 check(launch?.poolComposition?.lateTopUp?.tokenUsedForLp != null, "poolComposition exposes late top-up tokenUsedForLp");
 check(launch?.poolComposition?.reserved?.remainingLpTokens != null, "poolComposition exposes reserved LP-token remainder");
 check(launch?.rounds?.every((round) => round.refundPolicy), "api exposes per-round refund policy");
-check(launch?.rounds?.[0]?.refundPolicy?.deflectionCostBps === 0, "round 1 deflection is zero");
+// V15: rounds 1-2 pay the fixed 1% early penalty, rounds 3-4 pay refundPenaltyBps.
+check(launch?.rounds?.[0]?.refundPolicy?.deflectionCostBps === 100, "round 1 deflection is the 1% early penalty");
 if (launch?.config?.version === "D17_CURRENT") {
-  check(launch?.rounds?.[1]?.refundPolicy?.deflectionCostBps === 0, "round 2 deflection is zero");
+  check(launch?.rounds?.[1]?.refundPolicy?.deflectionCostBps === 100, "round 2 deflection is the 1% early penalty");
   check(launch?.rounds?.[2]?.refundPolicy?.deflectionCostBps === Number(launch.config.refundPenaltyBps || 0), "round 3 deflection equals refundPenaltyBps");
-  check(launch?.config?.refundPenaltySchedule?.[1]?.appliesPenalty === false, "config marks round 2 penalty-free");
+  check(launch?.config?.refundPenaltySchedule?.[1]?.appliesPenalty === true, "config marks round 2 costed");
   check(launch?.config?.refundPenaltySchedule?.[2]?.appliesPenalty === true, "config marks round 3 costed");
 }
 check(launch?.rounds?.[4]?.refundPolicy?.refundable === false, "round 5 has no normal refund window");
