@@ -1,5 +1,14 @@
 # D17
 
+> **Fork notice — D17 V15.** This repository is a fork of
+> [0xlocker/D17](https://github.com/0xlocker/D17) (MIT, original copyright kept in
+> `LICENSE`). It ships hardened V15 contracts with a published protocol fee (at most
+> 2%, charged only on successful settlement). V15 is **not deployed** yet: the
+> manifests in `deployments/` read `"not-deployed"` until the suite is deployed on
+> Sepolia (then mainnet), verified and published. The upstream V14 addresses are not
+> compatible with this tree. Every rule change is listed in
+> [docs/V15_HARDENING.md](./docs/V15_HARDENING.md).
+
 ![D17 launch terminal: fair launches, mechanically](./d17-main.png)
 
 **An open-source Ethereum launch mechanism with published rules, personal
@@ -191,8 +200,9 @@ unsold allocations roll according to the fixed contract rules.
 
 ### 4. Refund windows provide defined exits
 
-Rounds 1-4 have refund windows. Rounds 1-2 are penalty-free; rounds 3-4 use the
-launch's published global refund penalty; round 5 has no normal refund window.
+Rounds 1-4 have refund windows. Rounds 1-2 cost a fixed 1%; rounds 3-4 use the
+launch's published global refund penalty (1-25%); round 5 has no normal refund
+window. Every penalty goes into the official pool, never to the creator.
 If the launch fails its floor, remaining commitments can be reclaimed in full.
 
 ### 5. Finalization and settlement are permissionless where needed

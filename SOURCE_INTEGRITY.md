@@ -13,9 +13,9 @@ cd contracts
 shasum -a 256 -c SHA256SUMS.txt
 ```
 
-Protocol identity strings containing `V14_1` are immutable on-chain identity
-values. Applications and deployment checks intentionally verify those exact
-hashes even though the repository itself is release 1.0.0.
+Protocol identity strings containing `V15_HARDENED` are immutable on-chain
+identity values. Applications and deployment checks intentionally verify those
+exact hashes.
 
 ## Reproducible compiler output
 

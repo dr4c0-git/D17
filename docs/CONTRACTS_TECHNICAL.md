@@ -1,5 +1,12 @@
 # D17 Contract Suite - Technical Reference
 
+> **Version note.** This reference was written for the upstream V14 contracts. Its
+> line citations and several rules (free early refunds, penalties and unsold tokens
+> paid to the treasury, 20%/50% caps, creator allocation sent to the creator's wallet,
+> canonical-ratio late liquidity) do **not** describe V15. Read
+> [V15_HARDENING.md](./V15_HARDENING.md) for every change until this reference is
+> rewritten.
+
 Audience: Solidity/EVM engineers integrating with, extending, or reviewing the suite.
 Citation convention: `File.sol:line` paths are relative to the checksummed
 `contracts/contracts/` directory. `contracts/SHA256SUMS.txt` identifies

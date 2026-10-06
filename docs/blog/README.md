@@ -1,5 +1,9 @@
 # D17 blog
 
+> **Version note.** These essays describe the upstream V14 rules. V15 changed refunds
+> (1% early penalty, every penalty paid into the pool), caps, unsold-token handling,
+> creator vesting and added a protocol fee — see [V15_HARDENING.md](../V15_HARDENING.md).
+
 Short essays on the ideas inside the D17 launch mechanism — one per topic, each readable in about five minutes. They're written for a curious participant, not a Solidity developer; the developer-grade detail lives in the [technical reference](../CONTRACTS_TECHNICAL.md), and the full plain-language walkthrough in [contracts, explained for humans](../CONTRACTS.md).
 
 | # | Post | The idea |

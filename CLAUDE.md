@@ -1,195 +1,130 @@
 # CLAUDE.md — mémoire du projet
 
-Fork de `0xlocker/D17` (licence MIT), destiné à devenir un launchpad propriétaire
-avec un modèle de frais de protocole. Dépôt : `dr4c0-git/D17`.
-Docs amont : https://d17docs.vercel.app/docs (copie locale : `docs/`, `contracts/docs/`).
+Fork de `0xlocker/D17` (licence MIT), devenu un launchpad propriétaire « D17 V15 »
+avec frais de protocole. Dépôt : `dr4c0-git/D17`. Branche de travail :
+`claude/hopeful-pasteur-4lq2ho`. Docs amont : https://d17docs.vercel.app/docs
+(inaccessible depuis le sandbox cloud ; copies locales dans `docs/`).
 
 ## Contraintes permanentes (fixées par le propriétaire)
 
-- **Licence** : conserver le fichier `LICENSE` MIT d'origine et sa ligne
-  `Copyright (c) 2026 D17 contributors`. On peut *ajouter* une ligne de copyright,
-  jamais retirer l'existante. Garder les en-têtes `SPDX-License-Identifier: MIT`.
-- **Sepolia avant mainnet** : toute modification de contrat est testée en local
-  (`npm run test:contracts`) puis déployée et exercée sur Sepolia avant tout mainnet.
-- **Jamais de clé privée dans le dépôt** : les clés vivent uniquement dans
-  `contracts/.env` (ignoré par git). Ne remplir que les fichiers `*.example` avec
-  des valeurs vides. Vérifier `git diff --cached` avant chaque commit.
-- **Garanties à préserver** : aucun accès discrétionnaire du créateur aux fonds des
-  participants, LP verrouillée pour toujours dans le vault, règles immuables par
-  lancement (rulesHash), factories sans owner après déploiement.
-- Étape 1 (analyse) terminée le 2026-10-06 — aucun code modifié. Les étapes
-  suivantes (implémentation des frais) restent à valider par le propriétaire.
+- **Licence** : ne jamais modifier la ligne `Copyright (c) 2026 D17 contributors` de
+  `LICENSE` ni les en-têtes `SPDX-License-Identifier: MIT`. On peut *ajouter* une ligne.
+- **Sepolia avant mainnet** : toute modification de contrat passe par
+  `npm run test:contracts`, puis un déploiement + un lancement complet sur Sepolia.
+- **Jamais de clé privée dans le dépôt** : uniquement dans `contracts/.env` (ignoré).
+  Les `*.example` restent vides. `check:release` refuse les affectations de clés.
+- **Objectif produit** : zéro arnaque possible, tout public, mécanisme impossible à
+  contourner. Garanties : aucun accès discrétionnaire du créateur aux fonds, LP
+  verrouillée pour toujours, règles immuables par lancement (`rulesHash`), aucune clé
+  admin sur la chaîne de création.
+
+## État (2026-10-06)
+
+- Étape 1 (analyse) faite. Étape 2 (frais + correction de tous les risques) faite et
+  poussée : commits `f3442cb` (deployer), `fd9e635` (contrats), `4a3d92e` (outillage),
+  `b8ecb7e` (apps), puis docs/release.
+- **V15 n'est déployé nulle part.** Manifests `deployments/*.json` (4 copies + 
+  `release/deployments/`) en `"status": "not-deployed"` avec adresses nulles. Les
+  adresses V14 amont sont incompatibles (ABI/IDs différents).
+- Prochaine étape côté propriétaire : déployer sur Sepolia (voir « Déploiement »).
 
 ## Commandes
 
 ```bash
-npm ci                     # Node 22.13+ ou 24+
-npm test                   # typecheck + api + contracts + tests web
-npm run test:contracts     # E2E Hardhat local (~1 min, 493 assertions)
-npm run build              # build Next.js (apps/web)
-npm run build:abi -w @d17/contracts && npm run release:protocol && npm run check:release
+npm ci                                     # Node 22.13+ ou 24+
+npm test                                   # typecheck + api + contrats + tests web
+npm run test:contracts                     # 2 suites E2E (~2 min) : 567 + 52 assertions
+npm run build                              # Next.js (apps/web)
+npm run build:abi -w @d17/contracts        # ABI + docs/contract-explorer.html
+npm run release:protocol && npm run release:checksums && npm run check:release
 ```
 
-La CI (`.github/workflows/ci.yml`) exige en plus que `contracts/abi`,
-`release/protocol-build.json` et `release/solc-input.json` soient régénérés et
-commités (`git diff --exit-code`). Toute modif de contrat ⇒ régénérer ABI,
-release, checksums (`npm run release:checksums`), `contracts/docs/contract-explorer.html`.
-
-`RELEASE_SHA256SUMS.txt` couvre **chaque fichier du dépôt** (y compris ce
-CLAUDE.md) : après tout ajout/modification de fichier, lancer
-`npm run release:checksums` puis `npm run check:release`, sinon la CI casse.
+Après toute modif de contrat : `npx hardhat clean && npx hardhat compile` (un seul
+build-info, sinon `release:protocol` peut lire un vieux build), `build:abi`, copier
+`contracts/abi/*.abi.json` vers `apps/web/public/abi/` et `apps/api/abi/`,
+`release:protocol`, régénérer `contracts/SHA256SUMS.txt`
+(`cd contracts && sha256sum contracts/D17*.sol contracts/interfaces/*.sol contracts/lib/*.sol > SHA256SUMS.txt`),
+puis `release:checksums` **en dernier** (le manifeste couvre chaque fichier du dépôt,
+y compris ce CLAUDE.md) et `check:release`. La CI vérifie `git diff --exit-code` sur
+`contracts/abi`, `release/protocol-build.json`, `release/solc-input.json`.
 
 Compilateur : solc 0.8.24, viaIR, optimizer runs=1, evm shanghai, bytecodeHash none.
 
 ### Sandbox cloud : solc bloqué
-`binaries.soliditylang.org` est refusé par le proxy. Contournement (hors dépôt) :
-binaire natif depuis GitHub releases + `soljson.js` depuis le paquet npm `solc@0.8.24`,
-placés dans `~/.cache/hardhat-nodejs/compilers-v3/{linux-amd64,wasm}/` avec un
-`list.json` minimal (champs `path`, `version`, `longVersion`, `sha256`).
+`binaries.soliditylang.org` est refusé par le proxy. Contournement (hors dépôt) : binaire
+natif depuis les releases GitHub + `soljson.js` du paquet npm `solc@0.8.24`, placés dans
+`~/.cache/hardhat-nodejs/compilers-v3/{linux-amd64,wasm}/` avec un `list.json` minimal
+(`path`, `version`, `longVersion`, `sha256`). Hardhat exige les deux plateformes.
+Pour un nœud local en arrière-plan, ne jamais faire `pkill -f "hardhat node"` dans la
+même commande shell (tue le shell) ; lancer le nœud en tâche de fond séparée.
 
-## Résultat des tests (2026-10-06, commit 57a63ab)
-
-Tout passe : typecheck, build web, test:api (2 smokes), test:contracts
-(493/493 assertions, 18 lockers, 67 actions), test:guard, activity-dedupe,
-activity-history, build:abi, check:explorer, release:protocol, check:release
-(280/280 + 37 liens doc). Aucun diff après régénération ⇒ build reproductible.
-Seul le harnais E2E existe (`contracts/test/local-e2e.mjs`) : pas de tests
-unitaires ni de fuzzing/invariants.
-
-## Architecture (9 contrats, `contracts/contracts/`)
+## Architecture V15 (11 contrats, `contracts/contracts/`)
 
 | Contrat | Rôle |
 |---|---|
-| `D17Factory` | Registre racine. Valide la config (`_validateConfig`), appelle `D17LaunchFactory`, enregistre `launches[launch]` + `rulesHash`, registre `isLocker`. Owner seulement pour épingler (une fois) launchFactory/lockerFactory puis renoncer. Détient `weth` et `router` (immutables). |
-| `D17LaunchFactory` | Déploie en une tx : token (via TokenFactory), `new D17Launch`, vault (via VaultFactory) ; configure gate de trading + métadonnées ; mint `sale+lp` au launch, `manual` au créateur, `dead` à 0x…dEaD ; ferme le mint ; renonce à l'ownership du token. **Runtime 24 469 o / 24 576 (EIP-170) : 107 octets de marge.** |
-| `D17TokenFactory` | Déploie `D17Token`. Owner épingle launchFactory puis renonce. |
-| `D17LiquidityVaultFactory` | Déploie `D17LiquidityVault`. Même schéma d'épinglage. |
-| `D17LockerFactory` | `createLockerFor(self)` : un `D17Locker` par participant, enregistré dans `D17Factory.isLocker`. |
-| `D17Token` | ERC-20 à offre plafonnée. Transferts bloqués avant ouverture sauf `launch → *` et `vault → paire`. Burn pré-ouverture réservé au launch. Métadonnées on-chain (`contractURI`). |
-| `D17Launch` | Machine d'état et comptabilité : 5 rounds, fenêtres de refund, ancre de prix, rollover, finalisation, quote-part LP, règlement tardif. **Ne détient jamais de WETH**, seulement les tokens sale+LP. |
-| `D17Locker` | Coffre personnel du participant : wrap ETH→WETH, garde le WETH, appelle le launch, route WETH vers vault/treasury au règlement, garde les tokens jusqu'à l'ouverture. Seul contrat qui **déplace le WETH**. |
-| `D17LiquidityVault` | Crée la paire Uniswap V2 officielle, mint la LP vers lui-même (aucune fonction de retrait de la LP ⇒ verrouillage permanent), ajoute la liquidité tardive. |
+| `D17Factory` | Registre, validation de config, snapshot du frais (`feeConfig` immutable), `isLocker`. Refuse `createLaunch` tant que `owner != 0`. Planchers mainnet (chainid 1) : départ ≥ 24 h, fenêtres ≥ 1 h. |
+| `D17FeeConfig` | **Seul owner restant** (multisig). `protocolFeeBps ≤ MAX_PROTOCOL_FEE_BPS = 200`, destinataire ; ownership en 2 étapes ; renonçable. Ne touche que les lancements futurs. |
+| `D17LaunchFactory` | Crée token + launch (via deployer) + vault ; refuse si token/vault factory ou deployer ont encore un owner ; mint `manual` **dans le vault**. |
+| `D17LaunchDeployer` | `new D17Launch` à partir de params pré-encodés (marge EIP-170). Épinglé puis renoncé. |
+| `D17TokenFactory`, `D17LiquidityVaultFactory`, `D17LockerFactory` | Inchangés hors IDs. |
+| `D17Token` | Inchangé hors ID (gate de transfert avant pool). |
+| `D17Launch` | Struct `LaunchParams`. Frais de protocole figé (immutables + `rulesHash`), pénalités vers le pool, plancher d'ancre sur le round final, `effectiveLpTokens`, burn des invendus + LP inutilisée, cap de la réserve LP tardive, `burnResidualTokens`, sweep ETH→WETH. |
+| `D17Locker` | Pénalité → vault ; paie `protocolFeeWeth` ; champ `protocolFeeWeth` inséré dans `LockerPosition` (décoder par **nom**, pas par index). |
+| `D17LiquidityVault` | Pool initial = WETH réglé + pénalités ; liquidité tardive au ratio live (reste brûlé, LP 0 → brûlé) ; vesting créateur 180 j (`releaseCreatorTokens`, appelable par tous) ; `burnFailedLaunchPenalties` ; sweep ETH→WETH. |
 
-Lib : `lib/D17SafeTransfer.sol`. Interfaces : `interfaces/ID17*.sol`.
-Les IDs de version (`*_V14_1_REFUND_SCHEDULE_BURN_GATE`) sont vérifiés par le
-Locker (`EXPECTED_LAUNCH_ID`) et les apps : tout changement de logique ⇒ nouvel ID.
+IDs : `*_V15_HARDENED` partout (contrats, `scripts/lib.mjs`, apps, release).
+Tailles : `D17LaunchDeployer` 22 759 o (marge 1,8 Ko : toute croissance de `D17Launch`
+la consomme), `D17Launch` 17 557 o, `D17LaunchFactory` 5 129 o.
 
-## Flux d'un lancement
+## Décision sur les frais (prise par Claude, validée « le plus honnête »)
 
-1. **Création** — le créateur appelle `D17Factory.createLaunch(config)`. Supply =
-   sale + lp + manual (≤10 %) + dead. `treasury` et `treasuryBps` (≤20 %),
-   `refundPenaltyBps` (≤50 %), durées, minimums, parts de rounds et option
-   burn/treasury des invendus sont fixés et hachés dans `rulesHash`.
-2. **Round 0 (ancre)** — commits via le Locker (`commitToRound`, ETH→WETH gardé
-   dans le locker). Prix d'ancre = WETH levé / allocation round 0. Il faut
-   `minPhase1Weth` et `minAnchorPriceWad`, sinon `launchFailed()` après la fenêtre
-   de refund ⇒ remboursement intégral (`refundFailedLaunch`).
-3. **Fenêtres de refund** après les rounds 0–3 : rounds 0–1 sans pénalité,
-   rounds 2–3 avec `refundPenaltyBps` (pénalité → treasury). Round final : pas de refund.
-4. **Rounds 1–3** — tokens vendus = min(allocation, levé/prix d'ancre) ; le
-   non-vendu roule vers le round final. **Round 4** — distribue base + rollover au
-   pro-rata quel que soit le montant levé.
-5. **Finalisation** (`finalizeLaunch`, appelable par tous après le round 4) —
-   fige `finalCommittedWeth`, brûle ou envoie au treasury les invendus.
-6. **Règlement** (`settleAndClaim` propriétaire, ou `settleAfterGrace` par n'importe
-   qui après la grâce) — par position : `treasuryWeth = gross·treasuryBps`,
-   `wethForVault = gross − treasuryWeth` → vault ; tokens crédités au locker ;
-   surplus éventuel → retirable.
-7. **Pool** (`createOfficialPool`, appelable par tous à `poolCreationOpensAt`) —
-   paire au ratio canonique `lpTokens : totalLiquidityWeth` pour la fraction déjà
-   réglée ; le reste des LP tokens est réservé pour les retardataires.
-8. **Trading ouvert** = pool créée. Retrait des tokens depuis les lockers.
-9. **Règlement tardif** (`claimLateSettlement` + `mintLateLiquidity`, atomique) —
-   même prix et mêmes frais, la quote-part WETH + LP tokens réservés rejoint la paire.
+Frais **séparé et visible** (option B), pas caché dans la part treasury :
+`gross = pool + treasury (≤10 %) + protocole (≤2 %)`, pool ≥ 88 %. Prélevé **uniquement
+au règlement réussi** ; jamais sur refunds, pénalités, lancements échoués. Figé par
+lancement dans `rulesHash` ; le créateur consent via `maxProtocolFeeBps` (le `/deploy`
+envoie exactement le taux affiché). Destinataire et taux modifiables par le multisig
+pour les lancements futurs seulement.
 
-## Proposition : frais de protocole (non implémentée)
+## Statut des risques de l'analyse
 
-**Où** : le WETH ne vit que dans les Lockers ; la répartition est calculée dans
-`D17Launch._vaultSettlementAmounts` et exécutée dans `D17Locker._settleVaultPosition`.
-C'est le seul point d'insertion cohérent.
+| # | Risque | Statut |
+|---|---|---|
+| 1 | Créateur reçoit fonds via treasury | Atténué : treasury ≤10 %, pénalités → pool, invendus brûlés, allocation créateur vestée 180 j. Reste : la part treasury publiée. |
+| 2 | Griefing de l'ancre (refund gratuit) | Corrigé : pénalité fixe 1 % rounds 1-2 → pool (brûlée si échec). Testé. |
+| 3 | Round final bradé | Corrigé : plancher au prix d'ancre, reste brûlé ; LP proportionnelle aux ventes. |
+| 4 | Marge code-size | Corrigé : `D17LaunchDeployer`. |
+| 5 | Pas d'audit | **Non corrigeable ici.** Slither 0.11.6 : aucun finding exploitable. Audit externe requis avant mainnet. |
+| 6 | Liquidité tardive / MEV | Corrigé : ratio live, reste brûlé. Résiduel : IL d'un ajout de liquidité sandwiché. |
+| 7 | Couverture de tests | Améliorée : suite `test/hardening-e2e.mjs` + helpers partagés. Pas de fuzzing. |
+| 8 | Confiance au déploiement | Corrigé : launches refusés tant qu'une clé owner existe ; script de déploiement impose la renonciation ; `verify:factory` le vérifie. |
+| 9 | Poussière d'arrondi | Corrigé : `burnResidualTokens()` ; + bug réel corrigé (dernier settler tardif bloqué par `LP_RESERVE_EXCEEDED`). |
+| 10 | Pré-dépôt WETH dans la paire | Analysé : non exploitable, conservé (documenté). |
+| 11 | Sweep bloqué par treasury | Corrigé : wrap ETH→WETH. |
+| 12 | Timestamps / lancements furtifs | Planchers mainnet (24 h d'annonce, fenêtres ≥ 1 h). Non testé localement (chainid 1). |
+| 13 | Front-end | Vérifie feeConfig + wiring ; bannière « non déployé » ; décodage par nom. |
 
-**Option A (recommandée) — prélèvement sur la part treasury**
-- `protocolFeeWeth = gross · protocolFeeBps / BPS`, déduit de `treasuryWeth`
-  (exiger `treasuryBps ≥ protocolFeeBps`). `wethForVault` inchangé ⇒
-  `totalLiquidityWeth`, ratio LP, `lateLpTokens` inchangés : aucun impact sur la
-  math LP ni sur les participants.
-- Option B (frais additionnel, réduit la LP) : `wethForVault = gross − treasury − fee`
-  et `totalLiquidityWeth` doit utiliser `BPS − treasuryBps − protocolFeeBps` ;
-  borne combinée à imposer. Plus invasif.
+Autres bugs corrigés : nonce du script de déploiement (`NonceManager` par clé).
 
-**Configuration**
-- Plafond codé en dur : `uint16 constant MAX_PROTOCOL_FEE_BPS` (ex. 300 = 3 %).
-- Petit contrat `D17FeeConfig` (owner = multisig Safe, idéalement derrière un
-  timelock) avec `feeRecipient` et `protocolFeeBps ≤ MAX`, modifiables **pour les
-  lancements futurs uniquement**.
-- À la création, `D17Factory` lit la config et la **fige** dans les immutables du
-  `D17Launch` (`protocolFeeBps`, `protocolFeeRecipient`), incluses dans `rulesHash`
-  ⇒ un lancement existant ne peut jamais voir ses frais changer.
-- Le Locker transfère `protocolFeeWeth` en WETH (pas d'ETH natif ⇒ pas de DoS par
-  destinataire qui revert) vers `ID17Launch(launch).protocolFeeRecipient()`.
-- Aucun frais sur refunds, pénalités ou lancements échoués (garanties de sortie intactes).
-- Nouveaux événements (`ProtocolFeePaid`), getters, mise à jour des previews
-  (`previewVaultSettlement` doit renvoyer le frais).
+## Déploiement (à faire par le propriétaire, clés hors dépôt)
 
-**Impacts obligatoires**
-- Taille de code : `D17LaunchFactory` est à 107 o de la limite. Extraire
-  `new D17Launch(...)` dans un `D17LaunchDeployer` épinglé (même schéma que
-  TokenFactory/VaultFactory) avant d'ajouter la moindre logique au Launch.
-- Nouveaux IDs de version (V15…) dans tous les contrats + `EXPECTED_LAUNCH_ID` du Locker.
-- Mettre à jour `ID17.sol`, apps web/API (calcul des previews, affichage du frais),
-  `local-e2e.mjs` (assertions de conservation : `gross = vault + treasury + fee + résiduel`),
-  ABI, release, checksums, docs, manifests `deployments/*.json` (nouvelles adresses).
-- Alternative en tokens (bucket de supply pour le protocole) possible mais touche
-  l'invariant de split de supply et le cap de 10 % : déconseillé en v1.
+1. `cp contracts/.env.example contracts/.env` ; remplir `RPC_URL` (Sepolia),
+   `D17_FACTORY_PRIVATE_KEY`, `D17_LOCKER_FACTORY_PRIVATE_KEY` (clé différente),
+   `FEE_CONFIG_OWNER` (Safe), `PROTOCOL_FEE_RECIPIENT`, `PROTOCOL_FEE_BPS`,
+   `RENOUNCE_D17_FACTORY_OWNER=1`.
+2. `npm run compile -w @d17/contracts && npm run deploy:factory -w @d17/contracts`
+3. `npm run verify:factory -w @d17/contracts` (toutes les vérifs doivent passer)
+4. `npm run publish:deployment -w @d17/contracts` (écrit les manifests + provenance)
+5. Lancement complet de test (`create:launch` + terminal), puis régénérer
+   checksums/release, commit.
+6. Mainnet seulement après audit ; `D17_CONFIRM_MAINNET_DEPLOY=1` + owner fee = contrat.
 
-## Risques de sécurité relevés (code actuel)
+Dry-run local validé : deploy → verify (40/40) → create-launch (frais 1 % figé).
 
-Élevé / important
-1. **Le créateur a un accès aux fonds via `treasury`** (adresse qu'il choisit) :
-   jusqu'à 20 % de toute la levée, les pénalités de refund (≤50 % des montants
-   remboursés en rounds 2–3), les tokens invendus si `burnUnsoldSaleTokens=false`,
-   les excédents balayés, + jusqu'à 10 % de la supply en `manual`. C'est public et
-   plafonné, mais la garantie « pas d'accès du créateur aux fonds » n'est vraie que
-   pour la part LP.
-2. **Griefing de l'ancre (round 0)** : refund gratuit en fenêtre 0. Une baleine
-   peut gonfler le round 0 (diluant les autres), puis se rembourser à la dernière
-   seconde ⇒ ancre sous `minPhase1Weth` ⇒ lancement échoué, coût = gas.
-3. **Round final** : base + tout le rollover distribués au pro-rata quel que soit
-   le montant levé ⇒ prix potentiellement très inférieur au prix LP (arbitrage
-   immédiat à l'ouverture) ; si personne ne commit, tout le pool final est invendu
-   ⇒ treasury (créateur) si non brûlé.
-4. **Marge de code-size quasi nulle** sur `D17LaunchFactory` (bloquant pour toute évolution).
-5. **Pas d'audit professionnel** (le README le dit) ; contrats non upgradables et
-   ownership renoncée ⇒ un bug est définitif.
+## Reste à faire
 
-Moyen
-6. **Liquidité tardive au ratio canonique** alors que la paire trade : `pair.mint`
-   garde l'excédent comme donation ⇒ décalage de prix exploitable (MEV/sandwich),
-   d'autant que `settleAfterGrace` est appelable par n'importe qui au moment choisi.
-7. Couverture de tests : un seul scénario E2E ; pas de fuzzing/invariants
-   (conservation WETH, somme des LP tokens ≤ lpTokens, etc.).
-8. Confiance au déploiement : l'épinglage des factories et la renonciation dépendent
-   du script (`RENOUNCE_D17_FACTORY_OWNER=1`). Vérifier on-chain avec
-   `verify:factory` que `owner == 0` sur D17Factory, TokenFactory, VaultFactory.
-
-Faible
-9. Poussière d'arrondi : LP tokens réservés jamais libérés en totalité (restent dans le launch).
-10. Pré-dépôt de WETH dans la paire accepté (donation de l'attaquant, prix d'ouverture plus haut).
-11. `sweepUnexpectedEthToTreasury` échoue si le treasury refuse l'ETH (sans impact sur les fonds).
-12. Dépendance à `block.timestamp` (rounds ≥ 60 s ; dérive de quelques secondes).
-13. Front-end : les utilisateurs signent ce que l'app leur présente ; épingler les
-    adresses des manifests et vérifier `rulesHash` côté client.
-
-Points positifs : reentrancy guards partout, CEI respecté, WETH (pas d'ETH natif)
-pour les flux de fonds, vérification `rulesHash` + `isCanonicalLaunch` à chaque
-commit, gate de transfert du token empêchant le pré-seed de la paire, LP sans
-fonction de retrait, `.env*` ignorés par git.
-
-## Prochaines étapes suggérées
-
-1. Valider le choix A/B et les paramètres (plafond, destinataire = Safe).
-2. Extraire `D17LaunchDeployer` (sans changement de logique), re-tester.
-3. Implémenter le frais + tests E2E/invariants, régénérer ABI/release.
-4. Corriger/atténuer les risques 2, 3, 6 si souhaité (changent les règles ⇒ nouvel ID).
-5. Déploiement Sepolia avec clés dédiées hors dépôt, `verify:factory`, lancement test complet.
-6. Audit externe avant mainnet.
+- Réécrire `docs/CONTRACTS_TECHNICAL.md`, `contracts/docs/ABI_TRACEABILITY.md` et le
+  blog pour V15 (actuellement une note de version renvoie à `docs/V15_HARDENING.md`).
+- Bouton UI « release creator tokens » (fonction on-chain déjà appelable par tous).
+- Tests de fuzzing/invariants ; test des planchers mainnet (nœud avec chainId 1).
+- Audit externe.
+- Optionnel : ajouter une ligne de copyright du fork dans `LICENSE` (sans retirer l'existante).
