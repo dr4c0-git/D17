@@ -23,6 +23,10 @@ interface ID17LiquidityVaultFactory {
         returns (address liquidityVault);
 }
 
+interface ID17OwnedFactory {
+    function owner() external view returns (address);
+}
+
 interface ID17TokenFactory {
     function deployToken(address tokenOwner, string calldata name, string calldata symbol, uint256 maxSupply)
         external
@@ -76,12 +80,24 @@ contract D17LaunchFactory is ID17LaunchFactory {
         liquidityVaultFactory = liquidityVaultFactory_;
     }
 
-    function deployLaunch(LaunchConfig calldata config, address creator)
+    function deployLaunch(
+        LaunchConfig calldata config,
+        address creator,
+        address protocolFeeRecipient,
+        uint16 protocolFeeBps
+    )
         external
         onlyD17Factory
         returns (address token, address launch, address liquidityVault)
     {
         require(creator != address(0), "CREATOR_ZERO");
+        // Every contract in the creation path must be admin-free before any launch exists.
+        require(
+            ID17OwnedFactory(tokenFactory).owner() == address(0)
+                && ID17OwnedFactory(liquidityVaultFactory).owner() == address(0)
+                && ID17OwnedFactory(launchDeployer).owner() == address(0),
+            "FACTORIES_NOT_RENOUNCED"
+        );
         token = ID17TokenFactory(tokenFactory).deployToken(
             address(this),
             config.tokenName,
@@ -97,6 +113,7 @@ contract D17LaunchFactory is ID17LaunchFactory {
                 token: token,
                 weth: weth,
                 treasury: config.treasury,
+                protocolFeeRecipient: protocolFeeRecipient,
                 metadataHash: _metadataHash(config),
                 startTime: config.startTime,
                 roundSeconds: config.roundSeconds,
@@ -107,14 +124,14 @@ contract D17LaunchFactory is ID17LaunchFactory {
                 minAnchorPriceWad: config.minAnchorPriceWad,
                 roundSharesBps: config.roundSharesBps,
                 treasuryBps: config.treasuryBps,
+                protocolFeeBps: protocolFeeBps,
                 refundPenaltyBps: config.refundPenaltyBps,
                 saleTokens: config.saleTokens,
                 lpTokens: config.lpTokens,
                 deadTokens: config.deadTokens,
                 deadRecipient: config.deadRecipient,
                 manualDistributionTokens: config.manualDistributionTokens,
-                manualDistributionRecipient: creator,
-                burnUnsoldSaleTokens: config.burnUnsoldSaleTokens
+                manualDistributionRecipient: creator
             })
         ))));
         launch = address(deployedLaunch);
@@ -136,7 +153,11 @@ contract D17LaunchFactory is ID17LaunchFactory {
         ID17LaunchToken(token).configureMetadata(config.description, config.logoSvgUri, config.links);
 
         ID17LaunchToken(token).mint(launch, config.saleTokens + config.lpTokens);
-        if (config.manualDistributionTokens > 0) ID17LaunchToken(token).mint(creator, config.manualDistributionTokens);
+        // The creator allocation is minted into the liquidity vault, which vests it to the
+        // creator linearly after the official pool opens (no day-one dump).
+        if (config.manualDistributionTokens > 0) {
+            ID17LaunchToken(token).mint(liquidityVault, config.manualDistributionTokens);
+        }
         if (config.deadTokens > 0) ID17LaunchToken(token).mint(CANONICAL_DEAD_RECIPIENT, config.deadTokens);
         ID17LaunchToken(token).closeMinting();
         ID17LaunchToken(token).renounceOwnership();

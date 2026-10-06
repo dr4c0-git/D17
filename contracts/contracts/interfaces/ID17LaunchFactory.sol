@@ -30,10 +30,17 @@ interface ID17LaunchFactory {
         uint16[5] roundSharesBps;
         uint16 treasuryBps;
         uint16 refundPenaltyBps;
-        bool burnUnsoldSaleTokens;
+        // Creator's consent bound on the protocol fee: creation reverts if the fee read
+        // from D17FeeConfig at execution time is above this value.
+        uint16 maxProtocolFeeBps;
     }
 
-    function deployLaunch(LaunchConfig calldata config, address creator)
+    function deployLaunch(
+        LaunchConfig calldata config,
+        address creator,
+        address protocolFeeRecipient,
+        uint16 protocolFeeBps
+    )
         external
         returns (address token, address launch, address liquidityVault);
 }

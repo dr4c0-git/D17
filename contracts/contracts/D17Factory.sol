@@ -8,12 +8,21 @@ interface IV2RouterView {
     function factory() external view returns (address);
 }
 
+interface ID17FeeConfigView {
+    function currentFee() external view returns (address recipient, uint16 bps);
+}
+
 contract D17Factory {
-    bytes32 public constant D17_FACTORY_ID = keccak256("D17_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE");
+    bytes32 public constant D17_FACTORY_ID = keccak256("D17_FACTORY_V15_HARDENED");
     uint16 public constant BPS = 10_000;
-    uint16 public constant MAX_TREASURY_BPS = 2_000;
+    // Creator treasury fee cap (V14: 20%). Every successful commitment keeps at least
+    // BPS - MAX_TREASURY_BPS - D17FeeConfig.MAX_PROTOCOL_FEE_BPS = 88% for the locked pool.
+    uint16 public constant MAX_TREASURY_BPS = 1_000;
     uint16 public constant MAX_MANUAL_DISTRIBUTION_BPS = 1_000;
-    uint16 public constant MAX_REFUND_PENALTY_BPS = 5_000;
+    // Refund penalties go to the official pool, never to the creator; rounds 3-4 penalty
+    // sits between the fixed early penalty (1%) and 25% (V14: 0-50%).
+    uint16 public constant MIN_REFUND_PENALTY_BPS = 100;
+    uint16 public constant MAX_REFUND_PENALTY_BPS = 2_500;
     uint8 public constant ROUND_COUNT = 5;
     uint256 public constant MAX_DESCRIPTION_BYTES = 512;
     uint256 public constant MAX_LINKS = 8;
@@ -30,10 +39,16 @@ contract D17Factory {
     uint32 public constant MAX_REFUND_SECONDS = 30 days;
     uint32 public constant MAX_SETTLEMENT_SECONDS = 30 days;
     uint64 public constant MAX_START_DELAY = 365 days;
+    // Ethereum mainnet floors: a launch must be announced on-chain at least a day before it
+    // starts and every window must stay open long enough for ordinary wallets to act, so no
+    // launch can be run as a stealth/bot-only event. Test networks keep short windows.
+    uint32 public constant MAINNET_MIN_WINDOW_SECONDS = 1 hours;
+    uint64 public constant MAINNET_MIN_START_DELAY = 1 days;
 
     address public owner;
     address public immutable weth;
     address public immutable router;
+    address public immutable feeConfig;
     address public launchFactory;
     address public lockerFactory;
     bool public launchFactoryPinned;
@@ -77,16 +92,18 @@ contract D17Factory {
         _;
     }
 
-    constructor(address owner_, address weth_, address router_) {
+    constructor(address owner_, address weth_, address router_, address feeConfig_) {
         require(owner_ != address(0), "OWNER_ZERO");
         require(weth_ != address(0), "WETH_ZERO");
         require(router_ != address(0), "ROUTER_ZERO");
         require(weth_.code.length > 0, "WETH_NO_CODE");
         require(router_.code.length > 0, "ROUTER_NO_CODE");
         require(IV2RouterView(router_).factory() != address(0), "ROUTER_FACTORY_ZERO");
+        require(feeConfig_.code.length > 0, "FEE_CONFIG_NO_CODE");
         owner = owner_;
         weth = weth_;
         router = router_;
+        feeConfig = feeConfig_;
         emit OwnershipTransferred(address(0), owner_);
     }
 
@@ -142,9 +159,14 @@ contract D17Factory {
     {
         require(launchFactoryPinned, "LAUNCH_FACTORY_UNLOCKED");
         require(lockerFactoryPinned, "LOCKER_FACTORY_UNLOCKED");
+        // No launch can exist while a factory admin key does.
+        require(owner == address(0), "FACTORY_NOT_RENOUNCED");
         _validateConfig(config);
 
-        (token, launch, liquidityVault) = ID17LaunchFactory(launchFactory).deployLaunch(config, msg.sender);
+        (address feeRecipient, uint16 feeBps) = ID17FeeConfigView(feeConfig).currentFee();
+        require(feeBps <= config.maxProtocolFeeBps, "PROTOCOL_FEE_ABOVE_MAX");
+        (token, launch, liquidityVault) =
+            ID17LaunchFactory(launchFactory).deployLaunch(config, msg.sender, feeRecipient, feeBps);
         bytes32 rules = ID17Launch(launch).rulesHash();
         launches[launch] = LaunchRecord({
             canonical: true,
@@ -195,19 +217,28 @@ contract D17Factory {
             require(config.deadRecipient == 0x000000000000000000000000000000000000dEaD, "DEAD_RECIPIENT");
         }
         require(config.treasury != address(0), "TREASURY_ZERO");
-        require(config.startTime >= block.timestamp, "START_PAST");
+        bool mainnet = block.chainid == 1;
+        uint32 minWindow = mainnet ? MAINNET_MIN_WINDOW_SECONDS : 1;
+        uint32 minRound = mainnet ? MAINNET_MIN_WINDOW_SECONDS : MIN_ROUND_SECONDS;
+        require(config.startTime >= block.timestamp + (mainnet ? MAINNET_MIN_START_DELAY : 0), "START_TOO_SOON");
         require(config.startTime <= block.timestamp + MAX_START_DELAY, "START_TOO_FAR");
-        require(config.refundSeconds > 0 && config.refundSeconds <= MAX_REFUND_SECONDS, "REFUND_SECONDS");
-        require(config.settlementSeconds > 0 && config.settlementSeconds <= MAX_SETTLEMENT_SECONDS, "SETTLEMENT_SECONDS");
+        require(config.refundSeconds >= minWindow && config.refundSeconds <= MAX_REFUND_SECONDS, "REFUND_SECONDS");
+        require(
+            config.settlementSeconds >= minWindow && config.settlementSeconds <= MAX_SETTLEMENT_SECONDS,
+            "SETTLEMENT_SECONDS"
+        );
         require(config.minCommitWeth >= MIN_COMMIT_WETH, "MIN_COMMIT_TOO_LOW");
         require(config.minPhase1Weth >= config.minCommitWeth, "MIN_PHASE1_WETH");
         require(config.minAnchorPriceWad >= MIN_ANCHOR_PRICE_WAD, "MIN_ANCHOR_PRICE_TOO_LOW");
         require(config.treasuryBps <= MAX_TREASURY_BPS, "TREASURY_BPS");
-        require(config.refundPenaltyBps <= MAX_REFUND_PENALTY_BPS, "REFUND_PENALTY_BPS");
+        require(
+            config.refundPenaltyBps >= MIN_REFUND_PENALTY_BPS && config.refundPenaltyBps <= MAX_REFUND_PENALTY_BPS,
+            "REFUND_PENALTY_BPS"
+        );
 
         uint256 shareTotal;
         for (uint256 i; i < ROUND_COUNT; i++) {
-            require(config.roundSeconds[i] >= MIN_ROUND_SECONDS && config.roundSeconds[i] <= MAX_ROUND_SECONDS, "ROUND_SECONDS");
+            require(config.roundSeconds[i] >= minRound && config.roundSeconds[i] <= MAX_ROUND_SECONDS, "ROUND_SECONDS");
             require(config.roundSharesBps[i] > 0, "ROUND_SHARE_ZERO");
             require(
                 config.saleTokens * config.roundSharesBps[i] / BPS >= MIN_ROUND_ALLOCATION_TOKENS,

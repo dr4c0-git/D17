@@ -12,7 +12,7 @@ interface ID17TokenGateLaunch {
 }
 
 contract D17Token {
-    bytes32 public constant D17_TOKEN_ID = keccak256("D17_TOKEN_V14_1_REFUND_SCHEDULE_BURN_GATE");
+    bytes32 public constant D17_TOKEN_ID = keccak256("D17_TOKEN_V15_HARDENED");
 
     string public name;
     string public symbol;

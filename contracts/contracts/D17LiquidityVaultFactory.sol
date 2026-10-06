@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {D17LiquidityVault} from "./D17LiquidityVault.sol";
 
 contract D17LiquidityVaultFactory {
-    bytes32 public constant D17_LIQUIDITY_VAULT_FACTORY_ID = keccak256("D17_LIQUIDITY_VAULT_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE");
+    bytes32 public constant D17_LIQUIDITY_VAULT_FACTORY_ID = keccak256("D17_LIQUIDITY_VAULT_FACTORY_V15_HARDENED");
 
     address public owner;
     address public launchFactory;

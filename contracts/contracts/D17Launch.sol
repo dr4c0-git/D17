@@ -2,18 +2,22 @@
 pragma solidity ^0.8.24;
 
 import {D17SafeTransfer} from "./lib/D17SafeTransfer.sol";
-import {ID17FactoryView} from "./interfaces/ID17.sol";
+import {ID17FactoryView, IERC20BalanceView, IWETH} from "./interfaces/ID17.sol";
 
 contract D17Launch {
     using D17SafeTransfer for address;
 
-    bytes32 public constant D17_LAUNCH_ID = keccak256("D17_LAUNCH_V14_1_REFUND_SCHEDULE_BURN_GATE");
+    bytes32 public constant D17_LAUNCH_ID = keccak256("D17_LAUNCH_V15_HARDENED");
     uint8 public constant ROUND_COUNT = 5;
     uint8 public constant FINAL_ROUND = 4;
     uint8 public constant REFUND_STAGE_COUNT = 4;
-    // First N contract rounds refund without penalty; private to stay inside the
-    // D17LaunchFactory code-size headroom (policy is fixed per launch version ID).
-    uint8 private constant FREE_REFUND_ROUNDS = 2;
+    // Contract rounds 0-1 refund at EARLY_REFUND_PENALTY_BPS, rounds 2-3 at the launch's
+    // refundPenaltyBps; the final round has no normal refund window.
+    uint8 public constant EARLY_REFUND_ROUNDS = 2;
+    // Small fixed penalty on early refunds: makes "commit big, refund at the last second"
+    // anchor griefing cost real money. Like every penalty it goes to the official pool
+    // (or is burned if the launch fails), never to the creator or the protocol.
+    uint16 public constant EARLY_REFUND_PENALTY_BPS = 100;
     uint8 public constant NO_ROUND = type(uint8).max;
     uint8 public constant PHASE_NOT_STARTED = 0;
     uint8 public constant PHASE_ROUND_OPEN = 1;
@@ -36,6 +40,7 @@ contract D17Launch {
     address public immutable token;
     address public immutable weth;
     address public immutable treasury;
+    address public immutable protocolFeeRecipient;
     uint64 public immutable startTime;
     uint32 public immutable refundSeconds;
     uint32 public immutable settlementSeconds;
@@ -44,6 +49,7 @@ contract D17Launch {
     uint256 public immutable minPhase1Weth;
     uint256 public immutable minAnchorPriceWad;
     uint16 public immutable treasuryBps;
+    uint16 public immutable protocolFeeBps;
     uint16 public immutable refundPenaltyBps;
     uint256 public immutable saleTokens;
     uint256 public immutable lpTokens;
@@ -51,7 +57,6 @@ contract D17Launch {
     address public immutable deadRecipient;
     uint256 public immutable manualDistributionTokens;
     address public immutable manualDistributionRecipient;
-    bool public immutable burnUnsoldSaleTokens;
 
     bytes32 public immutable metadataHash;
 
@@ -80,7 +85,10 @@ contract D17Launch {
     uint256 public retainedPenaltyWeth;
     uint256 public penaltyWethPaid;
     uint256 public treasuryWethPaid;
+    uint256 public protocolFeeWethPaid;
     uint256 public unsoldSaleTokensSettled;
+    uint256 public unusedLpTokensBurned;
+    uint256 public effectiveLpTokens;
     uint256 public finalRoundTokenPool;
     bool public unsoldSaleTokensBurned;
     uint256 public finalizedAt;
@@ -96,6 +104,33 @@ contract D17Launch {
         bool[5] refunded;
     }
 
+    struct LaunchParams {
+        address factory;
+        address vaultConfigurator;
+        address token;
+        address weth;
+        address treasury;
+        address protocolFeeRecipient;
+        bytes32 metadataHash;
+        uint64 startTime;
+        uint32[5] roundSeconds;
+        uint32 refundSeconds;
+        uint32 settlementSeconds;
+        uint256 minCommitWeth;
+        uint256 minPhase1Weth;
+        uint256 minAnchorPriceWad;
+        uint16[5] roundSharesBps;
+        uint16 treasuryBps;
+        uint16 protocolFeeBps;
+        uint16 refundPenaltyBps;
+        uint256 saleTokens;
+        uint256 lpTokens;
+        uint256 deadTokens;
+        address deadRecipient;
+        uint256 manualDistributionTokens;
+        address manualDistributionRecipient;
+    }
+
     mapping(address => Position) private positions;
 
     event LiquidityVaultConfigured(address indexed liquidityVault);
@@ -107,6 +142,7 @@ contract D17Launch {
         uint256 saleTokens,
         uint256 wethForVault,
         uint256 treasuryWeth,
+        uint256 protocolFeeWeth,
         uint256 grossCommittedWeth
     );
     event LateVaultSettlementClaimed(
@@ -114,6 +150,7 @@ contract D17Launch {
         uint256 saleTokens,
         uint256 wethForVault,
         uint256 treasuryWeth,
+        uint256 protocolFeeWeth,
         uint256 lateLpTokens,
         uint256 grossCommittedWeth
     );
@@ -130,8 +167,9 @@ contract D17Launch {
         uint256 wethUsed,
         uint256 lpMinted
     );
-    event UnsoldSaleTokensPaid(address indexed recipient, uint256 amount);
     event UnsoldSaleTokensBurned(uint256 amount);
+    event UnusedLpTokensBurned(uint256 amount);
+    event ResidualTokensBurned(uint256 amount);
     event UnexpectedEthSwept(address indexed recipient, uint256 amount);
 
     modifier onlyLocker() {
@@ -151,52 +189,26 @@ contract D17Launch {
         entered = 1;
     }
 
-    struct LaunchParams {
-        address factory;
-        address vaultConfigurator;
-        address token;
-        address weth;
-        address treasury;
-        bytes32 metadataHash;
-        uint64 startTime;
-        uint32[5] roundSeconds;
-        uint32 refundSeconds;
-        uint32 settlementSeconds;
-        uint256 minCommitWeth;
-        uint256 minPhase1Weth;
-        uint256 minAnchorPriceWad;
-        uint16[5] roundSharesBps;
-        uint16 treasuryBps;
-        uint16 refundPenaltyBps;
-        uint256 saleTokens;
-        uint256 lpTokens;
-        uint256 deadTokens;
-        address deadRecipient;
-        uint256 manualDistributionTokens;
-        address manualDistributionRecipient;
-        bool burnUnsoldSaleTokens;
-    }
-
+    /// @dev Only D17LaunchDeployer (pinned to the canonical launch factory, which only the
+    /// canonical D17Factory can drive after full config validation) creates launches, so the
+    /// constructor keeps cheap structural checks; economic caps live in D17Factory.
     constructor(LaunchParams memory p) {
         require(p.factory != address(0), "FACTORY_ZERO");
         require(p.vaultConfigurator != address(0), "VAULT_CONFIG_ZERO");
         require(p.token != address(0), "TOKEN_ZERO");
         require(p.weth != address(0), "WETH_ZERO");
         require(p.treasury != address(0), "TREASURY_ZERO");
+        require(p.protocolFeeBps == 0 || p.protocolFeeRecipient != address(0), "FEE_RECIPIENT_ZERO");
+        require(uint256(p.treasuryBps) + p.protocolFeeBps < BPS, "FEE_BPS");
+        require(p.refundPenaltyBps <= BPS, "REFUND_PENALTY_BPS");
         require(p.startTime >= block.timestamp, "START_PAST");
-        require(p.refundSeconds > 0, "REFUND_SECONDS_ZERO");
-        require(p.settlementSeconds > 0, "SETTLEMENT_SECONDS_ZERO");
+        require(p.refundSeconds > 0 && p.settlementSeconds > 0, "WINDOW_ZERO");
         require(p.minCommitWeth >= MIN_COMMIT_WETH, "MIN_COMMIT_TOO_LOW");
         require(p.minPhase1Weth >= p.minCommitWeth, "MIN_PHASE1_WETH");
         require(p.minAnchorPriceWad >= MIN_ANCHOR_PRICE_WAD, "MIN_ANCHOR_PRICE_TOO_LOW");
-        require(p.treasuryBps <= 2_000, "TREASURY_BPS");
-        require(p.refundPenaltyBps <= BPS, "REFUND_PENALTY_BPS");
         require(p.saleTokens > 0, "SALE_ZERO");
         require(p.lpTokens >= MIN_LP_TOKENS, "LP_TOO_LOW");
         if (p.deadTokens > 0) require(p.deadRecipient == CANONICAL_DEAD_RECIPIENT, "DEAD_RECIPIENT");
-        // The 10% cap and four-way supply split are enforced by D17Factory._validateConfig;
-        // only canonical-factory launches are registered, so the constructor keeps the
-        // cheaper recipient check.
         if (p.manualDistributionTokens > 0) {
             require(p.manualDistributionRecipient != address(0), "MANUAL_RECIPIENT_ZERO");
         }
@@ -204,7 +216,6 @@ contract D17Launch {
         uint256 shareTotal;
         for (uint256 i; i < ROUND_COUNT; i++) {
             require(p.roundSeconds[i] > 0, "ROUND_SECONDS_ZERO");
-            require(p.roundSharesBps[i] > 0, "ROUND_SHARE_ZERO");
             require(p.saleTokens * p.roundSharesBps[i] / BPS >= MIN_ROUND_ALLOCATION_TOKENS, "ROUND_ALLOCATION_TOO_LOW");
             roundSeconds[i] = p.roundSeconds[i];
             roundSharesBps[i] = p.roundSharesBps[i];
@@ -217,6 +228,7 @@ contract D17Launch {
         token = p.token;
         weth = p.weth;
         treasury = p.treasury;
+        protocolFeeRecipient = p.protocolFeeRecipient;
         metadataHash = p.metadataHash;
         startTime = p.startTime;
         refundSeconds = p.refundSeconds;
@@ -226,6 +238,7 @@ contract D17Launch {
         minPhase1Weth = p.minPhase1Weth;
         minAnchorPriceWad = p.minAnchorPriceWad;
         treasuryBps = p.treasuryBps;
+        protocolFeeBps = p.protocolFeeBps;
         refundPenaltyBps = p.refundPenaltyBps;
         saleTokens = p.saleTokens;
         lpTokens = p.lpTokens;
@@ -233,7 +246,6 @@ contract D17Launch {
         deadRecipient = p.deadRecipient;
         manualDistributionTokens = p.manualDistributionTokens;
         manualDistributionRecipient = p.manualDistributionRecipient;
-        burnUnsoldSaleTokens = p.burnUnsoldSaleTokens;
     }
 
     receive() external payable {
@@ -261,6 +273,7 @@ contract D17Launch {
             token,
             weth,
             treasury,
+            protocolFeeRecipient,
             startTime,
             refundSeconds,
             settlementSeconds,
@@ -271,6 +284,7 @@ contract D17Launch {
             roundSeconds,
             roundSharesBps,
             treasuryBps,
+            protocolFeeBps,
             refundPenaltyBps,
             saleTokens,
             lpTokens,
@@ -278,7 +292,6 @@ contract D17Launch {
             deadRecipient,
             manualDistributionTokens,
             manualDistributionRecipient,
-            burnUnsoldSaleTokens,
             metadataHash
         ));
     }
@@ -324,8 +337,7 @@ contract D17Launch {
     function roundTokenAllocation(uint8 round) public view returns (uint256) {
         require(round < ROUND_COUNT, "ROUND");
         if (round == FINAL_ROUND) {
-            uint256 finalPool = finalized ? finalRoundTokenPool : roundBaseTokenAllocation(FINAL_ROUND) + rolloverToFinalRound();
-            return finalPool;
+            return finalized ? finalRoundTokenPool : roundBaseTokenAllocation(FINAL_ROUND) + rolloverToFinalRound();
         }
         return roundBaseTokenAllocation(round);
     }
@@ -350,17 +362,16 @@ contract D17Launch {
         return !finalized && block.timestamp >= roundEnd(0) + refundSeconds && !anchorReady();
     }
 
+    /// @notice WETH needed for a round to sell its whole allocation at the phase-one anchor
+    /// price. Applies to rounds 1-3 and, since V15, to the final round too: no round ever
+    /// sells below the anchor price; the unsold remainder is burned at finalization.
     function roundAnchorTargetWeth(uint8 round) public view returns (uint256) {
         require(round < ROUND_COUNT, "ROUND");
-        if (round == 0 || round == FINAL_ROUND) return 0;
-        uint256 anchor = anchorPriceWad();
-        if (anchor == 0) return 0;
-        return roundBaseTokenAllocation(round) * anchor / WAD;
+        if (round == 0) return 0;
+        return roundTokenAllocation(round) * anchorPriceWad() / WAD;
     }
 
     function roundAnchorUnderfillRemainingWeth(uint8 round) public view returns (uint256) {
-        require(round < ROUND_COUNT, "ROUND");
-        if (round == 0 || round == FINAL_ROUND) return 0;
         uint256 target = roundAnchorTargetWeth(round);
         if (roundRaised[round] >= target) return 0;
         return target - roundRaised[round];
@@ -372,7 +383,6 @@ contract D17Launch {
         if (raised == 0) return 0;
         uint256 allocation = roundTokenAllocation(round);
         if (round == 0) return anchorReady() ? allocation : 0;
-        if (round == FINAL_ROUND) return allocation;
 
         uint256 target = roundAnchorTargetWeth(round);
         if (target == 0) return 0;
@@ -389,9 +399,8 @@ contract D17Launch {
     }
 
     function roundDiscoveredPriceWad(uint8 round) public view returns (uint256) {
-        require(round < ROUND_COUNT, "ROUND");
         uint256 soldTokens = roundSoldTokens(round);
-        if (soldTokens == 0 || roundRaised[round] == 0) return 0;
+        if (soldTokens == 0) return 0;
         return roundRaised[round] * WAD / soldTokens;
     }
 
@@ -417,22 +426,30 @@ contract D17Launch {
         for (uint8 round; round < ROUND_COUNT; round++) total += roundRaised[round];
     }
 
+    /// @notice Share of every successful commitment that goes to the official pool.
+    function liquidityBps() public view returns (uint256) {
+        return BPS - treasuryBps - protocolFeeBps;
+    }
+
+    /// @notice Canonical pool WETH: the liquidity share of every final commitment plus all
+    /// refund penalties (which are paid into the vault and paired at pool creation).
     function totalLiquidityWeth() public view returns (uint256) {
         uint256 committed = finalized ? finalCommittedWeth : totalCommittedWeth();
-        return committed * (BPS - treasuryBps) / BPS;
+        return committed * liquidityBps() / BPS + retainedPenaltyWeth;
+    }
+
+    /// @notice LP tokens that will pair with totalLiquidityWeth(). Scaled to the share of the
+    /// sale that actually sold, so the pool always opens near the average sale price instead
+    /// of at a price set by an unsold allocation; the unused part is burned at finalization.
+    function poolTokenAllocation() public view returns (uint256) {
+        if (finalized) return effectiveLpTokens;
+        return lpTokens * _soldSaleTokenAmount() / saleTokens;
     }
 
     /// @notice Read-only settlement-progress metric; it never gates lifecycle progress.
-    /// pool creation and trading open proceed with the settled fraction, and late settlers
-    /// top up the official pool afterwards.
     function allFinalCommitmentsSettled() public view returns (bool) {
         return finalized && finalCommittedWeth > 0 && settledCommittedWeth == finalCommittedWeth;
     }
-
-    // Derivable metrics intentionally have no dedicated getters (code-size limit):
-    // unsettled committed WETH = finalCommittedWeth - settledCommittedWeth (once finalized);
-    // reserved LP tokens = lpTokens - vaultLiquidityTokensClaimed - lateLpTokensReleased
-    // (once the vault liquidity claim has happened).
 
     function contributedBy(address locker, uint8 round) external view returns (uint256) {
         require(round < ROUND_COUNT, "ROUND");
@@ -478,20 +495,18 @@ contract D17Launch {
     function previewVaultSettlement(address locker)
         public
         view
-        returns (uint256 saleTokenAmount, uint256 grossCommittedWeth, uint256 wethForVault, uint256 treasuryWeth)
+        returns (
+            uint256 saleTokenAmount,
+            uint256 grossCommittedWeth,
+            uint256 wethForVault,
+            uint256 treasuryWeth,
+            uint256 protocolFeeWeth
+        )
     {
         Position storage position = positions[locker];
-        if (position.liquidityClaimed) return (0, 0, 0, 0);
+        if (position.liquidityClaimed) return (0, 0, 0, 0, 0);
         saleTokenAmount = previewFinalSaleTokens(locker);
-        (grossCommittedWeth, wethForVault, treasuryWeth) = _vaultSettlementAmounts(position);
-    }
-
-    function previewSettlement(address locker)
-        external
-        view
-        returns (uint256 saleTokenAmount, uint256 grossCommittedWeth, uint256 wethForVault, uint256 treasuryWeth)
-    {
-        return previewVaultSettlement(locker);
+        (grossCommittedWeth, wethForVault, treasuryWeth, protocolFeeWeth) = _vaultSettlementAmounts(position);
     }
 
     function launchPhase()
@@ -532,11 +547,7 @@ contract D17Launch {
         require(round < ROUND_COUNT, "ROUND");
         require(amount >= minCommitWeth, "COMMIT_TOO_SMALL");
         require(round == activeRound(), "ROUND_CLOSED");
-        if (round > 0 && round < FINAL_ROUND) {
-            require(anchorReady(), "ANCHOR_NOT_READY");
-        } else if (round == FINAL_ROUND) {
-            require(anchorReady(), "ANCHOR_NOT_READY");
-        }
+        if (round > 0) require(anchorReady(), "ANCHOR_NOT_READY");
 
         Position storage position = positions[msg.sender];
         require(!position.liquidityClaimed, "LIQUIDITY_CLAIMED");
@@ -569,15 +580,13 @@ contract D17Launch {
         position.paid[round] = 0;
         position.refunded[round] = true;
 
-        // Refund schedule [free, free, penalty, penalty, no-window]: display rounds
-        // 1-2 (contract rounds 0-1) refund penalty-free, display rounds 3-4 (contract
-        // rounds 2-3) charge the global refundPenaltyBps, and the final round has no
-        // normal refund window (REFUND_STAGE_COUNT).
-        penaltyWeth = round < FREE_REFUND_ROUNDS ? 0 : gross * refundPenaltyBps / BPS;
+        // Refund schedule [early, early, launch, launch, no-window]. The locker pays the
+        // penalty into the liquidity vault: it deepens the official pool (or is burned if
+        // the launch fails). Neither the creator's treasury nor the protocol receives it.
+        penaltyWeth = gross * (round < EARLY_REFUND_ROUNDS ? EARLY_REFUND_PENALTY_BPS : refundPenaltyBps) / BPS;
         refundWeth = gross - penaltyWeth;
         retainedPenaltyWeth += penaltyWeth;
         penaltyWethPaid += penaltyWeth;
-        treasuryWethPaid += penaltyWeth;
         position.refundWeth += refundWeth;
         position.penaltyWeth += penaltyWeth;
 
@@ -609,24 +618,27 @@ contract D17Launch {
         external
         onlyLocker
         nonReentrant
-        returns (uint256 saleTokenAmount, uint256 wethForVault, uint256 treasuryWeth)
+        returns (uint256 saleTokenAmount, uint256 wethForVault, uint256 treasuryWeth, uint256 protocolFeeWeth)
     {
         require(!liquidityPoolCreated, "POOL_CREATED");
-        (saleTokenAmount, wethForVault, treasuryWeth, ) = _settlePosition(false);
+        (saleTokenAmount, wethForVault, treasuryWeth, protocolFeeWeth, ) = _settlePosition(false);
     }
 
-    /// @notice Settlement for lockers that missed pool creation. Outcome-identical to an
-    /// on-time settlement: the exact finalized sale tokens, the exact same WETH cost, the
-    /// unchanged treasuryBps fee. The position's LP-share WETH still enters the official
-    /// pool path: this function releases the position's pro-rata share of the reserved LP
-    /// tokens (held back at pool creation) to the vault, and the calling locker delivers the
-    /// LP-share WETH to the vault and triggers the vault's pair top-up in the same
-    /// transaction. Callable forever; no deadline.
+    /// @notice Settlement for lockers that missed pool creation: the exact finalized sale
+    /// tokens for the exact same WETH cost and fees. The position's LP-share WETH and its
+    /// share of the reserved LP tokens are sent to the vault, which adds them to the official
+    /// pair at the pair's current ratio in the same transaction. Callable forever.
     function claimLateSettlement()
         external
         onlyLocker
         nonReentrant
-        returns (uint256 saleTokenAmount, uint256 wethForVault, uint256 treasuryWeth, uint256 lateLpTokens)
+        returns (
+            uint256 saleTokenAmount,
+            uint256 wethForVault,
+            uint256 treasuryWeth,
+            uint256 protocolFeeWeth,
+            uint256 lateLpTokens
+        )
     {
         require(liquidityPoolCreated, "POOL_NOT_CREATED");
         return _settlePosition(true);
@@ -634,7 +646,13 @@ contract D17Launch {
 
     function _settlePosition(bool late)
         internal
-        returns (uint256 saleTokenAmount, uint256 wethForVault, uint256 treasuryWeth, uint256 lateLpTokens)
+        returns (
+            uint256 saleTokenAmount,
+            uint256 wethForVault,
+            uint256 treasuryWeth,
+            uint256 protocolFeeWeth,
+            uint256 lateLpTokens
+        )
     {
         require(liquidityVault != address(0), "VAULT_NOT_CONFIGURED");
         if (!finalized) _finalizeLaunch();
@@ -644,37 +662,40 @@ contract D17Launch {
         require(!position.finalSaleTokensClaimed, "SALE_TOKENS_CLAIMED");
         saleTokenAmount = previewFinalSaleTokens(msg.sender);
         uint256 grossCommittedWeth;
-        (grossCommittedWeth, wethForVault, treasuryWeth) = _vaultSettlementAmounts(position);
+        (grossCommittedWeth, wethForVault, treasuryWeth, protocolFeeWeth) = _vaultSettlementAmounts(position);
         require(grossCommittedWeth > 0, "NO_POSITION");
 
         position.liquidityClaimed = true;
         position.finalSaleTokensClaimed = true;
         settledCommittedWeth += grossCommittedWeth;
         treasuryWethPaid += treasuryWeth;
+        protocolFeeWethPaid += protocolFeeWeth;
 
         if (late) {
-            // A zero lateLpTokens (unreachable under factory config bounds) reverts in the
-            // vault's mintLateLiquidity ("LATE_AMOUNTS_ZERO") within the same transaction.
-            lateLpTokens = lpTokens * wethForVault / totalLiquidityWeth();
-            require(
-                vaultLiquidityTokensClaimed + lateLpTokensReleased + lateLpTokens <= lpTokens,
-                "LP_RESERVE_EXCEEDED"
-            );
+            // Per-position fee rounding means the per-position liquidity shares can sum to a
+            // few wei above totalLiquidityWeth(); capping at the remaining reserve keeps the
+            // last late settler from ever being blocked by that rounding.
+            uint256 reserve = effectiveLpTokens - vaultLiquidityTokensClaimed - lateLpTokensReleased;
+            lateLpTokens = effectiveLpTokens * wethForVault / totalLiquidityWeth();
+            if (lateLpTokens > reserve) lateLpTokens = reserve;
             lateSettledCommittedWeth += grossCommittedWeth;
             lateSettledLiquidityWeth += wethForVault;
             lateLpTokensReleased += lateLpTokens;
-            token.safeTransfer(liquidityVault, lateLpTokens);
+            if (lateLpTokens > 0) token.safeTransfer(liquidityVault, lateLpTokens);
             emit LateVaultSettlementClaimed(
                 msg.sender,
                 saleTokenAmount,
                 wethForVault,
                 treasuryWeth,
+                protocolFeeWeth,
                 lateLpTokens,
                 grossCommittedWeth
             );
         } else {
             settledLiquidityWeth += wethForVault;
-            emit VaultSettlementClaimed(msg.sender, saleTokenAmount, wethForVault, treasuryWeth, grossCommittedWeth);
+            emit VaultSettlementClaimed(
+                msg.sender, saleTokenAmount, wethForVault, treasuryWeth, protocolFeeWeth, grossCommittedWeth
+            );
         }
 
         if (saleTokenAmount > 0) token.safeTransfer(msg.sender, saleTokenAmount);
@@ -696,13 +717,11 @@ contract D17Launch {
         require(block.timestamp >= poolCreationOpensAt(), "POOL_CREATION_NOT_OPEN");
         require(settledLiquidityWeth > 0, "NO_SETTLED_LIQUIDITY");
 
-        // The initial pool pairs the WETH settled so far with the
-        // proportional share of the LP token allocation, so the pool always opens at the
-        // canonical launch ratio (lpTokens : totalLiquidityWeth). The remaining LP tokens
-        // stay reserved in this contract for late settlers, whose top-ups enter the pair at
-        // the same ratio through claimLateSettlement().
-        wethForPool = settledLiquidityWeth;
-        liquidityTokens = lpTokens * settledLiquidityWeth / totalLiquidityWeth();
+        // The initial pool pairs the settled WETH plus every refund penalty with the
+        // proportional share of the LP token allocation, so it opens at the canonical ratio
+        // (poolTokenAllocation : totalLiquidityWeth). The rest stays reserved for late settlers.
+        wethForPool = settledLiquidityWeth + retainedPenaltyWeth;
+        liquidityTokens = effectiveLpTokens * wethForPool / totalLiquidityWeth();
         require(liquidityTokens > 0, "NO_LIQUIDITY_TOKENS");
 
         vaultLiquidityClaimed = true;
@@ -723,7 +742,7 @@ contract D17Launch {
         require(vaultLiquidityClaimed, "VAULT_LIQUIDITY_NOT_CLAIMED");
         require(pair != address(0), "PAIR_ZERO");
         require(tokenUsed == vaultLiquidityTokensClaimed, "TOKEN_USED_MISMATCH");
-        require(wethUsed == poolSettledLiquidityWeth, "WETH_USED_MISMATCH");
+        require(wethUsed == poolSettledLiquidityWeth + retainedPenaltyWeth, "WETH_USED_MISMATCH");
         require(lpMinted > 0, "LP_ZERO");
 
         liquidityPoolCreated = true;
@@ -736,11 +755,23 @@ contract D17Launch {
         emit LiquidityPoolCreated(liquidityVault, pair, tokenUsed, wethUsed, lpMinted);
     }
 
+    /// @notice Once every final commitment has settled, whatever the launch still holds is
+    /// per-position rounding dust (sale and reserved LP tokens). Anyone may burn it.
+    function burnResidualTokens() external nonReentrant returns (uint256 amount) {
+        require(liquidityPoolCreated && allFinalCommitmentsSettled(), "SETTLEMENT_OPEN");
+        amount = IERC20BalanceView(token).balanceOf(address(this));
+        require(amount > 0, "NO_RESIDUAL");
+        token.safeBurn(amount);
+        emit ResidualTokensBurned(amount);
+    }
+
+    /// @notice Forced ETH (selfdestruct / coinbase) is wrapped and sent as WETH, so a
+    /// treasury that rejects ETH cannot block the sweep.
     function sweepUnexpectedEthToTreasury() external nonReentrant returns (uint256 amount) {
         amount = address(this).balance;
         require(amount > 0, "NO_ETH_BALANCE");
-        (bool ok, ) = treasury.call{value: amount}("");
-        require(ok, "ETH_SWEEP_FAILED");
+        IWETH(weth).deposit{value: amount}();
+        weth.safeTransfer(treasury, amount);
         emit UnexpectedEthSwept(treasury, amount);
     }
 
@@ -753,24 +784,25 @@ contract D17Launch {
         finalizedAt = block.timestamp;
         finalRoundTokenPool = roundBaseTokenAllocation(FINAL_ROUND) + rolloverToFinalRound();
         finalCommittedWeth = totalCommittedWeth();
-        // Belt-and-braces guard: canonical launches should only reach finalization after the phase-one
-        // anchor made total commitments nonzero. Keep this explicit so future refund logic cannot
-        // accidentally finalize an empty launch.
+        // Canonical launches only reach finalization after the phase-one anchor made total
+        // commitments nonzero; keep the explicit guard against finalizing an empty launch.
         require(finalCommittedWeth > 0, "NO_FINAL_COMMITMENTS");
 
         uint256 soldSaleTokens = _soldSaleTokenAmount();
-        unsoldSaleTokensSettled = saleTokens > soldSaleTokens ? saleTokens - soldSaleTokens : 0;
+        unsoldSaleTokensSettled = saleTokens - soldSaleTokens;
+        effectiveLpTokens = lpTokens * soldSaleTokens / saleTokens;
+        unusedLpTokensBurned = lpTokens - effectiveLpTokens;
 
-        if (unsoldSaleTokensSettled > 0) {
-            if (burnUnsoldSaleTokens) {
-                unsoldSaleTokensBurned = true;
-                token.safeBurn(unsoldSaleTokensSettled);
-                emit UnsoldSaleTokensBurned(unsoldSaleTokensSettled);
-            } else {
-                token.safeTransfer(treasury, unsoldSaleTokensSettled);
-                emit UnsoldSaleTokensPaid(treasury, unsoldSaleTokensSettled);
-            }
+        // Unsold sale tokens and the unused LP allocation are always burned: no wallet,
+        // including the creator's treasury, ever receives tokens the market did not buy.
+        if (unsoldSaleTokensSettled + unusedLpTokensBurned > 0) {
+            token.safeBurn(unsoldSaleTokensSettled + unusedLpTokensBurned);
         }
+        if (unsoldSaleTokensSettled > 0) {
+            unsoldSaleTokensBurned = true;
+            emit UnsoldSaleTokensBurned(unsoldSaleTokensSettled);
+        }
+        if (unusedLpTokensBurned > 0) emit UnusedLpTokensBurned(unusedLpTokensBurned);
 
         emit Finalized(finalizedAt);
     }
@@ -778,13 +810,14 @@ contract D17Launch {
     function _vaultSettlementAmounts(Position storage position)
         internal
         view
-        returns (uint256 grossCommittedWeth, uint256 wethForVault, uint256 treasuryWeth)
+        returns (uint256 grossCommittedWeth, uint256 wethForVault, uint256 treasuryWeth, uint256 protocolFeeWeth)
     {
         for (uint8 round; round < ROUND_COUNT; round++) grossCommittedWeth += position.paid[round];
-        if (grossCommittedWeth == 0) return (0, 0, 0);
+        if (grossCommittedWeth == 0) return (0, 0, 0, 0);
 
-        wethForVault = grossCommittedWeth * (BPS - treasuryBps) / BPS;
-        treasuryWeth = grossCommittedWeth - wethForVault;
+        treasuryWeth = grossCommittedWeth * treasuryBps / BPS;
+        protocolFeeWeth = grossCommittedWeth * protocolFeeBps / BPS;
+        wethForVault = grossCommittedWeth - treasuryWeth - protocolFeeWeth;
     }
 
     function _roundTokensForBuyer(uint8 round, uint256 paid) internal view returns (uint256) {

@@ -8,6 +8,8 @@ interface ID17Launch {
     function token() external view returns (address);
     function weth() external view returns (address);
     function treasury() external view returns (address);
+    function protocolFeeRecipient() external view returns (address);
+    function launchFailed() external view returns (bool);
     function factory() external view returns (address);
     function liquidityVault() external view returns (address);
     function tradingOpenAt() external view returns (uint256);
@@ -36,10 +38,18 @@ interface ID17Launch {
     function recordRoundCommitment(uint8 round, uint256 amount) external;
     function releaseRoundRefund() external returns (uint8 round, uint256 refundWeth, uint256 penaltyWeth);
     function releaseFailedRefund() external returns (uint256 refundWeth);
-    function claimVaultSettlement() external returns (uint256 saleTokens, uint256 wethForVault, uint256 treasuryWeth);
+    function claimVaultSettlement()
+        external
+        returns (uint256 saleTokens, uint256 wethForVault, uint256 treasuryWeth, uint256 protocolFeeWeth);
     function claimLateSettlement()
         external
-        returns (uint256 saleTokens, uint256 wethForVault, uint256 treasuryWeth, uint256 lateLpTokens);
+        returns (
+            uint256 saleTokens,
+            uint256 wethForVault,
+            uint256 treasuryWeth,
+            uint256 protocolFeeWeth,
+            uint256 lateLpTokens
+        );
     function finalizeLaunch() external;
     function claimVaultLiquidityTokens() external returns (uint256 liquidityTokens, uint256 wethForPool);
     function markLiquidityPoolCreated(address pair, uint256 tokenUsed, uint256 wethUsed, uint256 lpMinted) external;
@@ -48,7 +58,13 @@ interface ID17Launch {
     function previewVaultSettlement(address locker)
         external
         view
-        returns (uint256 saleTokens, uint256 grossCommittedWeth, uint256 wethForVault, uint256 treasuryWeth);
+        returns (
+            uint256 saleTokens,
+            uint256 grossCommittedWeth,
+            uint256 wethForVault,
+            uint256 treasuryWeth,
+            uint256 protocolFeeWeth
+        );
 }
 
 interface ID17VaultLateLiquidity {
