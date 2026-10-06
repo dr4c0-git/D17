@@ -18,5 +18,6 @@ npm run release:protocol
 ```
 
 The generator rejects ABI or creation-bytecode drift from the published
-artifacts. Identity literals containing `V14_1` remain because they are part of
-the deployed contracts' immutable identity checks.
+artifacts. Identity literals end in `V15_HARDENED`. The deployment records in
+`deployments/` stay at `"status": "not-deployed"` until
+`npm run publish:deployment -w @d17/contracts` writes a verified deployment.

@@ -23,7 +23,8 @@ leaving no administrator able to replace the mechanism for existing launches.
   and refunds, finalizes outcomes and releases settlement amounts.
 - `D17Token` enforces the fixed supply and pre-trading transfer/burn gate.
 - `D17LiquidityVault` creates the official pair and permanently holds all LP
-  tokens minted to the protocol.
+  tokens minted to the protocol. It also vests the creator allocation (180 days)
+  and adds late settlers' liquidity at the pair's live ratio.
 - `D17Locker` holds one participant's WETH and claimed tokens. A locker can
   contain positions across multiple canonical launches.
 
@@ -31,8 +32,9 @@ leaving no administrator able to replace the mechanism for existing launches.
 
 1. A creator submits one immutable five-round launch configuration.
 2. Participants commit through personal lockers. WETH remains in each locker.
-3. Rounds 1-4 have refund windows. Rounds 1-2 are penalty-free; rounds 3-4 use
-   the configured refund penalty. Round 5 has no normal refund window.
+3. Rounds 1-4 have refund windows. Rounds 1-2 cost a fixed 1%; rounds 3-4 use
+   the configured refund penalty (1-25%). Penalties are paid into the vault and
+   paired into the official pool. Round 5 has no normal refund window.
 4. Anyone can finalize after the last round.
 5. Participants settle during the settlement window. After the grace boundary,
    anyone can trigger settlement for a locker; assets still credit its owner.

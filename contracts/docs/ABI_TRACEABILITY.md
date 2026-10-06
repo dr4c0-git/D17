@@ -1,5 +1,9 @@
 # D17 ABI Traceability Matrix
 
+> **Version note.** This matrix classifies the upstream V14 ABI (310 entries). The V15
+> ABI (11 contracts, 364 entries) is rendered in full in `docs/contract-explorer.html`;
+> the consumer classification below has not been redone for the V15 additions.
+
 Purpose: enumerate every public ABI surface and assign its intended consumer.
 
 - ABI entries: 310

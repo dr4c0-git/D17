@@ -6,12 +6,15 @@ output during a clean verification run.
 
 ## Contract suite
 
-- Production Solidity checksums: 12/12.
+- Production Solidity checksums: 14/14.
 - Solidity 0.8.24 compile with the documented settings.
-- Published creation-bytecode and ABI parity: 9/9 deployable contracts.
-- Local lifecycle suite: 493/493 named assertions.
-- ABI export and readable explorer coverage: 9/9 contracts.
-- `D17LaunchFactory` deployed code size: 24,469 bytes.
+- Published creation-bytecode and ABI parity: 11/11 deployable contracts.
+- Local lifecycle suite: 567/567 named assertions; V15 hardening suite: 52/52.
+- ABI export and readable explorer coverage: 11/11 contracts.
+- Largest deployed code size: `D17LaunchDeployer` 22,759 bytes (limit 24,576);
+  `D17LaunchFactory` 5,129 bytes.
+- Static analysis: Slither 0.11.6, no exploitable finding (see
+  `docs/V15_HARDENING.md`).
 
 ## Optional API
 
