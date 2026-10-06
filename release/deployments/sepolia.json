@@ -1,42 +1,22 @@
 {
-  "schema": "d17-public-deployment-provenance-v1",
+  "schema": "d17-public-deployment-provenance-v2",
   "network": "sepolia",
   "chainId": 11155111,
-  "startBlock": 11229773,
-  "deployedAt": "2026-07-08T13:55:26.145Z",
+  "protocolVersion": "V15_HARDENED",
+  "status": "not-deployed",
+  "startBlock": 0,
+  "deployedAt": null,
   "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
   "router": "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3",
   "contracts": {
-    "d17Factory": "0x4103c658141447DFc3a70aE2D5C7a5Ad8d970844",
-    "tokenFactory": "0x0Ce3DBE9cc4765bd5Ebdb9679e1e693da9ca7D0F",
-    "liquidityVaultFactory": "0xdc902316e1FD087f96773A8156D7b8BB5Cc889a3",
-    "launchFactory": "0xDdD23F9FCE6D5C0E540D713A19BFC7FB8b3cCAFF",
-    "lockerFactory": "0x1E79BAC0A3c85Fb1778c7eBe265b908fcCd7FeC0"
+    "d17Factory": "0x0000000000000000000000000000000000000000",
+    "feeConfig": "0x0000000000000000000000000000000000000000",
+    "tokenFactory": "0x0000000000000000000000000000000000000000",
+    "launchDeployer": "0x0000000000000000000000000000000000000000",
+    "launchFactory": "0x0000000000000000000000000000000000000000",
+    "liquidityVaultFactory": "0x0000000000000000000000000000000000000000",
+    "lockerFactory": "0x0000000000000000000000000000000000000000"
   },
-  "transactions": {
-    "deployD17Factory": "0xbd34ae85614ee737ece275fd0e98335becf06fe0eb52d8fcba3ebfd540f632ba",
-    "deployTokenFactory": "0x7d093ea4037dbc1d5708dda8a959e46b0748c7b150757b3cf8369b76149355f2",
-    "deployLiquidityVaultFactory": "0x6eabb22c35fe94f27cf2df79b5a70c72d39c1dcb6fc27b41faafa6e0769ff5e8",
-    "deployLaunchFactory": "0xe7cd06062b7f44e7c9dc12ae566e0330d21cc5c2d6b844612ef6464c7efd843c",
-    "pinTokenFactory": "0x0d3b697e50f81e748a87fb11b3dfee59b867ff097f71439fa599b699bbc33561",
-    "pinLiquidityVaultFactory": "0xe5fbd6fb667c00e5463b6339ab4991f6b28e95e53667126cff418dd3b6cdc145",
-    "pinLaunchFactory": "0xd78adb5566830d07ddca1a67405f396e83822087ad86f60f8b1f057806d2b35e",
-    "deployLockerFactory": "0x73f006e8d6742d40f5b6216f5f6f26b86b9a58bdd8618039980cc905e315fb0b",
-    "pinLockerFactory": "0x181ef44a66ae242e0a123b121c2108bdeb699352004759a6057a0389c4ddb6dd",
-    "renounceD17Factory": "0xb9bda29cccc9fce6c009ff86d7e544208c521759bf5b87c3e0606427e2283c6b",
-    "renounceTokenFactory": "0xf21ee22d54bbf9c1888c85ecf54692f4cc75484d36a6da2a0986bce61c1b24c0",
-    "renounceLiquidityVaultFactory": "0x9a64af400149e34d85c558761e0fdfbc57c99d919feb39ff65b38eb8481f8111"
-  },
-  "verification": {
-    "wiringAndIdentities": true,
-    "ownersRenounced": true,
-    "runtimeMethod": "deployed bytecode compared after masking constructor immutables",
-    "runtime": {
-      "D17Factory": { "bytes": 10353, "immutableSlots": 2, "maskedMatch": true },
-      "D17TokenFactory": { "bytes": 12371, "immutableSlots": 0, "maskedMatch": true },
-      "D17LiquidityVaultFactory": { "bytes": 9283, "immutableSlots": 0, "maskedMatch": true },
-      "D17LaunchFactory": { "bytes": 24469, "immutableSlots": 11, "maskedMatch": true },
-      "D17LockerFactory": { "bytes": 10143, "immutableSlots": 2, "maskedMatch": true }
-    }
-  }
+  "transactions": {},
+  "note": "V15 is not deployed yet. Run deploy:factory, verify:factory, then publish:deployment (see contracts/README.md). The upstream V14 deployment is not compatible with this source tree."
 }

@@ -1,14 +1,18 @@
 {
-  "schema": "d17-public-deployment-v1",
+  "schema": "d17-public-deployment-v2",
   "chainId": 11155111,
   "network": "sepolia",
-  "startBlock": 11229773,
+  "protocolVersion": "V15_HARDENED",
+  "status": "not-deployed",
+  "startBlock": 0,
   "contracts": {
-    "d17Factory": "0x4103c658141447DFc3a70aE2D5C7a5Ad8d970844",
-    "tokenFactory": "0x0Ce3DBE9cc4765bd5Ebdb9679e1e693da9ca7D0F",
-    "launchFactory": "0xDdD23F9FCE6D5C0E540D713A19BFC7FB8b3cCAFF",
-    "liquidityVaultFactory": "0xdc902316e1FD087f96773A8156D7b8BB5Cc889a3",
-    "lockerFactory": "0x1E79BAC0A3c85Fb1778c7eBe265b908fcCd7FeC0"
+    "d17Factory": "0x0000000000000000000000000000000000000000",
+    "feeConfig": "0x0000000000000000000000000000000000000000",
+    "tokenFactory": "0x0000000000000000000000000000000000000000",
+    "launchDeployer": "0x0000000000000000000000000000000000000000",
+    "launchFactory": "0x0000000000000000000000000000000000000000",
+    "liquidityVaultFactory": "0x0000000000000000000000000000000000000000",
+    "lockerFactory": "0x0000000000000000000000000000000000000000"
   },
   "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
   "router": "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3"

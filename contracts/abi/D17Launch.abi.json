@@ -2,119 +2,131 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "factory_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "vaultConfigurator_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "token_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "weth_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "treasury_",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "metadataHash_",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint64",
-        "name": "startTime_",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint32[5]",
-        "name": "roundSeconds_",
-        "type": "uint32[5]"
-      },
-      {
-        "internalType": "uint32",
-        "name": "refundSeconds_",
-        "type": "uint32"
-      },
-      {
-        "internalType": "uint32",
-        "name": "settlementSeconds_",
-        "type": "uint32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "minCommitWeth_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "minPhase1Weth_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "minAnchorPriceWad_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint16[5]",
-        "name": "roundSharesBps_",
-        "type": "uint16[5]"
-      },
-      {
-        "internalType": "uint16",
-        "name": "treasuryBps_",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint16",
-        "name": "refundPenaltyBps_",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint256",
-        "name": "saleTokens_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "lpTokens_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "deadTokens_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "deadRecipient_",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "manualDistributionTokens_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "manualDistributionRecipient_",
-        "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "burnUnsoldSaleTokens_",
-        "type": "bool"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "factory",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "vaultConfigurator",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "token",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "weth",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "treasury",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "protocolFeeRecipient",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "metadataHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "startTime",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint32[5]",
+            "name": "roundSeconds",
+            "type": "uint32[5]"
+          },
+          {
+            "internalType": "uint32",
+            "name": "refundSeconds",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "settlementSeconds",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minCommitWeth",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minPhase1Weth",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minAnchorPriceWad",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint16[5]",
+            "name": "roundSharesBps",
+            "type": "uint16[5]"
+          },
+          {
+            "internalType": "uint16",
+            "name": "treasuryBps",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "protocolFeeBps",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "refundPenaltyBps",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint256",
+            "name": "saleTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lpTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "deadRecipient",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "manualDistributionTokens",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "manualDistributionRecipient",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct D17Launch.LaunchParams",
+        "name": "p",
+        "type": "tuple"
       }
     ],
     "stateMutability": "nonpayable",
@@ -168,6 +180,12 @@
         "indexed": false,
         "internalType": "uint256",
         "name": "treasuryWeth",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "protocolFeeWeth",
         "type": "uint256"
       },
       {
@@ -253,6 +271,19 @@
       }
     ],
     "name": "LiquidityVaultConfigured",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ResidualTokensBurned",
     "type": "event"
   },
   {
@@ -347,19 +378,13 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "recipient",
-        "type": "address"
-      },
-      {
         "indexed": false,
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
       }
     ],
-    "name": "UnsoldSaleTokensPaid",
+    "name": "UnusedLpTokensBurned",
     "type": "event"
   },
   {
@@ -417,6 +442,12 @@
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "protocolFeeWeth",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "grossCommittedWeth",
         "type": "uint256"
       }
@@ -462,6 +493,32 @@
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "EARLY_REFUND_PENALTY_BPS",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "EARLY_REFUND_ROUNDS",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -742,15 +799,15 @@
   },
   {
     "inputs": [],
-    "name": "burnUnsoldSaleTokens",
+    "name": "burnResidualTokens",
     "outputs": [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -770,6 +827,11 @@
       {
         "internalType": "uint256",
         "name": "treasuryWeth",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "protocolFeeWeth",
         "type": "uint256"
       },
       {
@@ -816,6 +878,11 @@
       {
         "internalType": "uint256",
         "name": "treasuryWeth",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "protocolFeeWeth",
         "type": "uint256"
       }
     ],
@@ -875,6 +942,19 @@
   {
     "inputs": [],
     "name": "deadTokens",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "effectiveLpTokens",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1050,6 +1130,19 @@
       {
         "internalType": "uint256",
         "name": "endsAt",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "liquidityBps",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -1358,6 +1451,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "poolTokenAllocation",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -1408,40 +1514,6 @@
         "type": "address"
       }
     ],
-    "name": "previewSettlement",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "saleTokenAmount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "grossCommittedWeth",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "wethForVault",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "treasuryWeth",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "locker",
-        "type": "address"
-      }
-    ],
     "name": "previewVaultSettlement",
     "outputs": [
       {
@@ -1462,6 +1534,50 @@
       {
         "internalType": "uint256",
         "name": "treasuryWeth",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "protocolFeeWeth",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "protocolFeeBps",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "protocolFeeRecipient",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "protocolFeeWethPaid",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -2026,6 +2142,19 @@
   {
     "inputs": [],
     "name": "unsoldSaleTokensSettled",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "unusedLpTokensBurned",
     "outputs": [
       {
         "internalType": "uint256",

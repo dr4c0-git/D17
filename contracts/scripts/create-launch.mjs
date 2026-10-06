@@ -61,7 +61,12 @@ const deployment = {
   rulesHash,
   manualDistribution: {
     tokens: (await launch.manualDistributionTokens()).toString(),
-    recipient: await launch.manualDistributionRecipient()
+    recipient: await launch.manualDistributionRecipient(),
+    vestedBy: created.liquidityVault
+  },
+  protocolFee: {
+    bps: Number(await launch.protocolFeeBps()),
+    recipient: await launch.protocolFeeRecipient()
   },
   metadataHash: await launch.metadataHash(),
   metadata: {

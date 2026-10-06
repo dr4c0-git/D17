@@ -1,22 +1,13 @@
 #!/usr/bin/env node
 import { mkdirSync } from "node:fs";
 import path from "node:path";
+import { EXPLORER_CONTRACTS } from "./contract-list.mjs";
 import { artifact, root, writeJson } from "./lib.mjs";
 
 const outDir = path.resolve(root, "abi");
 mkdirSync(outDir, { recursive: true });
 
-const entries = [
-  ["D17Factory.sol", "D17Factory"],
-  ["D17TokenFactory.sol", "D17TokenFactory"],
-  ["D17LaunchFactory.sol", "D17LaunchFactory"],
-  ["D17LiquidityVaultFactory.sol", "D17LiquidityVaultFactory"],
-  ["D17LockerFactory.sol", "D17LockerFactory"],
-  ["D17Launch.sol", "D17Launch"],
-  ["D17LiquidityVault.sol", "D17LiquidityVault"],
-  ["D17Locker.sol", "D17Locker"],
-  ["D17Token.sol", "D17Token"]
-];
+const entries = EXPLORER_CONTRACTS.map((name) => [`${name}.sol`, name]);
 
 for (const [file, name] of entries) {
   const art = artifact(file, name);

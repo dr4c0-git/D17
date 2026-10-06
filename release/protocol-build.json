@@ -1,6 +1,6 @@
 {
   "schema": "d17-protocol-build-v1",
-  "release": "1.0.0",
+  "release": "1.1.0-v15",
   "compiler": {
     "version": "0.8.24",
     "longVersion": "0.8.24+commit.e11b9ed9",
@@ -27,66 +27,80 @@
     ]
   },
   "standardJsonInput": "solc-input.json",
-  "standardJsonInputSha256": "ed2e14f6b5e8dd3d4c9e0015f5f7f73f9d0e75a9497e4e5a4538556f03fb9658",
+  "standardJsonInputSha256": "e565ab457cb95441e6dbc6c750759d25182d5180a40987f287f6540012c557fe",
   "identities": {
     "factory": {
-      "literal": "D17_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE",
-      "keccak256": "0x9e539560eb98d0667f4f65b8d02e362ff2aabc102c8f2cb001a6e21503f1cc13"
+      "literal": "D17_FACTORY_V15_HARDENED",
+      "keccak256": "0xf21ce510ea9bd416f323134f017bd3b71971582a0901bc81385c9476e35d44fc"
+    },
+    "feeConfig": {
+      "literal": "D17_FEE_CONFIG_V15_HARDENED",
+      "keccak256": "0xf3da00d4bb7f0ec1cb05a810c49ac2d82c3f5f95ce81d6007dd45bd0774df9be"
     },
     "tokenFactory": {
-      "literal": "D17_TOKEN_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE",
-      "keccak256": "0xf1689ac1ff2e36ec5f1917c294fb4ae5a67548e630d12f647c7f4e22be1e4c62"
+      "literal": "D17_TOKEN_FACTORY_V15_HARDENED",
+      "keccak256": "0xa9714037f618cb30a59877ea41ff10ec75230ee2df60b6680d9370b021050779"
     },
     "liquidityVaultFactory": {
-      "literal": "D17_LIQUIDITY_VAULT_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE",
-      "keccak256": "0xe5ad3784957f5a135f6c86f40fc03956850352aa76d02c2412aa5e0921f48dfc"
+      "literal": "D17_LIQUIDITY_VAULT_FACTORY_V15_HARDENED",
+      "keccak256": "0x3f7f105818e660e24817479f241620339b047cb5abe1505dab359b10a8beb310"
+    },
+    "launchDeployer": {
+      "literal": "D17_LAUNCH_DEPLOYER_V15_HARDENED",
+      "keccak256": "0x31dae67542e422dbee674b2fe804a369b4b6f1f657b8270e290b4ae073822ee0"
     },
     "launch": {
-      "literal": "D17_LAUNCH_V14_1_REFUND_SCHEDULE_BURN_GATE",
-      "keccak256": "0xa7aab4aa562478a5483076a635386da54e589e7a330f88c82f1145428d2f1063"
+      "literal": "D17_LAUNCH_V15_HARDENED",
+      "keccak256": "0xfe7275ce4daad65171e25fda19d73da9e9d908ff0874c9219d9134fd631f8d82"
     },
     "liquidityVault": {
-      "literal": "D17_LIQUIDITY_VAULT_V14_1_REFUND_SCHEDULE_BURN_GATE",
-      "keccak256": "0xe2fae0eb5204f030fdff8b32798d0345bc10b8b2e4d2929e915eded57aade470"
+      "literal": "D17_LIQUIDITY_VAULT_V15_HARDENED",
+      "keccak256": "0x9c91b3d129a14a5685743e0d140ceca45871dbbbc6b7f7b8e5fb564e3dad6a2a"
     },
     "token": {
-      "literal": "D17_TOKEN_V14_1_REFUND_SCHEDULE_BURN_GATE",
-      "keccak256": "0x182ae042788e0befbdd014e2af028f7e64e99600f6333c59db3892e8b34a61f3"
+      "literal": "D17_TOKEN_V15_HARDENED",
+      "keccak256": "0xc27ead2b161df860ae2b6245d3ef0ddf354280b6c7a5f16d42644f88d468348c"
     }
   },
   "sources": {
     "contracts/contracts/D17Factory.sol": {
-      "sha256": "f2dcb7ebdd58281287256e51b18920cb68dbd0ddbe3ec3344142c08d320ce743"
+      "sha256": "8625982db31570d3236897639de857226ef9304a85ed7fda333fcb12b776cb4d"
+    },
+    "contracts/contracts/D17FeeConfig.sol": {
+      "sha256": "b9b11c6480d3a67e86e03a3bdec047c8b7f6ae6e26a60914f262573c2a796623"
+    },
+    "contracts/contracts/D17LaunchDeployer.sol": {
+      "sha256": "a97ce96944182518514e880027ff981af7b1ea63b24832196927a7ee3df7fd01"
     },
     "contracts/contracts/D17Launch.sol": {
-      "sha256": "3db1f6dcf68ebf4d712fa2041a17b4cf632736a1ad3d9d7cfbe61a23e485c2e3"
+      "sha256": "20f63bce3330f79c41dd657e4fd53e6527d9bff8cc81d030a22c751be95dbddc"
     },
     "contracts/contracts/D17LaunchFactory.sol": {
-      "sha256": "c270f4dd181204e78e2274509092cbff957bc2a49828b852fdfa868002febe0e"
+      "sha256": "b4bccce5836d3abe34805c7145b2572fb6f40fec604d6e55617fe9ba132af98f"
     },
     "contracts/contracts/D17LiquidityVault.sol": {
-      "sha256": "cc01d372376804c834c0de0d300206209e7fd0d27ebe029681bc893cc9af73d1"
+      "sha256": "ab71b2c98bf35ad4c48d167576249c747b30a3aaef2435ba756242ca2d3f34ca"
     },
     "contracts/contracts/D17LiquidityVaultFactory.sol": {
-      "sha256": "7c595fb425a25f91bb451ed0fcaedac248bd14ee9bebfc87d40f3eaa41757094"
+      "sha256": "d93bb6f84ef933555e213ad86cce7edd549b4c4f3fda7b9e79e7435c6edafc61"
     },
     "contracts/contracts/D17Locker.sol": {
-      "sha256": "f974550de9b38de9c25bf5894186e7423cdf1b1d6f885ed3f128ad1527f76222"
+      "sha256": "3e4463fa56d68c5969268fbc77ac1c3b7bbc16fd7499ae32fe27293063cb2d00"
     },
     "contracts/contracts/D17LockerFactory.sol": {
       "sha256": "9cf7df3119290df5ff2449c743dbdb15ac02a9aa44bfd6a187c6ca9bb3ae8027"
     },
     "contracts/contracts/D17Token.sol": {
-      "sha256": "2589eadd9727454c3c256c99b85f56f82dcea3a429e2203b6772b5e73bd89bbd"
+      "sha256": "cecfdd744d4ede0f014a84870d442cfa6cd6b9216174d8bde40a580d844dee14"
     },
     "contracts/contracts/D17TokenFactory.sol": {
-      "sha256": "33a33567d973ab1f6359cd1e8bc262b95042e78f1bfa158b73fdd511fb1863b1"
+      "sha256": "7b839f8460507b8fccc8b7ba5be4cee6a9fe4c366100acc210725a2461000661"
     },
     "contracts/contracts/interfaces/ID17.sol": {
-      "sha256": "084ab24d751d0e0778614ce8c25ce3b6a157d59b24104613f5e8aeb8f6fade36"
+      "sha256": "2f5921c0cd50cefdc130040a8c71c1ca40f659d4ff834e3f5a028ca586fbc34e"
     },
     "contracts/contracts/interfaces/ID17LaunchFactory.sol": {
-      "sha256": "bcfc6e479bb274e6ac123b08a850899fc6431ebfb89cd002cf52b7a7181f75c8"
+      "sha256": "8b2bf5fd6aa04c3a838ab919c89260612c8e8044bf7ab8663219b8cd1be8fc54"
     },
     "contracts/contracts/lib/D17SafeTransfer.sol": {
       "sha256": "b1243497033f93f86cc7308f157b36c0c2a02b40ec3e4b332e479b218ad8e714"
@@ -95,25 +109,46 @@
   "contracts": {
     "D17Factory": {
       "source": "contracts/contracts/D17Factory.sol",
-      "abiSha256": "110e566863573460c17afe45f79e1b9bb2c1f2235019da7f7c6f895d2f6c572f",
-      "creationBytecodeBytes": 11107,
-      "creationBytecodeKeccak256": "0x6b44a553094596b4b8c70819ca2c3f618c24a8a2098753bc12e107f293a90abc",
-      "deployedBytecodeBytes": 10353,
-      "deployedBytecodeKeccak256": "0x3484ae8f26441998e75c46008a9898132d5997ac2250e337f4cce5a20d0bdb7a",
+      "abiSha256": "65b5c98c9fdfb5f54106fc6b52622d35ae731699001b80bcfec2b219152b2675",
+      "creationBytecodeBytes": 11872,
+      "creationBytecodeKeccak256": "0x58d0906835c8c42290e6e64aeb39f7e699aa68ef9096de4b9c25d23b3b41bf2e",
+      "deployedBytecodeBytes": 11021,
+      "deployedBytecodeKeccak256": "0xbe7ebc4f311dbe8acb3bd450b22aea93e7b3530013d91e5e9fe0476f1570247e",
       "immutableReferences": {
-        "80": [
+        "97": [
           {
             "length": 32,
-            "start": 7883
+            "start": 8483
           }
         ],
-        "82": [
+        "99": [
           {
             "length": 32,
-            "start": 804
+            "start": 848
+          }
+        ],
+        "101": [
+          {
+            "length": 32,
+            "start": 3481
+          },
+          {
+            "length": 32,
+            "start": 8790
           }
         ]
       },
+      "artifactCreationBytecodeMatch": true,
+      "artifactAbiMatch": true
+    },
+    "D17FeeConfig": {
+      "source": "contracts/contracts/D17FeeConfig.sol",
+      "abiSha256": "68267e5c6aa0bf9b4ac3662678a562d60ce5e80262db9ee73c4774fab8368fd8",
+      "creationBytecodeBytes": 1703,
+      "creationBytecodeKeccak256": "0xe9092d3d496f84a30f580b34d6e815290e01eaf77392cab1d091b41c3dfb63c0",
+      "deployedBytecodeBytes": 1198,
+      "deployedBytecodeKeccak256": "0x2361420de4b744ce06da842c0fcfc1471f44109fb0a7e1fe14393d56806c2827",
+      "immutableReferences": {},
       "artifactCreationBytecodeMatch": true,
       "artifactAbiMatch": true
     },
@@ -121,9 +156,9 @@
       "source": "contracts/contracts/D17TokenFactory.sol",
       "abiSha256": "29f79b17112eed416f73a7d6db8f978b890398dea3092bba6e9a2d21640a1871",
       "creationBytecodeBytes": 12603,
-      "creationBytecodeKeccak256": "0xc834ec1a3f451c54bd3070236d6e497d14062963495c1fe06a12239929c3c567",
+      "creationBytecodeKeccak256": "0x6b6c50d2e227e56a2fd2145501435949a4ae84d1473cf07bb58a619da22ab1a9",
       "deployedBytecodeBytes": 12371,
-      "deployedBytecodeKeccak256": "0x3e2807c8a5c21649dd8c51384ebdef06f6c330ec1a24e8f04cb509f1b4495340",
+      "deployedBytecodeKeccak256": "0x0c1c28e91a1460e7eda7f05bd72f6cd7604bd578ab4414be12b118515cbb2c65",
       "immutableReferences": {},
       "artifactCreationBytecodeMatch": true,
       "artifactAbiMatch": true
@@ -131,70 +166,99 @@
     "D17LiquidityVaultFactory": {
       "source": "contracts/contracts/D17LiquidityVaultFactory.sol",
       "abiSha256": "84a8de263771d863a8f73c4b5fd74fb0eb8e87f1539560492db8c548e15c5417",
-      "creationBytecodeBytes": 9515,
-      "creationBytecodeKeccak256": "0x103e36cf473261d29f1d699874d67eb37cc5b8f9e32f247b4ba55761e5375280",
-      "deployedBytecodeBytes": 9283,
-      "deployedBytecodeKeccak256": "0x2a24816c9b526fef8b57a814d5918c703e50d6b3f6d9008814d70fd387c02c50",
+      "creationBytecodeBytes": 11932,
+      "creationBytecodeKeccak256": "0x447bd233eba02141f9629e76467bda131ee182f9e8210b0875d55c06ab898379",
+      "deployedBytecodeBytes": 11700,
+      "deployedBytecodeKeccak256": "0x3f96bc8166e459c101d72c51a2062dc6f1b45364994410695f65d61bef0c84fe",
+      "immutableReferences": {},
+      "artifactCreationBytecodeMatch": true,
+      "artifactAbiMatch": true
+    },
+    "D17LaunchDeployer": {
+      "source": "contracts/contracts/D17LaunchDeployer.sol",
+      "abiSha256": "fc0e96315479a3a8ac6a7de00d5ecca6bb4ba4410dc653066448725c64e903d2",
+      "creationBytecodeBytes": 22991,
+      "creationBytecodeKeccak256": "0xcc9b8c20a34ccf32d39e3f45bf87b11b996871e55cef41374879a4037fbbe6b6",
+      "deployedBytecodeBytes": 22759,
+      "deployedBytecodeKeccak256": "0xdaa8b8e4e9ea0439bc1678e1876cb6ea2f2c894e9193d08f7dd3189854670669",
       "immutableReferences": {},
       "artifactCreationBytecodeMatch": true,
       "artifactAbiMatch": true
     },
     "D17LaunchFactory": {
       "source": "contracts/contracts/D17LaunchFactory.sol",
-      "abiSha256": "802020f976fbd54889c63bdac5314dd2e241a248d01cac6e1188f500cac99fd5",
-      "creationBytecodeBytes": 25141,
-      "creationBytecodeKeccak256": "0xc008a745c0657c779f53a0d0056f62c24cc6174083e55569463a479edd9781d9",
-      "deployedBytecodeBytes": 24469,
-      "deployedBytecodeKeccak256": "0x089fc987fcf53f7784ef569f035196c828cbc29d06af42aae99130bd819b09a8",
+      "abiSha256": "efaf4ad364fc7e587f328263f00049a337f9081bcca624f1b7a3dccf602c3f13",
+      "creationBytecodeBytes": 6004,
+      "creationBytecodeKeccak256": "0xa875454d7fd496ef3e0b33dd97c68c5260abdfc916586ac016c7d5534a604e27",
+      "deployedBytecodeBytes": 5129,
+      "deployedBytecodeKeccak256": "0x02ae8fe09f95aa2e9c43d609341358a963eced50fd9e27a8a5e86c9014265144",
       "immutableReferences": {
-        "4528": [
+        "5215": [
           {
             "length": 32,
-            "start": 343
+            "start": 301
           },
           {
             "length": 32,
-            "start": 614
+            "start": 665
           },
           {
             "length": 32,
-            "start": 1108
+            "start": 1131
           },
           {
             "length": 32,
-            "start": 1493
+            "start": 2071
           },
           {
             "length": 32,
-            "start": 1574
+            "start": 2482
           },
           {
             "length": 32,
-            "start": 1999
-          },
-          {
-            "length": 32,
-            "start": 3604
+            "start": 4535
           }
         ],
-        "4530": [
+        "5217": [
           {
             "length": 32,
-            "start": 114
+            "start": 117
           },
           {
             "length": 32,
-            "start": 534
+            "start": 383
+          },
+          {
+            "length": 32,
+            "start": 586
           }
         ],
-        "4532": [
+        "5219": [
           {
             "length": 32,
-            "start": 219
+            "start": 2265
           },
           {
             "length": 32,
-            "start": 1774
+            "start": 4140
+          },
+          {
+            "length": 32,
+            "start": 4470
+          }
+        ],
+        "5221": [
+          {
+            "length": 32,
+            "start": 1992
+          },
+          {
+            "length": 32,
+            "start": 4015
+          },
+          {
+            "length": 32,
+            "start": 4402
           }
         ]
       },
@@ -204,12 +268,12 @@
     "D17LockerFactory": {
       "source": "contracts/contracts/D17LockerFactory.sol",
       "abiSha256": "943ca6a210c9def9054634c331415c7d162d75b709cababe68541a93e2d8f722",
-      "creationBytecodeBytes": 10400,
-      "creationBytecodeKeccak256": "0x8f0b7aaf5ba369cc648889a48b80e9914795698adef193158990aa0d0b4aebb5",
-      "deployedBytecodeBytes": 10143,
-      "deployedBytecodeKeccak256": "0xa742674cd4cdebb6cc2609a045ff1c9f311b0c13b22df3056b7f744b1799b984",
+      "creationBytecodeBytes": 10598,
+      "creationBytecodeKeccak256": "0x798d644dc8296d8d894546ebf4a30d266907fe0da9e16c7f362de84a4ead8c72",
+      "deployedBytecodeBytes": 10341,
+      "deployedBytecodeKeccak256": "0x9aec57b7e90d6e7829fd2e71f16424076071b9c02f31a445b0461b8cca6c5726",
       "immutableReferences": {
-        "7433": [
+        "8560": [
           {
             "length": 32,
             "start": 126
@@ -223,176 +287,160 @@
       "artifactCreationBytecodeMatch": true,
       "artifactAbiMatch": true
     },
-    "D17Token": {
-      "source": "contracts/contracts/D17Token.sol",
-      "abiSha256": "f663d263243055ee0091d28cf6debeb628732ab33b0ae78373215a407d6a1c91",
-      "creationBytecodeBytes": 10963,
-      "creationBytecodeKeccak256": "0xd70aaeb80217e038d59100d4071f12e55f2008060c61360261d7aeaef3f42caa",
-      "deployedBytecodeBytes": 9386,
-      "deployedBytecodeKeccak256": "0xb21cd3cd2e8b015ae0595f2f6869cdf76fe317873059e0eead22446c7005cdf5",
-      "immutableReferences": {
-        "7563": [
-          {
-            "length": 32,
-            "start": 1617
-          },
-          {
-            "length": 32,
-            "start": 4201
-          }
-        ]
-      },
-      "artifactCreationBytecodeMatch": true,
-      "artifactAbiMatch": true
-    },
     "D17Launch": {
       "source": "contracts/contracts/D17Launch.sol",
-      "abiSha256": "b26e3cc925b314badffbff69d57a39bf98d3826d6a2bdc884e0e36492d445346",
-      "creationBytecodeBytes": 20271,
-      "creationBytecodeKeccak256": "0x4020c1a72becdcbec359d381cdfaaf7bffd6bca683d64d8369e484c30803eae9",
-      "deployedBytecodeBytes": 16766,
-      "deployedBytecodeKeccak256": "0x04fc1daeb5f50f09a35faabab2dea1b73c2847ebe254ab76a99a76d88f3c6b37",
+      "abiSha256": "d19050b616229a69bf7c1b53cd793d224714450f4f0c495b03f3f1b7b9f32807",
+      "creationBytecodeBytes": 21323,
+      "creationBytecodeKeccak256": "0x88981bf39d2f7da33cf22bd719badc79e9b268e4d5b1adcceecff2394fd94eda",
+      "deployedBytecodeBytes": 17557,
+      "deployedBytecodeKeccak256": "0x1ee49cd7056cadd149705e4a1bad8bea13bea5fb9972bb414b459b7a7bbcedd9",
       "immutableReferences": {
-        "1483": [
+        "1823": [
           {
             "length": 32,
-            "start": 1997
+            "start": 2142
           },
           {
             "length": 32,
-            "start": 2657
+            "start": 2782
           },
           {
             "length": 32,
-            "start": 3653
+            "start": 3794
           },
           {
             "length": 32,
-            "start": 4782
+            "start": 4964
           },
           {
             "length": 32,
-            "start": 5022
+            "start": 5206
           },
           {
             "length": 32,
-            "start": 9172
+            "start": 9719
           },
           {
             "length": 32,
-            "start": 10366
+            "start": 10995
           }
         ],
-        "1485": [
+        "1825": [
           {
             "length": 32,
-            "start": 8734
+            "start": 9285
           },
           {
             "length": 32,
-            "start": 11049
+            "start": 11672
           }
         ],
-        "1487": [
+        "1827": [
           {
             "length": 32,
-            "start": 1432
+            "start": 1520
           },
           {
             "length": 32,
-            "start": 3032
+            "start": 3252
           },
           {
             "length": 32,
-            "start": 3697
+            "start": 3302
           },
           {
             "length": 32,
-            "start": 5350
+            "start": 3838
           },
           {
             "length": 32,
-            "start": 6354
+            "start": 5564
           },
           {
             "length": 32,
-            "start": 15681
+            "start": 5732
           },
           {
             "length": 32,
-            "start": 15897
+            "start": 6867
+          },
+          {
+            "length": 32,
+            "start": 16451
           }
         ],
-        "1489": [
+        "1829": [
           {
             "length": 32,
-            "start": 3737
+            "start": 3878
           },
           {
             "length": 32,
-            "start": 9757
+            "start": 7572
+          },
+          {
+            "length": 32,
+            "start": 10324
           }
         ],
-        "1491": [
+        "1831": [
           {
             "length": 32,
-            "start": 3777
+            "start": 3918
           },
           {
             "length": 32,
-            "start": 7097
+            "start": 7674
           },
           {
             "length": 32,
-            "start": 7854
-          },
-          {
-            "length": 32,
-            "start": 15862
+            "start": 8417
           }
         ],
-        "1493": [
+        "1833": [
           {
             "length": 32,
-            "start": 3825
+            "start": 3958
           },
           {
             "length": 32,
-            "start": 6965
-          },
-          {
-            "length": 32,
-            "start": 12683
-          },
-          {
-            "length": 32,
-            "start": 13610
-          },
-          {
-            "length": 32,
-            "start": 13802
-          },
-          {
-            "length": 32,
-            "start": 14619
+            "start": 8286
           }
         ],
-        "1495": [
+        "1835": [
           {
             "length": 32,
-            "start": 3870
+            "start": 4006
           },
           {
             "length": 32,
-            "start": 8546
+            "start": 7430
           },
           {
             "length": 32,
-            "start": 13259
+            "start": 13377
           },
           {
             "length": 32,
-            "start": 13731
+            "start": 14318
+          },
+          {
+            "length": 32,
+            "start": 14510
+          },
+          {
+            "length": 32,
+            "start": 15226
+          }
+        ],
+        "1837": [
+          {
+            "length": 32,
+            "start": 4052
+          },
+          {
+            "length": 32,
+            "start": 9149
           },
           {
             "length": 32,
@@ -400,229 +448,245 @@
           },
           {
             "length": 32,
-            "start": 14284
+            "start": 14439
           },
           {
             "length": 32,
-            "start": 14812
+            "start": 14631
+          },
+          {
+            "length": 32,
+            "start": 14996
+          },
+          {
+            "length": 32,
+            "start": 15424
           }
         ],
-        "1497": [
+        "1839": [
           {
             "length": 32,
-            "start": 3911
+            "start": 4093
           },
           {
             "length": 32,
-            "start": 8482
+            "start": 9057
           },
           {
             "length": 32,
-            "start": 12013
+            "start": 12707
           }
         ],
-        "1499": [
+        "1841": [
           {
             "length": 32,
-            "start": 3951
+            "start": 4133
           },
           {
             "length": 32,
-            "start": 6743
+            "start": 7253
           },
           {
             "length": 32,
-            "start": 12053
+            "start": 12747
           },
           {
             "length": 32,
-            "start": 12098
+            "start": 12792
           }
         ],
-        "1501": [
+        "1843": [
           {
             "length": 32,
-            "start": 3990
+            "start": 4172
           },
           {
             "length": 32,
-            "start": 7735
+            "start": 8231
           },
           {
             "length": 32,
-            "start": 9276
+            "start": 9823
           }
         ],
-        "1503": [
+        "1845": [
           {
             "length": 32,
-            "start": 4029
+            "start": 4211
           },
           {
             "length": 32,
-            "start": 11293
+            "start": 11971
           },
           {
             "length": 32,
-            "start": 12763
+            "start": 13457
           }
         ],
-        "1505": [
+        "1847": [
           {
             "length": 32,
-            "start": 1532
+            "start": 1650
           },
           {
             "length": 32,
-            "start": 4068
+            "start": 4250
           },
           {
             "length": 32,
-            "start": 12815
+            "start": 13509
           }
         ],
-        "1507": [
+        "1849": [
           {
             "length": 32,
-            "start": 4227
+            "start": 4409
           },
           {
             "length": 32,
-            "start": 8608
+            "start": 9211
           },
           {
             "length": 32,
-            "start": 13066
+            "start": 15615
           },
           {
             "length": 32,
-            "start": 16249
+            "start": 16744
           }
         ],
-        "1509": [
+        "1851": [
           {
             "length": 32,
-            "start": 4267
+            "start": 4450
           },
           {
             "length": 32,
-            "start": 5991
+            "start": 10559
           },
           {
             "length": 32,
-            "start": 10829
+            "start": 15662
+          },
+          {
+            "length": 32,
+            "start": 16787
           }
         ],
-        "1511": [
+        "1853": [
           {
             "length": 32,
-            "start": 4307
+            "start": 4490
           },
           {
             "length": 32,
-            "start": 5671
+            "start": 6521
           },
           {
             "length": 32,
-            "start": 13994
-          },
-          {
-            "length": 32,
-            "start": 14045
-          },
-          {
-            "length": 32,
-            "start": 14124
-          },
-          {
-            "length": 32,
-            "start": 15456
-          },
-          {
-            "length": 32,
-            "start": 16650
+            "start": 11462
           }
         ],
-        "1513": [
+        "1855": [
           {
             "length": 32,
-            "start": 2886
+            "start": 4530
           },
           {
             "length": 32,
-            "start": 4346
+            "start": 6141
           },
           {
             "length": 32,
-            "start": 6271
+            "start": 14148
           },
           {
             "length": 32,
-            "start": 9989
+            "start": 14702
+          },
+          {
+            "length": 32,
+            "start": 14757
+          },
+          {
+            "length": 32,
+            "start": 14836
+          },
+          {
+            "length": 32,
+            "start": 16167
+          },
+          {
+            "length": 32,
+            "start": 17019
           }
         ],
-        "1515": [
+        "1857": [
           {
             "length": 32,
-            "start": 4385
+            "start": 4569
           },
           {
             "length": 32,
-            "start": 7677
+            "start": 10618
+          },
+          {
+            "length": 32,
+            "start": 14110
+          },
+          {
+            "length": 32,
+            "start": 16222
           }
         ],
-        "1517": [
+        "1859": [
           {
             "length": 32,
-            "start": 4425
+            "start": 4608
           },
           {
             "length": 32,
-            "start": 5726
+            "start": 8173
           }
         ],
-        "1519": [
+        "1861": [
           {
             "length": 32,
-            "start": 4465
+            "start": 4648
           },
           {
             "length": 32,
-            "start": 11177
+            "start": 6226
           }
         ],
-        "1521": [
+        "1863": [
           {
             "length": 32,
-            "start": 4504
+            "start": 4688
           },
           {
             "length": 32,
-            "start": 10142
+            "start": 11800
           }
         ],
-        "1523": [
+        "1865": [
           {
             "length": 32,
-            "start": 4544
+            "start": 4727
           },
           {
             "length": 32,
-            "start": 5519
-          },
-          {
-            "length": 32,
-            "start": 15568
+            "start": 10771
           }
         ],
-        "1525": [
+        "1867": [
           {
             "length": 32,
-            "start": 4588
+            "start": 4770
           },
           {
             "length": 32,
-            "start": 4697
+            "start": 4879
           }
         ]
       },
@@ -631,96 +695,100 @@
     },
     "D17Locker": {
       "source": "contracts/contracts/D17Locker.sol",
-      "abiSha256": "5587372f84d6e4d843a1fb0d8812d3ea157eef4cbc3c60f13b969c395c1ae32a",
-      "creationBytecodeBytes": 9425,
-      "creationBytecodeKeccak256": "0xd212dc093dd27d90612036da35c333e31c4f0941ba42d3376a52f0e130ffab2a",
-      "deployedBytecodeBytes": 8913,
-      "deployedBytecodeKeccak256": "0x803fe35755160e0f857f5d9610f1c4445710dbb8567bd90ffc7e26cdc1102ada",
+      "abiSha256": "7506c98d9f358ddcff2389657555e8c9a9717b9d9cbc6baabc0831a74d3c7803",
+      "creationBytecodeBytes": 9623,
+      "creationBytecodeKeccak256": "0x8bfc4732ec3d5f2310bef40ff7faa2131917938931d0b593e45d51ff8ee7ad2b",
+      "deployedBytecodeBytes": 9104,
+      "deployedBytecodeKeccak256": "0x2796ddec04ff9f36a77cf3a4df95a7c03452cb45636e95e4a4ca425026c66b34",
       "immutableReferences": {
-        "5994": [
+        "7088": [
           {
             "length": 32,
-            "start": 1013
+            "start": 1026
           },
           {
             "length": 32,
-            "start": 1494
+            "start": 1514
           },
           {
             "length": 32,
-            "start": 1917
+            "start": 1941
           },
           {
             "length": 32,
-            "start": 2241
+            "start": 2267
           },
           {
             "length": 32,
-            "start": 2874
+            "start": 2888
           },
           {
             "length": 32,
-            "start": 3957
+            "start": 3991
           },
           {
             "length": 32,
-            "start": 4258
+            "start": 4294
           },
           {
             "length": 32,
-            "start": 4674
+            "start": 4711
           },
           {
             "length": 32,
-            "start": 4905
+            "start": 4942
           },
           {
             "length": 32,
-            "start": 7905
+            "start": 7969
           }
         ],
-        "5996": [
+        "7090": [
           {
             "length": 32,
-            "start": 924
+            "start": 937
           },
           {
             "length": 32,
-            "start": 6607
+            "start": 6652
           }
         ],
-        "5998": [
+        "7092": [
           {
             "length": 32,
-            "start": 1579
+            "start": 1599
           },
           {
             "length": 32,
-            "start": 3323
+            "start": 3344
           },
           {
             "length": 32,
-            "start": 4462
+            "start": 4498
           },
           {
             "length": 32,
-            "start": 4777
+            "start": 4815
           },
           {
             "length": 32,
-            "start": 5030
+            "start": 5068
           },
           {
             "length": 32,
-            "start": 6493
+            "start": 6538
           },
           {
             "length": 32,
-            "start": 8174
+            "start": 8249
           },
           {
             "length": 32,
-            "start": 8259
+            "start": 8370
+          },
+          {
+            "length": 32,
+            "start": 8433
           }
         ]
       },
@@ -729,146 +797,212 @@
     },
     "D17LiquidityVault": {
       "source": "contracts/contracts/D17LiquidityVault.sol",
-      "abiSha256": "6d905ad19a500cc6733c15ff5e92de734f1f00e204327021e38541e9d29b66a4",
-      "creationBytecodeBytes": 8079,
-      "creationBytecodeKeccak256": "0xd5720ea2e4c200dbc2f670e7deb05ef927cab8078bda8d20e3db64f6f4c256b6",
-      "deployedBytecodeBytes": 6801,
-      "deployedBytecodeKeccak256": "0x7f4fec2d0830ba7dae8a2f27952de1d313cfdcedb39a0e26d1ba0db1aa2decc8",
+      "abiSha256": "b751788419e9bc77c259e2be8ee8b63befbce7cc9fcef757b6732cdef2df1a26",
+      "creationBytecodeBytes": 10496,
+      "creationBytecodeKeccak256": "0x51619bd0bf880cd3278d3d7aa55568e45380e885866a1493db188c8234725725",
+      "deployedBytecodeBytes": 9141,
+      "deployedBytecodeKeccak256": "0xccb95afd11d74808592aa653f72dc947dd3c56382f9fc7f8bcd39f8db1443ae4",
       "immutableReferences": {
-        "4901": [
+        "5673": [
           {
             "length": 32,
-            "start": 968
+            "start": 579
           },
           {
             "length": 32,
-            "start": 3260
+            "start": 1634
           },
           {
             "length": 32,
-            "start": 3941
+            "start": 3879
           },
           {
             "length": 32,
-            "start": 4413
+            "start": 5055
           },
           {
             "length": 32,
-            "start": 4497
+            "start": 5587
           },
           {
             "length": 32,
-            "start": 6028
+            "start": 6067
+          },
+          {
+            "length": 32,
+            "start": 6151
+          },
+          {
+            "length": 32,
+            "start": 7505
+          },
+          {
+            "length": 32,
+            "start": 8038
+          },
+          {
+            "length": 32,
+            "start": 8329
           }
         ],
-        "4903": [
+        "5675": [
           {
             "length": 32,
-            "start": 412
+            "start": 1093
           },
           {
             "length": 32,
-            "start": 1108
+            "start": 1766
           },
           {
             "length": 32,
-            "start": 2740
+            "start": 2200
           },
           {
             "length": 32,
-            "start": 3420
+            "start": 2404
           },
           {
             "length": 32,
-            "start": 3662
+            "start": 3955
           },
           {
             "length": 32,
-            "start": 3760
+            "start": 4535
           },
           {
             "length": 32,
-            "start": 4028
+            "start": 5215
           },
           {
             "length": 32,
-            "start": 4211
+            "start": 5406
           },
           {
             "length": 32,
-            "start": 5611
+            "start": 5673
+          },
+          {
+            "length": 32,
+            "start": 5865
+          },
+          {
+            "length": 32,
+            "start": 7088
+          },
+          {
+            "length": 32,
+            "start": 8599
           }
         ],
-        "4905": [
+        "5677": [
           {
             "length": 32,
-            "start": 535
+            "start": 640
           },
           {
             "length": 32,
-            "start": 1178
+            "start": 1212
           },
           {
             "length": 32,
-            "start": 2484
+            "start": 1864
           },
           {
             "length": 32,
-            "start": 2781
+            "start": 2077
           },
           {
             "length": 32,
-            "start": 3387
+            "start": 2452
           },
           {
             "length": 32,
-            "start": 3853
+            "start": 3486
           },
           {
             "length": 32,
-            "start": 4135
+            "start": 4250
           },
           {
             "length": 32,
-            "start": 4254
+            "start": 4576
           },
           {
             "length": 32,
-            "start": 5578
+            "start": 5182
+          },
+          {
+            "length": 32,
+            "start": 5499
+          },
+          {
+            "length": 32,
+            "start": 5789
+          },
+          {
+            "length": 32,
+            "start": 5908
+          },
+          {
+            "length": 32,
+            "start": 7055
           }
         ],
-        "4907": [
+        "5679": [
           {
             "length": 32,
-            "start": 840
+            "start": 1506
           }
         ],
-        "4909": [
+        "5681": [
           {
             "length": 32,
-            "start": 2416
+            "start": 4182
           },
           {
             "length": 32,
-            "start": 3338
+            "start": 5133
           }
         ],
-        "4911": [
+        "5683": [
           {
             "length": 32,
-            "start": 646
+            "start": 1323
           },
           {
             "length": 32,
-            "start": 2065
+            "start": 3608
           },
           {
             "length": 32,
-            "start": 2348
+            "start": 4114
           },
           {
             "length": 32,
-            "start": 2876
+            "start": 4671
+          }
+        ]
+      },
+      "artifactCreationBytecodeMatch": true,
+      "artifactAbiMatch": true
+    },
+    "D17Token": {
+      "source": "contracts/contracts/D17Token.sol",
+      "abiSha256": "f663d263243055ee0091d28cf6debeb628732ab33b0ae78373215a407d6a1c91",
+      "creationBytecodeBytes": 10963,
+      "creationBytecodeKeccak256": "0x700ae11bee64c3ca142cd436646a7f5aadc305706fa820aa63e85b2502d18cdc",
+      "deployedBytecodeBytes": 9386,
+      "deployedBytecodeKeccak256": "0x8db1130921af01f5f46314f4016b4e6c4b3648cbe06a4548d2c6a8a900ceab74",
+      "immutableReferences": {
+        "8690": [
+          {
+            "length": 32,
+            "start": 1617
+          },
+          {
+            "length": 32,
+            "start": 4201
           }
         ]
       },

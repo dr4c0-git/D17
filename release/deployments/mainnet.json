@@ -1,42 +1,22 @@
 {
-  "schema": "d17-public-deployment-provenance-v1",
+  "schema": "d17-public-deployment-provenance-v2",
   "network": "ethereum-mainnet",
   "chainId": 1,
-  "startBlock": 25482998,
-  "deployedAt": "2026-07-07T20:27:14.897Z",
+  "protocolVersion": "V15_HARDENED",
+  "status": "not-deployed",
+  "startBlock": 0,
+  "deployedAt": null,
   "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
   "router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
   "contracts": {
-    "d17Factory": "0x4103c658141447DFc3a70aE2D5C7a5Ad8d970844",
-    "tokenFactory": "0x0Ce3DBE9cc4765bd5Ebdb9679e1e693da9ca7D0F",
-    "liquidityVaultFactory": "0xdc902316e1FD087f96773A8156D7b8BB5Cc889a3",
-    "launchFactory": "0xDdD23F9FCE6D5C0E540D713A19BFC7FB8b3cCAFF",
-    "lockerFactory": "0x1E79BAC0A3c85Fb1778c7eBe265b908fcCd7FeC0"
+    "d17Factory": "0x0000000000000000000000000000000000000000",
+    "feeConfig": "0x0000000000000000000000000000000000000000",
+    "tokenFactory": "0x0000000000000000000000000000000000000000",
+    "launchDeployer": "0x0000000000000000000000000000000000000000",
+    "launchFactory": "0x0000000000000000000000000000000000000000",
+    "liquidityVaultFactory": "0x0000000000000000000000000000000000000000",
+    "lockerFactory": "0x0000000000000000000000000000000000000000"
   },
-  "transactions": {
-    "deployD17Factory": "0x9d2da92c14deedb975f8049399669027dd4c54f84eae6118d82c34f99026a2ac",
-    "deployTokenFactory": "0xe5385c63408455580cb6aaea916bf3ce26d1b6a1663a3afa1357b240ce751767",
-    "deployLiquidityVaultFactory": "0xa8cb2e7b84524202f1529bde1d26f4bd91ff498105edeff4f0aaa447d0aedb3d",
-    "deployLaunchFactory": "0xc6316dd96417aadea01664d77d5dde949be9947c31959e6d820fc135ff63b1bd",
-    "pinTokenFactory": "0x8bbe2e7b72de5371f34308d37bd044149569d2c249a8fdeb260d41d3fa86f422",
-    "pinLiquidityVaultFactory": "0x68a73499b3f92e800d5104c3fd39ea299a92362f4a2ce0523d5c557ec875449e",
-    "pinLaunchFactory": "0x761a4d565b066d414e1bb522ba17a1ecfdcbc56c605348fcc7d52b0792224081",
-    "deployLockerFactory": "0xe35e509af6b731ba530a95ba13de130b2f6ace5a9ce7ac343d37a704dbe8727c",
-    "pinLockerFactory": "0xaf7c94f03cb7b2e5dd7d3a845f96d78ed3bccb84d035952f160c29c2c3a92f88",
-    "renounceD17Factory": "0x0a6ea1e47f79150a49a5fc87a6f5174b8a2ac404531300779b42c4929a89724e",
-    "renounceTokenFactory": "0xb92c92dda20255914c5aaa4ea6facb54657b4ed6cae4bfc0aa79854333db4d4e",
-    "renounceLiquidityVaultFactory": "0xa0b1a14bb30da27a8380bcbd46f89a3e3bc716333c1aa0914b6e5a9aaac39d01"
-  },
-  "verification": {
-    "wiringAndIdentities": true,
-    "ownersRenounced": true,
-    "runtimeMethod": "constructor simulation with deployed arguments compared byte-for-byte to eth_getCode",
-    "runtime": {
-      "D17Factory": { "bytes": 10353, "keccak256": "0x5a949ce3931de13afc43a9d9de9f4116878c8f431fcf78bcaa5218495b1cfb94", "exactMatch": true },
-      "D17TokenFactory": { "bytes": 12371, "keccak256": "0x3e2807c8a5c21649dd8c51384ebdef06f6c330ec1a24e8f04cb509f1b4495340", "exactMatch": true },
-      "D17LiquidityVaultFactory": { "bytes": 9283, "keccak256": "0x2a24816c9b526fef8b57a814d5918c703e50d6b3f6d9008814d70fd387c02c50", "exactMatch": true },
-      "D17LaunchFactory": { "bytes": 24469, "keccak256": "0xd4b3de506ba3e4181fcad941384cb347d0a3eb3500674df4a739202205596fb2", "exactMatch": true },
-      "D17LockerFactory": { "bytes": 10143, "keccak256": "0x88b5729c7da7dd6f419e4b07ce60178f9fbde254d89c98380f3ff05d4c8aa4b0", "exactMatch": true }
-    }
-  }
+  "transactions": {},
+  "note": "V15 is not deployed yet. Run deploy:factory, verify:factory, then publish:deployment (see contracts/README.md). The upstream V14 deployment is not compatible with this source tree."
 }

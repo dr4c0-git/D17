@@ -26,5 +26,5 @@
   "roundSharesBps": [4000, 1500, 1500, 1500, 1500],
   "treasuryBps": 100,
   "refundPenaltyBps": 1700,
-  "burnUnsoldSaleTokens": true
+  "maxProtocolFeeBps": 100
 }
