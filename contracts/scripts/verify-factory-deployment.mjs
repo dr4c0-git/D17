@@ -38,18 +38,21 @@ const factoryArt = artifact("D17Factory.sol", "D17Factory");
 const tokenFactoryArt = artifact("D17TokenFactory.sol", "D17TokenFactory");
 const vaultFactoryArt = artifact("D17LiquidityVaultFactory.sol", "D17LiquidityVaultFactory");
 const launchFactoryArt = artifact("D17LaunchFactory.sol", "D17LaunchFactory");
+const launchDeployerArt = artifact("D17LaunchDeployer.sol", "D17LaunchDeployer");
 const lockerFactoryArt = artifact("D17LockerFactory.sol", "D17LockerFactory");
 
 const factory = new ethers.Contract(deployment.factory, factoryArt.abi, provider);
 const tokenFactory = new ethers.Contract(deployment.tokenFactory, tokenFactoryArt.abi, provider);
 const vaultFactory = new ethers.Contract(deployment.liquidityVaultFactory, vaultFactoryArt.abi, provider);
 const launchFactory = new ethers.Contract(deployment.launchFactory, launchFactoryArt.abi, provider);
+const launchDeployer = new ethers.Contract(deployment.launchDeployer, launchDeployerArt.abi, provider);
 const lockerFactory = new ethers.Contract(deployment.lockerFactory, lockerFactoryArt.abi, provider);
 
 await hasCode("D17Factory", deployment.factory);
 await hasCode("D17TokenFactory", deployment.tokenFactory);
 await hasCode("D17LiquidityVaultFactory", deployment.liquidityVaultFactory);
 await hasCode("D17LaunchFactory", deployment.launchFactory);
+await hasCode("D17LaunchDeployer", deployment.launchDeployer);
 await hasCode("D17LockerFactory", deployment.lockerFactory);
 
 check("deployment chain id matches RPC", deployment.chainId === chainId, `${deployment.chainId} vs ${chainId}`);
@@ -78,6 +81,9 @@ check("token factory launchFactory address", sameAddress(await tokenFactory.laun
 check("vault factory launch factory pinned", await vaultFactory.launchFactoryPinned());
 check("vault factory launchFactory address", sameAddress(await vaultFactory.launchFactory(), deployment.launchFactory));
 
+check("launch deployer launch factory pinned", await launchDeployer.launchFactoryPinned());
+check("launch deployer launchFactory address", sameAddress(await launchDeployer.launchFactory(), deployment.launchFactory));
+check("launch factory points to launch deployer", sameAddress(await launchFactory.launchDeployer(), deployment.launchDeployer));
 check("launch factory points to D17Factory", sameAddress(await launchFactory.d17Factory(), deployment.factory));
 check("launch factory points to token factory", sameAddress(await launchFactory.tokenFactory(), deployment.tokenFactory));
 check("launch factory points to liquidity vault factory", sameAddress(await launchFactory.liquidityVaultFactory(), deployment.liquidityVaultFactory));
@@ -93,10 +99,12 @@ if (expectRenounced) {
   check("D17Factory owner renounced", sameAddress(await factory.owner(), ZERO));
   check("D17TokenFactory owner renounced", sameAddress(await tokenFactory.owner(), ZERO));
   check("D17LiquidityVaultFactory owner renounced", sameAddress(await vaultFactory.owner(), ZERO));
+  check("D17LaunchDeployer owner renounced", sameAddress(await launchDeployer.owner(), ZERO));
 } else {
   check("D17Factory owner matches deployment owner", sameAddress(await factory.owner(), deployment.factoryOwner));
   check("D17TokenFactory owner matches launch deployer", sameAddress(await tokenFactory.owner(), deployment.launchFactoryDeployer));
   check("D17LiquidityVaultFactory owner matches launch deployer", sameAddress(await vaultFactory.owner(), deployment.launchFactoryDeployer));
+  check("D17LaunchDeployer owner matches launch deployer", sameAddress(await launchDeployer.owner(), deployment.launchFactoryDeployer));
 }
 
 const ok = checks.every((entry) => entry.ok);

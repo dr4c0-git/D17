@@ -273,11 +273,26 @@ async function main() {
     const vaultFactory = await deploy("D17LiquidityVaultFactory.sol", "D17LiquidityVaultFactory", deployer, [
       await deployer.getAddress()
     ]);
+    const launchDeployer = await deploy("D17LaunchDeployer.sol", "D17LaunchDeployer", deployer, [
+      await deployer.getAddress()
+    ]);
     const launchFactory = await deploy("D17LaunchFactory.sol", "D17LaunchFactory", deployer, [
       await d17Factory.getAddress(),
       await tokenFactory.getAddress(),
-      await vaultFactory.getAddress()
+      await vaultFactory.getAddress(),
+      await launchDeployer.getAddress()
     ]);
+    await expectRevert(
+      "launch deployer rejects callers before pin",
+      async () => launchDeployer.deployLaunch.staticCall("0x"),
+      "NOT_LAUNCH_FACTORY"
+    );
+    await wait(await launchDeployer.pinLaunchFactory(await launchFactory.getAddress()), "pin launch deployer launch factory");
+    await expectRevert(
+      "launch deployer rejects non launch factory callers",
+      async () => launchDeployer.deployLaunch.staticCall("0x"),
+      "NOT_LAUNCH_FACTORY"
+    );
     await wait(await tokenFactory.pinLaunchFactory(await launchFactory.getAddress()), "pin token factory launch factory");
     await wait(await vaultFactory.pinLaunchFactory(await launchFactory.getAddress()), "pin vault factory launch factory");
     await wait(await d17Factory.pinLaunchFactory(await launchFactory.getAddress()), "pin launch factory");
