@@ -101,7 +101,7 @@ pour les lancements futurs seulement.
 | 10 | Pré-dépôt WETH dans la paire | Analysé : non exploitable, conservé (documenté). |
 | 11 | Sweep bloqué par treasury | Corrigé : wrap ETH→WETH. |
 | 12 | Timestamps / lancements furtifs | Planchers mainnet (24 h d'annonce, fenêtres ≥ 1 h). Non testé localement (chainid 1). |
-| 13 | Front-end | Vérifie feeConfig + wiring ; bannière « non déployé » ; décodage par nom. |
+| 13 | Front-end | Vérifie feeConfig + wiring ; bannière « non déployé » ; décodage par nom ; panneau « Creator vesting » + bouton de release dans l'étape Trading (testé en navigateur sur nœud local). |
 
 Autres bugs corrigés : nonce du script de déploiement (`NonceManager` par clé).
 
@@ -120,11 +120,19 @@ Autres bugs corrigés : nonce du script de déploiement (`NonceManager` par clé
 
 Dry-run local validé : deploy → verify (40/40) → create-launch (frais 1 % figé).
 
+Test UI local (sans toucher au dépôt) : config Hardhat temporaire avec
+`networks.hardhat.chainId = 11155111` lancée via
+`npx hardhat --config <tmp> --network hardhat node` (sans `--network hardhat`, le
+chainId reste 31337), manifest `apps/web/deployments/sepolia.json` + `.env.local`
+pointés sur le nœud, Playwright (scratchpad) avec un `window.ethereum` injecté qui
+relaie vers le nœud et `page.clock` calé sur l'heure de la chaîne. Restaurer ensuite le
+manifest, supprimer `.env.local` et `git checkout apps/web/next-env.d.ts` (réécrit par
+`next dev`).
+
 ## Reste à faire
 
 - Réécrire `docs/CONTRACTS_TECHNICAL.md`, `contracts/docs/ABI_TRACEABILITY.md` et le
   blog pour V15 (actuellement une note de version renvoie à `docs/V15_HARDENING.md`).
-- Bouton UI « release creator tokens » (fonction on-chain déjà appelable par tous).
 - Tests de fuzzing/invariants ; test des planchers mainnet (nœud avec chainId 1).
 - Audit externe.
 - Optionnel : ajouter une ligne de copyright du fork dans `LICENSE` (sans retirer l'existante).

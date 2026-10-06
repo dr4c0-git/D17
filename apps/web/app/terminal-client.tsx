@@ -842,6 +842,10 @@ function ParticipantsTerminal() {
   const [position, setPosition] = useState<PositionSnapshot | null>(null);
   const [tokenAddress, setTokenAddress] = useState("");
   const [poolAddress, setPoolAddress] = useState("");
+  // Creator allocation vesting (V15): held by the liquidity vault, released linearly
+  // from pool creation. Releasable amount is recomputed every second from nowSeconds.
+  const [creatorVesting, setCreatorVesting] = useState<CreatorVesting | null>(null);
+  const [creatorVestingRefresh, setCreatorVestingRefresh] = useState(0);
   const [poolComposition, setPoolComposition] = useState<PoolCompositionLine | null>(null);
   const [wethAddress, setWethAddress] = useState(DEFAULT_WETH);
   const [liquidityVaultAddress, setLiquidityVaultAddress] = useState("");
@@ -1085,6 +1089,43 @@ function ParticipantsTerminal() {
     return rawPhase;
   }, [rawPhase, launchConfig]);
   const nowSeconds = isReplay ? (replayCutoff as number) : liveNowSeconds;
+
+  useEffect(() => {
+    // Vesting only exists once the official pool is created; read straight from chain
+    // (the vault is the source of truth in both api and rpc modes).
+    if (!READ_RPC_URL || !ethers.isAddress(launchAddress) || !ethers.isAddress(liquidityVaultAddress) || !ethers.isAddress(poolAddress)) {
+      setCreatorVesting(null);
+      return;
+    }
+    let cancelled = false;
+    const provider = readProvider();
+    (async () => {
+      const [launch, vault] = await Promise.all([
+        contractWithProvider("D17Launch", launchAddress, provider),
+        contractWithProvider("D17LiquidityVault", liquidityVaultAddress, provider),
+      ]);
+      const [total, recipient, released, poolCreatedAt, period] = await Promise.all([
+        launch.manualDistributionTokens() as Promise<bigint>,
+        launch.manualDistributionRecipient() as Promise<string>,
+        vault.creatorTokensReleased() as Promise<bigint>,
+        vault.poolCreatedAt() as Promise<bigint>,
+        vault.CREATOR_VESTING_SECONDS() as Promise<bigint>,
+      ]);
+      if (cancelled) return;
+      setCreatorVesting(
+        total > 0n && poolCreatedAt > 0n
+          ? { total, released, recipient, startsAt: Number(poolCreatedAt), periodSeconds: Number(period) }
+          : null
+      );
+    })()
+      .catch(() => {
+        if (!cancelled) setCreatorVesting(null);
+      })
+      .finally(() => provider.destroy());
+    return () => {
+      cancelled = true;
+    };
+  }, [launchAddress, liquidityVaultAddress, poolAddress, creatorVestingRefresh]);
   const activityItems = useMemo(
     () =>
       isReplay
@@ -2688,6 +2729,7 @@ function ParticipantsTerminal() {
     setLaunchMetadata(null);
     setPoolAddress("");
     setPoolComposition(null);
+    setCreatorVesting(null);
     setAnchorPriceWeth("");
     apiActivityCacheRef.current = null;
     rpcActivityCacheRef.current = null;
@@ -2777,6 +2819,18 @@ function ParticipantsTerminal() {
       const deadline = Math.floor(Date.now() / 1000) + 15 * 60;
       const tx = (await vault.createOfficialPool(0, deadline)) as ethers.ContractTransactionResponse;
       await waitForTx(tx, "Official pool creation");
+      return tx.hash;
+    });
+  };
+
+  const releaseCreatorTokens = async () => {
+    await sendTx("release creator tokens", async (signer) => {
+      requireAddress(liquidityVaultAddress, "Liquidity vault");
+      const vault = await contractWithSigner("D17LiquidityVault", liquidityVaultAddress, signer);
+      // Permissionless: the vault always pays the creator address fixed in the rules.
+      const tx = (await vault.releaseCreatorTokens()) as ethers.ContractTransactionResponse;
+      await waitForTx(tx, "Creator token release");
+      setCreatorVestingRefresh((current) => current + 1);
       return tx.hash;
     });
   };
@@ -3349,6 +3403,9 @@ function ParticipantsTerminal() {
                     : { status: "hidden" }
               }
               onCreatePool={() => void createOfficialPool()}
+              creatorVesting={creatorVesting}
+              creatorReleaseBusy={Boolean(pendingAction) || isReplay}
+              onReleaseCreatorTokens={() => void releaseCreatorTokens()}
             />
           </div>
           {railTab === "launches" && (
@@ -4612,6 +4669,95 @@ type FactRow = { label: string; value: string; href?: string };
  *  as completed the moment anyone succeeds. */
 type PoolAction = { status: "hidden" | "available" | "created"; busy?: boolean };
 
+/** Creator allocation held by the liquidity vault (V15). */
+type CreatorVesting = {
+  total: bigint;
+  released: bigint;
+  recipient: string;
+  startsAt: number; // pool creation timestamp
+  periodSeconds: number;
+};
+
+/** Mirrors D17LiquidityVault.vestedCreatorTokens(): linear from pool creation. */
+function vestedCreatorAmount(vesting: CreatorVesting, nowSeconds: number) {
+  const elapsed = Math.max(0, nowSeconds - vesting.startsAt);
+  if (vesting.periodSeconds <= 0 || elapsed >= vesting.periodSeconds) return vesting.total;
+  return (vesting.total * BigInt(elapsed)) / BigInt(vesting.periodSeconds);
+}
+
+/** RELEASE CREATOR TOKENS is permissionless — anyone can push the vested part
+ *  to the creator address fixed in the launch rules; the caller gets nothing. */
+function CreatorVestingPanel({
+  vesting,
+  nowSeconds,
+  busy,
+  onRelease,
+}: {
+  vesting: CreatorVesting;
+  nowSeconds: number;
+  busy: boolean;
+  onRelease: () => void;
+}) {
+  // The chain clock can run a few seconds ahead of the browser's: never show less
+  // vested than what the vault has already released.
+  const computed = vestedCreatorAmount(vesting, nowSeconds);
+  const vested = computed > vesting.released ? computed : vesting.released;
+  const releasable = vested > vesting.released ? vested - vesting.released : 0n;
+  const endsAt = vesting.startsAt + vesting.periodSeconds;
+  const rows: FactRow[] = [
+    { label: "Creator allocation", value: formatToken(vesting.total) },
+    { label: "Vested", value: `${formatToken(vested)} (${vesting.total > 0n ? Number((vested * 100n) / vesting.total) : 0}%)` },
+    { label: "Already released", value: formatToken(vesting.released) },
+    { label: "Fully vested", value: nowSeconds >= endsAt ? "Yes" : formatMinute(endsAt) },
+    {
+      label: "Paid to",
+      value: shortAddress(vesting.recipient),
+      href: `${EXPLORER_BASE}/address/${vesting.recipient}`,
+    },
+  ];
+  return (
+    <div className="mt-3 border-t border-faint pt-2">
+      <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">Creator vesting · 180 days linear</p>
+      <div className="grid gap-y-1 font-mono text-[10px] uppercase tracking-[0.02em]">
+        {rows.map((row) => (
+          <p key={row.label} className="flex justify-between gap-3">
+            <span className="text-quiet">{row.label}</span>
+            {row.href ? (
+              <a
+                href={row.href}
+                target="_blank"
+                rel="noreferrer"
+                className="min-w-0 truncate text-right normal-case text-electric transition-colors hover:text-ink tabular-nums"
+              >
+                {row.value} ↗
+              </a>
+            ) : (
+              <span className="min-w-0 truncate text-right text-dim tabular-nums">{row.value}</span>
+            )}
+          </p>
+        ))}
+      </div>
+      {releasable > 0n ? (
+        <button
+          type="button"
+          onClick={onRelease}
+          disabled={busy}
+          className="mt-2 w-full border border-ink bg-ink px-3 py-2 text-center font-mono text-[11px] uppercase tracking-[0.04em] text-paper transition-opacity disabled:opacity-40"
+        >
+          {busy ? "Working…" : `Release ${formatToken(releasable)} to creator →`}
+        </button>
+      ) : (
+        <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">
+          {vesting.released >= vesting.total ? "Fully released ✓" : "Nothing new to release yet"}
+        </p>
+      )}
+      <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">
+        Anyone can trigger it; tokens always go to the creator fixed in the rules.
+      </p>
+    </div>
+  );
+}
+
 function lifecycleRows(id: string, facts: LifecycleFacts, stage: TimelineStage, currency: CurrencyCtx): FactRow[] | null {
   const tx = (item?: ActivityItem) => (item ? `${EXPLORER_BASE}/tx/${item.hash}` : undefined);
   const when = (item?: ActivityItem) => (item?.timestamp ? formatMinute(item.timestamp) : "Not yet");
@@ -4712,6 +4858,9 @@ function LaunchTimeline({
   facts,
   poolAction,
   onCreatePool,
+  creatorVesting,
+  creatorReleaseBusy,
+  onReleaseCreatorTokens,
 }: {
   phase: PhaseSnapshot | null;
   rounds: RoundTerm[];
@@ -4722,6 +4871,9 @@ function LaunchTimeline({
   facts: LifecycleFacts;
   poolAction: PoolAction;
   onCreatePool: () => void;
+  creatorVesting: CreatorVesting | null;
+  creatorReleaseBusy: boolean;
+  onReleaseCreatorTokens: () => void;
 }) {
   const currency = useCurrency();
   const stages = buildTimelineStages(phase, rounds, nowSeconds);
@@ -4806,6 +4958,14 @@ function LaunchTimeline({
               )}
               {stage.id === "pool-ready" && poolAction.status === "created" && (
                 <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.02em] text-live">Pool created ✓</p>
+              )}
+              {stage.id === "trading" && creatorVesting && (
+                <CreatorVestingPanel
+                  vesting={creatorVesting}
+                  nowSeconds={nowSeconds}
+                  busy={creatorReleaseBusy}
+                  onRelease={onReleaseCreatorTokens}
+                />
               )}
               {roundIndex !== null && detail && detail.spark.length > 1 && !isRefundStage && (
                 <div className="mb-2">
