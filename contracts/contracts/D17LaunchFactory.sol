@@ -2,6 +2,10 @@
 pragma solidity ^0.8.24;
 
 import {D17Launch} from "./D17Launch.sol";
+
+interface ID17LaunchDeployer {
+    function deployLaunch(bytes calldata encodedParams) external returns (address launch);
+}
 import {ID17LaunchFactory} from "./interfaces/ID17LaunchFactory.sol";
 
 interface ID17FactoryConfigView {
@@ -50,20 +54,24 @@ contract D17LaunchFactory is ID17LaunchFactory {
     address public immutable d17Factory;
     address public immutable tokenFactory;
     address public immutable liquidityVaultFactory;
+    address public immutable launchDeployer;
 
     modifier onlyD17Factory() {
         require(msg.sender == d17Factory, "NOT_D17_FACTORY");
         _;
     }
 
-    constructor(address d17Factory_, address tokenFactory_, address liquidityVaultFactory_) {
+    constructor(address d17Factory_, address tokenFactory_, address liquidityVaultFactory_, address launchDeployer_) {
         require(d17Factory_ != address(0), "FACTORY_ZERO");
         require(tokenFactory_ != address(0), "TOKEN_FACTORY_ZERO");
         require(liquidityVaultFactory_ != address(0), "VAULT_FACTORY_ZERO");
         require(d17Factory_.code.length > 0, "FACTORY_NO_CODE");
         require(tokenFactory_.code.length > 0, "TOKEN_FACTORY_NO_CODE");
         require(liquidityVaultFactory_.code.length > 0, "VAULT_FACTORY_NO_CODE");
+        require(launchDeployer_ != address(0), "LAUNCH_DEPLOYER_ZERO");
+        require(launchDeployer_.code.length > 0, "LAUNCH_DEPLOYER_NO_CODE");
         d17Factory = d17Factory_;
+        launchDeployer = launchDeployer_;
         tokenFactory = tokenFactory_;
         liquidityVaultFactory = liquidityVaultFactory_;
     }
@@ -81,34 +89,36 @@ contract D17LaunchFactory is ID17LaunchFactory {
             config.tokenSupply
         );
 
-        D17Launch deployedLaunch = new D17Launch(
-            d17Factory,
-            address(this),
-            token,
-            ID17FactoryConfigView(d17Factory).weth(),
-            config.treasury,
-            _metadataHash(config),
-            config.startTime,
-            config.roundSeconds,
-            config.refundSeconds,
-            config.settlementSeconds,
-            config.minCommitWeth,
-            config.minPhase1Weth,
-            config.minAnchorPriceWad,
-            config.roundSharesBps,
-            config.treasuryBps,
-            config.refundPenaltyBps,
-            config.saleTokens,
-            config.lpTokens,
-            config.deadTokens,
-            config.deadRecipient,
-            config.manualDistributionTokens,
-            creator,
-            config.burnUnsoldSaleTokens
-        );
+        address weth = ID17FactoryConfigView(d17Factory).weth();
+        D17Launch deployedLaunch = D17Launch(payable(ID17LaunchDeployer(launchDeployer).deployLaunch(abi.encode(
+            D17Launch.LaunchParams({
+                factory: d17Factory,
+                vaultConfigurator: address(this),
+                token: token,
+                weth: weth,
+                treasury: config.treasury,
+                metadataHash: _metadataHash(config),
+                startTime: config.startTime,
+                roundSeconds: config.roundSeconds,
+                refundSeconds: config.refundSeconds,
+                settlementSeconds: config.settlementSeconds,
+                minCommitWeth: config.minCommitWeth,
+                minPhase1Weth: config.minPhase1Weth,
+                minAnchorPriceWad: config.minAnchorPriceWad,
+                roundSharesBps: config.roundSharesBps,
+                treasuryBps: config.treasuryBps,
+                refundPenaltyBps: config.refundPenaltyBps,
+                saleTokens: config.saleTokens,
+                lpTokens: config.lpTokens,
+                deadTokens: config.deadTokens,
+                deadRecipient: config.deadRecipient,
+                manualDistributionTokens: config.manualDistributionTokens,
+                manualDistributionRecipient: creator,
+                burnUnsoldSaleTokens: config.burnUnsoldSaleTokens
+            })
+        ))));
         launch = address(deployedLaunch);
 
-        address weth = ID17FactoryConfigView(d17Factory).weth();
         address router = ID17FactoryConfigView(d17Factory).router();
         address routerFactory = IV2RouterFactoryView(router).factory();
         liquidityVault =

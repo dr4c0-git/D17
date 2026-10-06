@@ -151,87 +151,89 @@ contract D17Launch {
         entered = 1;
     }
 
-    constructor(
-        address factory_,
-        address vaultConfigurator_,
-        address token_,
-        address weth_,
-        address treasury_,
-        bytes32 metadataHash_,
-        uint64 startTime_,
-        uint32[5] memory roundSeconds_,
-        uint32 refundSeconds_,
-        uint32 settlementSeconds_,
-        uint256 minCommitWeth_,
-        uint256 minPhase1Weth_,
-        uint256 minAnchorPriceWad_,
-        uint16[5] memory roundSharesBps_,
-        uint16 treasuryBps_,
-        uint16 refundPenaltyBps_,
-        uint256 saleTokens_,
-        uint256 lpTokens_,
-        uint256 deadTokens_,
-        address deadRecipient_,
-        uint256 manualDistributionTokens_,
-        address manualDistributionRecipient_,
-        bool burnUnsoldSaleTokens_
-    ) {
-        require(factory_ != address(0), "FACTORY_ZERO");
-        require(vaultConfigurator_ != address(0), "VAULT_CONFIG_ZERO");
-        require(token_ != address(0), "TOKEN_ZERO");
-        require(weth_ != address(0), "WETH_ZERO");
-        require(treasury_ != address(0), "TREASURY_ZERO");
-        require(startTime_ >= block.timestamp, "START_PAST");
-        require(refundSeconds_ > 0, "REFUND_SECONDS_ZERO");
-        require(settlementSeconds_ > 0, "SETTLEMENT_SECONDS_ZERO");
-        require(minCommitWeth_ >= MIN_COMMIT_WETH, "MIN_COMMIT_TOO_LOW");
-        require(minPhase1Weth_ >= minCommitWeth_, "MIN_PHASE1_WETH");
-        require(minAnchorPriceWad_ >= MIN_ANCHOR_PRICE_WAD, "MIN_ANCHOR_PRICE_TOO_LOW");
-        require(treasuryBps_ <= 2_000, "TREASURY_BPS");
-        require(refundPenaltyBps_ <= BPS, "REFUND_PENALTY_BPS");
-        require(saleTokens_ > 0, "SALE_ZERO");
-        require(lpTokens_ >= MIN_LP_TOKENS, "LP_TOO_LOW");
-        if (deadTokens_ > 0) require(deadRecipient_ == CANONICAL_DEAD_RECIPIENT, "DEAD_RECIPIENT");
+    struct LaunchParams {
+        address factory;
+        address vaultConfigurator;
+        address token;
+        address weth;
+        address treasury;
+        bytes32 metadataHash;
+        uint64 startTime;
+        uint32[5] roundSeconds;
+        uint32 refundSeconds;
+        uint32 settlementSeconds;
+        uint256 minCommitWeth;
+        uint256 minPhase1Weth;
+        uint256 minAnchorPriceWad;
+        uint16[5] roundSharesBps;
+        uint16 treasuryBps;
+        uint16 refundPenaltyBps;
+        uint256 saleTokens;
+        uint256 lpTokens;
+        uint256 deadTokens;
+        address deadRecipient;
+        uint256 manualDistributionTokens;
+        address manualDistributionRecipient;
+        bool burnUnsoldSaleTokens;
+    }
+
+    constructor(LaunchParams memory p) {
+        require(p.factory != address(0), "FACTORY_ZERO");
+        require(p.vaultConfigurator != address(0), "VAULT_CONFIG_ZERO");
+        require(p.token != address(0), "TOKEN_ZERO");
+        require(p.weth != address(0), "WETH_ZERO");
+        require(p.treasury != address(0), "TREASURY_ZERO");
+        require(p.startTime >= block.timestamp, "START_PAST");
+        require(p.refundSeconds > 0, "REFUND_SECONDS_ZERO");
+        require(p.settlementSeconds > 0, "SETTLEMENT_SECONDS_ZERO");
+        require(p.minCommitWeth >= MIN_COMMIT_WETH, "MIN_COMMIT_TOO_LOW");
+        require(p.minPhase1Weth >= p.minCommitWeth, "MIN_PHASE1_WETH");
+        require(p.minAnchorPriceWad >= MIN_ANCHOR_PRICE_WAD, "MIN_ANCHOR_PRICE_TOO_LOW");
+        require(p.treasuryBps <= 2_000, "TREASURY_BPS");
+        require(p.refundPenaltyBps <= BPS, "REFUND_PENALTY_BPS");
+        require(p.saleTokens > 0, "SALE_ZERO");
+        require(p.lpTokens >= MIN_LP_TOKENS, "LP_TOO_LOW");
+        if (p.deadTokens > 0) require(p.deadRecipient == CANONICAL_DEAD_RECIPIENT, "DEAD_RECIPIENT");
         // The 10% cap and four-way supply split are enforced by D17Factory._validateConfig;
         // only canonical-factory launches are registered, so the constructor keeps the
         // cheaper recipient check.
-        if (manualDistributionTokens_ > 0) {
-            require(manualDistributionRecipient_ != address(0), "MANUAL_RECIPIENT_ZERO");
+        if (p.manualDistributionTokens > 0) {
+            require(p.manualDistributionRecipient != address(0), "MANUAL_RECIPIENT_ZERO");
         }
 
         uint256 shareTotal;
         for (uint256 i; i < ROUND_COUNT; i++) {
-            require(roundSeconds_[i] > 0, "ROUND_SECONDS_ZERO");
-            require(roundSharesBps_[i] > 0, "ROUND_SHARE_ZERO");
-            require(saleTokens_ * roundSharesBps_[i] / BPS >= MIN_ROUND_ALLOCATION_TOKENS, "ROUND_ALLOCATION_TOO_LOW");
-            roundSeconds[i] = roundSeconds_[i];
-            roundSharesBps[i] = roundSharesBps_[i];
-            shareTotal += roundSharesBps_[i];
+            require(p.roundSeconds[i] > 0, "ROUND_SECONDS_ZERO");
+            require(p.roundSharesBps[i] > 0, "ROUND_SHARE_ZERO");
+            require(p.saleTokens * p.roundSharesBps[i] / BPS >= MIN_ROUND_ALLOCATION_TOKENS, "ROUND_ALLOCATION_TOO_LOW");
+            roundSeconds[i] = p.roundSeconds[i];
+            roundSharesBps[i] = p.roundSharesBps[i];
+            shareTotal += p.roundSharesBps[i];
         }
         require(shareTotal == BPS, "ROUND_SHARE_TOTAL");
 
-        factory = factory_;
-        vaultConfigurator = vaultConfigurator_;
-        token = token_;
-        weth = weth_;
-        treasury = treasury_;
-        metadataHash = metadataHash_;
-        startTime = startTime_;
-        refundSeconds = refundSeconds_;
-        settlementSeconds = settlementSeconds_;
-        tradingOpenAt = _roundEnd(ROUND_COUNT - 1, startTime_, roundSeconds_, refundSeconds_) + settlementSeconds_;
-        minCommitWeth = minCommitWeth_;
-        minPhase1Weth = minPhase1Weth_;
-        minAnchorPriceWad = minAnchorPriceWad_;
-        treasuryBps = treasuryBps_;
-        refundPenaltyBps = refundPenaltyBps_;
-        saleTokens = saleTokens_;
-        lpTokens = lpTokens_;
-        deadTokens = deadTokens_;
-        deadRecipient = deadRecipient_;
-        manualDistributionTokens = manualDistributionTokens_;
-        manualDistributionRecipient = manualDistributionRecipient_;
-        burnUnsoldSaleTokens = burnUnsoldSaleTokens_;
+        factory = p.factory;
+        vaultConfigurator = p.vaultConfigurator;
+        token = p.token;
+        weth = p.weth;
+        treasury = p.treasury;
+        metadataHash = p.metadataHash;
+        startTime = p.startTime;
+        refundSeconds = p.refundSeconds;
+        settlementSeconds = p.settlementSeconds;
+        tradingOpenAt = _roundEnd(ROUND_COUNT - 1, p.startTime, p.roundSeconds, p.refundSeconds) + p.settlementSeconds;
+        minCommitWeth = p.minCommitWeth;
+        minPhase1Weth = p.minPhase1Weth;
+        minAnchorPriceWad = p.minAnchorPriceWad;
+        treasuryBps = p.treasuryBps;
+        refundPenaltyBps = p.refundPenaltyBps;
+        saleTokens = p.saleTokens;
+        lpTokens = p.lpTokens;
+        deadTokens = p.deadTokens;
+        deadRecipient = p.deadRecipient;
+        manualDistributionTokens = p.manualDistributionTokens;
+        manualDistributionRecipient = p.manualDistributionRecipient;
+        burnUnsoldSaleTokens = p.burnUnsoldSaleTokens;
     }
 
     receive() external payable {

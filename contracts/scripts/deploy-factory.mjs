@@ -66,14 +66,22 @@ const VaultFactory = new ethers.ContractFactory(vaultFactoryArt.abi, vaultFactor
 const vaultFactory = await VaultFactory.deploy(launchFactoryDeployer);
 await vaultFactory.waitForDeployment();
 
+const launchDeployerArt = artifact("D17LaunchDeployer.sol", "D17LaunchDeployer");
+const LaunchDeployer = new ethers.ContractFactory(launchDeployerArt.abi, launchDeployerArt.bytecode, launchFactorySigner);
+const launchDeployer = await LaunchDeployer.deploy(launchFactoryDeployer);
+await launchDeployer.waitForDeployment();
+
 const launchFactoryArt = artifact("D17LaunchFactory.sol", "D17LaunchFactory");
 const LaunchFactory = new ethers.ContractFactory(launchFactoryArt.abi, launchFactoryArt.bytecode, launchFactorySigner);
 const launchFactory = await LaunchFactory.deploy(
   await factory.getAddress(),
   await tokenFactory.getAddress(),
-  await vaultFactory.getAddress()
+  await vaultFactory.getAddress(),
+  await launchDeployer.getAddress()
 );
 await launchFactory.waitForDeployment();
+const pinLaunchDeployerTx = await launchDeployer.connect(launchFactorySigner).pinLaunchFactory(await launchFactory.getAddress());
+await pinLaunchDeployerTx.wait();
 const pinTokenFactoryTx = await tokenFactory.connect(launchFactorySigner).pinLaunchFactory(await launchFactory.getAddress());
 await pinTokenFactoryTx.wait();
 const pinVaultFactoryTx = await vaultFactory.connect(launchFactorySigner).pinLaunchFactory(await launchFactory.getAddress());
@@ -91,6 +99,7 @@ await pinTx.wait();
 let renounceTransaction = null;
 let tokenFactoryRenounceTransaction = null;
 let vaultFactoryRenounceTransaction = null;
+let launchDeployerRenounceTransaction = null;
 if (process.env.RENOUNCE_D17_FACTORY_OWNER === "1") {
   const tokenFactoryRenounceTx = await tokenFactory.connect(launchFactorySigner).renounceOwnership();
   await tokenFactoryRenounceTx.wait();
@@ -98,6 +107,9 @@ if (process.env.RENOUNCE_D17_FACTORY_OWNER === "1") {
   const vaultFactoryRenounceTx = await vaultFactory.connect(launchFactorySigner).renounceOwnership();
   await vaultFactoryRenounceTx.wait();
   vaultFactoryRenounceTransaction = vaultFactoryRenounceTx.hash;
+  const launchDeployerRenounceTx = await launchDeployer.connect(launchFactorySigner).renounceOwnership();
+  await launchDeployerRenounceTx.wait();
+  launchDeployerRenounceTransaction = launchDeployerRenounceTx.hash;
   const renounceTx = await factory.connect(d17FactorySigner).renounceOwnership();
   await renounceTx.wait();
   renounceTransaction = renounceTx.hash;
@@ -117,12 +129,15 @@ const deployment = {
   factory: await factory.getAddress(),
   tokenFactory: await tokenFactory.getAddress(),
   liquidityVaultFactory: await vaultFactory.getAddress(),
+  launchDeployer: await launchDeployer.getAddress(),
   launchFactory: await launchFactory.getAddress(),
   lockerFactory: await lockerFactory.getAddress(),
   factoryTransaction: factory.deploymentTransaction()?.hash,
   tokenFactoryTransaction: tokenFactory.deploymentTransaction()?.hash,
   liquidityVaultFactoryTransaction: vaultFactory.deploymentTransaction()?.hash,
+  launchDeployerTransaction: launchDeployer.deploymentTransaction()?.hash,
   launchFactoryTransaction: launchFactory.deploymentTransaction()?.hash,
+  pinLaunchDeployerTransaction: pinLaunchDeployerTx.hash,
   pinTokenFactoryTransaction: pinTokenFactoryTx.hash,
   pinLiquidityVaultFactoryTransaction: pinVaultFactoryTx.hash,
   pinLaunchFactoryTransaction: pinLaunchTx.hash,
@@ -130,7 +145,8 @@ const deployment = {
   pinLockerFactoryTransaction: pinTx.hash,
   renounceTransaction,
   tokenFactoryRenounceTransaction,
-  vaultFactoryRenounceTransaction
+  vaultFactoryRenounceTransaction,
+  launchDeployerRenounceTransaction
 };
 
 writeJson(out, deployment);
