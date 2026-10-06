@@ -15,6 +15,11 @@
         "internalType": "address",
         "name": "router_",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "feeConfig_",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -236,6 +241,32 @@
   },
   {
     "inputs": [],
+    "name": "MAINNET_MIN_START_DELAY",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAINNET_MIN_WINDOW_SECONDS",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "MAX_DESCRIPTION_BYTES",
     "outputs": [
       {
@@ -431,6 +462,19 @@
   },
   {
     "inputs": [],
+    "name": "MIN_REFUND_PENALTY_BPS",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "MIN_ROUND_ALLOCATION_TOKENS",
     "outputs": [
       {
@@ -595,9 +639,9 @@
             "type": "uint16"
           },
           {
-            "internalType": "bool",
-            "name": "burnUnsoldSaleTokens",
-            "type": "bool"
+            "internalType": "uint16",
+            "name": "maxProtocolFeeBps",
+            "type": "uint16"
           }
         ],
         "internalType": "struct ID17LaunchFactory.LaunchConfig",
@@ -624,6 +668,19 @@
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "feeConfig",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

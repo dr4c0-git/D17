@@ -40,6 +40,7 @@ const vaultFactoryArt = artifact("D17LiquidityVaultFactory.sol", "D17LiquidityVa
 const launchFactoryArt = artifact("D17LaunchFactory.sol", "D17LaunchFactory");
 const launchDeployerArt = artifact("D17LaunchDeployer.sol", "D17LaunchDeployer");
 const lockerFactoryArt = artifact("D17LockerFactory.sol", "D17LockerFactory");
+const feeConfigArt = artifact("D17FeeConfig.sol", "D17FeeConfig");
 
 const factory = new ethers.Contract(deployment.factory, factoryArt.abi, provider);
 const tokenFactory = new ethers.Contract(deployment.tokenFactory, tokenFactoryArt.abi, provider);
@@ -47,6 +48,7 @@ const vaultFactory = new ethers.Contract(deployment.liquidityVaultFactory, vault
 const launchFactory = new ethers.Contract(deployment.launchFactory, launchFactoryArt.abi, provider);
 const launchDeployer = new ethers.Contract(deployment.launchDeployer, launchDeployerArt.abi, provider);
 const lockerFactory = new ethers.Contract(deployment.lockerFactory, lockerFactoryArt.abi, provider);
+const feeConfig = new ethers.Contract(deployment.feeConfig, feeConfigArt.abi, provider);
 
 await hasCode("D17Factory", deployment.factory);
 await hasCode("D17TokenFactory", deployment.tokenFactory);
@@ -54,6 +56,7 @@ await hasCode("D17LiquidityVaultFactory", deployment.liquidityVaultFactory);
 await hasCode("D17LaunchFactory", deployment.launchFactory);
 await hasCode("D17LaunchDeployer", deployment.launchDeployer);
 await hasCode("D17LockerFactory", deployment.lockerFactory);
+await hasCode("D17FeeConfig", deployment.feeConfig);
 
 check("deployment chain id matches RPC", deployment.chainId === chainId, `${deployment.chainId} vs ${chainId}`);
 if (chainId === MAINNET_CHAIN_ID) {
@@ -62,13 +65,23 @@ if (chainId === MAINNET_CHAIN_ID) {
   check("deployment has startBlock", Number.isInteger(deployment.startBlock) && deployment.startBlock >= 0, String(deployment.startBlock));
 }
 
-check("D17Factory identity matches", await factory.D17_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE")));
-check("D17TokenFactory identity matches", await tokenFactory.D17_TOKEN_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_TOKEN_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE")));
+check("D17Factory identity matches", await factory.D17_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V15_HARDENED")));
+check("D17TokenFactory identity matches", await tokenFactory.D17_TOKEN_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_TOKEN_FACTORY_V15_HARDENED")));
 check(
   "D17LiquidityVaultFactory identity matches",
-  await vaultFactory.D17_LIQUIDITY_VAULT_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_LIQUIDITY_VAULT_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE"))
+  await vaultFactory.D17_LIQUIDITY_VAULT_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_LIQUIDITY_VAULT_FACTORY_V15_HARDENED"))
 );
 
+check("D17FeeConfig identity matches", await feeConfig.D17_FEE_CONFIG_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_FEE_CONFIG_V15_HARDENED")));
+check("D17LaunchDeployer identity matches", await launchDeployer.D17_LAUNCH_DEPLOYER_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_DEPLOYER_V15_HARDENED")));
+check("factory points to fee config", sameAddress(await factory.feeConfig(), deployment.feeConfig));
+check("fee config hard cap is 2%", Number(await feeConfig.MAX_PROTOCOL_FEE_BPS()) === 200);
+check("fee config owner matches deployment", sameAddress(await feeConfig.owner(), deployment.feeConfigOwner));
+const [feeRecipientNow, feeBpsNow] = await feeConfig.currentFee();
+check("fee config rate within cap", Number(feeBpsNow) <= 200, String(feeBpsNow));
+if (chainId === MAINNET_CHAIN_ID) {
+  check("mainnet fee config owner is a contract (multisig)", (await provider.getCode(await feeConfig.owner())) !== "0x");
+}
 check("factory WETH matches deployment", sameAddress(await factory.weth(), deployment.weth));
 check("factory router matches deployment", sameAddress(await factory.router(), deployment.router));
 check("factory launch factory pinned", await factory.launchFactoryPinned());
@@ -94,18 +107,11 @@ if (chainId === MAINNET_CHAIN_ID) {
   check("mainnet Uniswap V2 router is canonical", sameAddress(deployment.router, MAINNET_UNISWAP_V2_ROUTER));
 }
 
-const expectRenounced = chainId === MAINNET_CHAIN_ID || process.env.EXPECT_RENOUNCED === "1" || Boolean(deployment.renounceTransaction);
-if (expectRenounced) {
-  check("D17Factory owner renounced", sameAddress(await factory.owner(), ZERO));
-  check("D17TokenFactory owner renounced", sameAddress(await tokenFactory.owner(), ZERO));
-  check("D17LiquidityVaultFactory owner renounced", sameAddress(await vaultFactory.owner(), ZERO));
-  check("D17LaunchDeployer owner renounced", sameAddress(await launchDeployer.owner(), ZERO));
-} else {
-  check("D17Factory owner matches deployment owner", sameAddress(await factory.owner(), deployment.factoryOwner));
-  check("D17TokenFactory owner matches launch deployer", sameAddress(await tokenFactory.owner(), deployment.launchFactoryDeployer));
-  check("D17LiquidityVaultFactory owner matches launch deployer", sameAddress(await vaultFactory.owner(), deployment.launchFactoryDeployer));
-  check("D17LaunchDeployer owner matches launch deployer", sameAddress(await launchDeployer.owner(), deployment.launchFactoryDeployer));
-}
+// V15 launches cannot be created while any of these owners exists.
+check("D17Factory owner renounced", sameAddress(await factory.owner(), ZERO));
+check("D17TokenFactory owner renounced", sameAddress(await tokenFactory.owner(), ZERO));
+check("D17LiquidityVaultFactory owner renounced", sameAddress(await vaultFactory.owner(), ZERO));
+check("D17LaunchDeployer owner renounced", sameAddress(await launchDeployer.owner(), ZERO));
 
 const ok = checks.every((entry) => entry.ok);
 const report = {
@@ -114,6 +120,7 @@ const report = {
   deployment: deploymentPath,
   chainId,
   factory: deployment.factory,
+  protocolFee: { recipient: feeRecipientNow, bps: Number(feeBpsNow) },
   startBlock: deployment.startBlock ?? null,
   ok,
   checks

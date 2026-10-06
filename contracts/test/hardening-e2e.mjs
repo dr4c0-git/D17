@@ -253,9 +253,8 @@ async function main() {
     assertOk("vault holds no loose WETH", await weth.balanceOf(vault1Address) === 0n);
 
     // ---- Forced ETH is swept as WETH ----
-    const forceArt = artifact("test/TestForceEth.sol", "TestForceEth");
-    const forceFactory = new ethers.ContractFactory(forceArt.abi, forceArt.bytecode, deployer);
-    await (await forceFactory.deploy(l1Address, { value: eth("0.3") })).waitForDeployment();
+    // Simulates ETH forced in by selfdestruct or a coinbase reward.
+    await provider.send("hardhat_setBalance", [l1Address, ethers.toQuantity(eth("0.3"))]);
     const treasuryWethBefore = await weth.balanceOf(treasuryAddress);
     const forcedAmount = await provider.getBalance(l1Address);
     assertOk("forced ETH reached the launch", forcedAmount > 0n);

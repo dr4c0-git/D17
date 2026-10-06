@@ -11,10 +11,11 @@
     "compile": "hardhat compile",
     "clean": "hardhat clean",
     "test": "node test/local-e2e.mjs && node test/hardening-e2e.mjs",
-    "build:abi": "node scripts/export-abi.mjs",
+    "build:abi": "node scripts/export-abi.mjs && node scripts/build-explorer.mjs",
     "check:explorer": "node scripts/check-explorer.mjs",
     "deploy:factory": "node scripts/deploy-factory.mjs",
     "verify:factory": "node scripts/verify-factory-deployment.mjs",
+    "publish:deployment": "node scripts/publish-deployment.mjs",
     "create:launch": "node scripts/create-launch.mjs"
   },
   "devDependencies": {

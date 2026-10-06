@@ -1,18 +1,8 @@
 #!/usr/bin/env node
 import { readFileSync } from "node:fs";
+import { EXPLORER_CONTRACTS as contractNames } from "./contract-list.mjs";
 
 const html = readFileSync("docs/contract-explorer.html", "utf8");
-const contractNames = [
-  "D17Factory",
-  "D17TokenFactory",
-  "D17LiquidityVaultFactory",
-  "D17LaunchFactory",
-  "D17LockerFactory",
-  "D17Launch",
-  "D17Locker",
-  "D17LiquidityVault",
-  "D17Token",
-];
 const entryTypes = ["constructor", "error", "event", "fallback", "function", "receive"];
 const failures = [];
 
@@ -41,4 +31,4 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("Contract explorer ABI coverage: PASS (all 9 contracts, all ABI entry types)");
+console.log(`Contract explorer ABI coverage: PASS (all ${contractNames.length} contracts, all ABI entry types)`);

@@ -122,19 +122,21 @@
     <p>Public Sepolia and Ethereum mainnet factory addresses are recorded in <code>deployments/</code>.</p>
     <div class="notice">Coverage is ABI-derived: every ABI entry in the listed source files is rendered below. Hand curation is deliberately avoided so functions, events, constructors, and errors are not silently missed.</div>
     <div class="grid">
-      <div class="stat"><strong>9</strong>contracts</div>
-      <div class="stat"><strong>310</strong>ABI entries</div>
-      <div class="stat"><strong>9</strong>constructor</div>
-      <div class="stat"><strong>4</strong>error</div>
-      <div class="stat"><strong>46</strong>event</div>
+      <div class="stat"><strong>11</strong>contracts</div>
+      <div class="stat"><strong>364</strong>ABI entries</div>
+      <div class="stat"><strong>11</strong>constructor</div>
+      <div class="stat"><strong>5</strong>error</div>
+      <div class="stat"><strong>55</strong>event</div>
       <div class="stat"><strong>3</strong>fallback</div>
-      <div class="stat"><strong>245</strong>function</div>
+      <div class="stat"><strong>287</strong>function</div>
       <div class="stat"><strong>3</strong>receive</div>
     </div>
     <nav>
       <a href="#d17factory">D17Factory</a>
+      <a href="#d17feeconfig">D17FeeConfig</a>
       <a href="#d17tokenfactory">D17TokenFactory</a>
       <a href="#d17liquidityvaultfactory">D17LiquidityVaultFactory</a>
+      <a href="#d17launchdeployer">D17LaunchDeployer</a>
       <a href="#d17launchfactory">D17LaunchFactory</a>
       <a href="#d17lockerfactory">D17LockerFactory</a>
       <a href="#d17launch">D17Launch</a>
@@ -149,7 +151,7 @@
     <section id="d17factory">
     <h2>D17Factory</h2>
     <p>Source: <code>abi/D17Factory.abi.json</code></p>
-    <p><span class="pill">constructor: 1</span><span class="pill">event: 7</span><span class="pill">function: 38</span></p>
+    <p><span class="pill">constructor: 1</span><span class="pill">event: 7</span><span class="pill">function: 42</span></p>
     <table>
       <thead>
         <tr>
@@ -166,8 +168,8 @@
     <td>0</td>
     <td><span class="type-constructor">constructor</span><br><code>nonpayable</code></td>
     <td>constructor</td>
-    <td class="sig">constructor(address,address,address)</td>
-    <td><div><span class="sig">address</span> owner_</div><div><span class="sig">address</span> weth_</div><div><span class="sig">address</span> router_</div></td>
+    <td class="sig">constructor(address,address,address,address)</td>
+    <td><div><span class="sig">address</span> owner_</div><div><span class="sig">address</span> weth_</div><div><span class="sig">address</span> router_</div><div><span class="sig">address</span> feeConfig_</div></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
@@ -253,13 +255,29 @@
         <tr>
     <td>11</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>MAINNET_MIN_START_DELAY</td>
+    <td class="sig">MAINNET_MIN_START_DELAY()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint64</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>12</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>MAINNET_MIN_WINDOW_SECONDS</td>
+    <td class="sig">MAINNET_MIN_WINDOW_SECONDS()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint32</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>13</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_DESCRIPTION_BYTES</td>
     <td class="sig">MAX_DESCRIPTION_BYTES()</td>
     <td><span class="sig">none</span></td>
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>12</td>
+    <td>14</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_LINKS</td>
     <td class="sig">MAX_LINKS()</td>
@@ -267,7 +285,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>13</td>
+    <td>15</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_LINK_TYPE_BYTES</td>
     <td class="sig">MAX_LINK_TYPE_BYTES()</td>
@@ -275,7 +293,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>14</td>
+    <td>16</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_LINK_URL_BYTES</td>
     <td class="sig">MAX_LINK_URL_BYTES()</td>
@@ -283,7 +301,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>15</td>
+    <td>17</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_LOGO_SVG_URI_BYTES</td>
     <td class="sig">MAX_LOGO_SVG_URI_BYTES()</td>
@@ -291,7 +309,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>16</td>
+    <td>18</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_MANUAL_DISTRIBUTION_BPS</td>
     <td class="sig">MAX_MANUAL_DISTRIBUTION_BPS()</td>
@@ -299,7 +317,7 @@
     <td><div><span class="sig">uint16</span> arg0</div></td>
   </tr>
         <tr>
-    <td>17</td>
+    <td>19</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_REFUND_PENALTY_BPS</td>
     <td class="sig">MAX_REFUND_PENALTY_BPS()</td>
@@ -307,7 +325,7 @@
     <td><div><span class="sig">uint16</span> arg0</div></td>
   </tr>
         <tr>
-    <td>18</td>
+    <td>20</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_REFUND_SECONDS</td>
     <td class="sig">MAX_REFUND_SECONDS()</td>
@@ -315,7 +333,7 @@
     <td><div><span class="sig">uint32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>19</td>
+    <td>21</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_ROUND_SECONDS</td>
     <td class="sig">MAX_ROUND_SECONDS()</td>
@@ -323,7 +341,7 @@
     <td><div><span class="sig">uint32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>20</td>
+    <td>22</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_SETTLEMENT_SECONDS</td>
     <td class="sig">MAX_SETTLEMENT_SECONDS()</td>
@@ -331,7 +349,7 @@
     <td><div><span class="sig">uint32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>21</td>
+    <td>23</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_START_DELAY</td>
     <td class="sig">MAX_START_DELAY()</td>
@@ -339,7 +357,7 @@
     <td><div><span class="sig">uint64</span> arg0</div></td>
   </tr>
         <tr>
-    <td>22</td>
+    <td>24</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MAX_TREASURY_BPS</td>
     <td class="sig">MAX_TREASURY_BPS()</td>
@@ -347,7 +365,7 @@
     <td><div><span class="sig">uint16</span> arg0</div></td>
   </tr>
         <tr>
-    <td>23</td>
+    <td>25</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MIN_ANCHOR_PRICE_WAD</td>
     <td class="sig">MIN_ANCHOR_PRICE_WAD()</td>
@@ -355,7 +373,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>24</td>
+    <td>26</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MIN_COMMIT_WETH</td>
     <td class="sig">MIN_COMMIT_WETH()</td>
@@ -363,7 +381,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>25</td>
+    <td>27</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MIN_LP_TOKENS</td>
     <td class="sig">MIN_LP_TOKENS()</td>
@@ -371,7 +389,15 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>26</td>
+    <td>28</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>MIN_REFUND_PENALTY_BPS</td>
+    <td class="sig">MIN_REFUND_PENALTY_BPS()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint16</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>29</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MIN_ROUND_ALLOCATION_TOKENS</td>
     <td class="sig">MIN_ROUND_ALLOCATION_TOKENS()</td>
@@ -379,7 +405,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>27</td>
+    <td>30</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MIN_ROUND_SECONDS</td>
     <td class="sig">MIN_ROUND_SECONDS()</td>
@@ -387,7 +413,7 @@
     <td><div><span class="sig">uint32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>28</td>
+    <td>31</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>ROUND_COUNT</td>
     <td class="sig">ROUND_COUNT()</td>
@@ -395,15 +421,23 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>29</td>
+    <td>32</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>createLaunch</td>
-    <td class="sig">createLaunch((string,string,string,string,(string,string)[],uint256,uint256,uint256,uint256,uint256,address,address,uint64,uint32[5],uint32,uint32,uint256,uint256,uint256,uint16[5],uint16,uint16,bool))</td>
-    <td><div><span class="sig">tuple</span> config<br><span class="sig">components: string tokenName, string tokenSymbol, string description, string logoSvgUri, (string,string)[] links, uint256 tokenSupply, uint256 saleTokens, uint256 lpTokens, uint256 manualDistributionTokens, uint256 deadTokens, address deadRecipient, address treasury, uint64 startTime, uint32[5] roundSeconds, uint32 refundSeconds, uint32 settlementSeconds, uint256 minCommitWeth, uint256 minPhase1Weth, uint256 minAnchorPriceWad, uint16[5] roundSharesBps, uint16 treasuryBps, uint16 refundPenaltyBps, bool burnUnsoldSaleTokens</span></div></td>
+    <td class="sig">createLaunch((string,string,string,string,(string,string)[],uint256,uint256,uint256,uint256,uint256,address,address,uint64,uint32[5],uint32,uint32,uint256,uint256,uint256,uint16[5],uint16,uint16,uint16))</td>
+    <td><div><span class="sig">tuple</span> config<br><span class="sig">components: string tokenName, string tokenSymbol, string description, string logoSvgUri, (string,string)[] links, uint256 tokenSupply, uint256 saleTokens, uint256 lpTokens, uint256 manualDistributionTokens, uint256 deadTokens, address deadRecipient, address treasury, uint64 startTime, uint32[5] roundSeconds, uint32 refundSeconds, uint32 settlementSeconds, uint256 minCommitWeth, uint256 minPhase1Weth, uint256 minAnchorPriceWad, uint16[5] roundSharesBps, uint16 treasuryBps, uint16 refundPenaltyBps, uint16 maxProtocolFeeBps</span></div></td>
     <td><div><span class="sig">address</span> token</div><div><span class="sig">address</span> launch</div><div><span class="sig">address</span> liquidityVault</div></td>
   </tr>
         <tr>
-    <td>30</td>
+    <td>33</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>feeConfig</td>
+    <td class="sig">feeConfig()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>34</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>isCanonicalLaunch</td>
     <td class="sig">isCanonicalLaunch(address,bytes32)</td>
@@ -411,7 +445,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>31</td>
+    <td>35</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>isLocker</td>
     <td class="sig">isLocker(address)</td>
@@ -419,7 +453,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>32</td>
+    <td>36</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>launchFactory</td>
     <td class="sig">launchFactory()</td>
@@ -427,7 +461,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>33</td>
+    <td>37</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>launchFactoryPinned</td>
     <td class="sig">launchFactoryPinned()</td>
@@ -435,7 +469,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>34</td>
+    <td>38</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>launches</td>
     <td class="sig">launches(address)</td>
@@ -443,7 +477,7 @@
     <td><div><span class="sig">bool</span> canonical</div><div><span class="sig">address</span> creator</div><div><span class="sig">address</span> token</div><div><span class="sig">address</span> liquidityVault</div><div><span class="sig">bytes32</span> rulesHash</div></td>
   </tr>
         <tr>
-    <td>35</td>
+    <td>39</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lockerFactory</td>
     <td class="sig">lockerFactory()</td>
@@ -451,7 +485,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>36</td>
+    <td>40</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lockerFactoryPinned</td>
     <td class="sig">lockerFactoryPinned()</td>
@@ -459,7 +493,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>37</td>
+    <td>41</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lockersOfOwner</td>
     <td class="sig">lockersOfOwner(address)</td>
@@ -467,7 +501,7 @@
     <td><div><span class="sig">address[]</span> arg0</div></td>
   </tr>
         <tr>
-    <td>38</td>
+    <td>42</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>owner</td>
     <td class="sig">owner()</td>
@@ -475,7 +509,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>39</td>
+    <td>43</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>pinLaunchFactory</td>
     <td class="sig">pinLaunchFactory(address)</td>
@@ -483,7 +517,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>40</td>
+    <td>44</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>pinLockerFactory</td>
     <td class="sig">pinLockerFactory(address)</td>
@@ -491,7 +525,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>41</td>
+    <td>45</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>registerLockerFor</td>
     <td class="sig">registerLockerFor(address,address)</td>
@@ -499,7 +533,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>42</td>
+    <td>46</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>renounceOwnership</td>
     <td class="sig">renounceOwnership()</td>
@@ -507,7 +541,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>43</td>
+    <td>47</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>router</td>
     <td class="sig">router()</td>
@@ -515,7 +549,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>44</td>
+    <td>48</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>transferOwnership</td>
     <td class="sig">transferOwnership(address)</td>
@@ -523,12 +557,151 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>45</td>
+    <td>49</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>weth</td>
     <td class="sig">weth()</td>
     <td><span class="sig">none</span></td>
     <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+      </tbody>
+    </table>
+  </section>
+<section id="d17feeconfig">
+    <h2>D17FeeConfig</h2>
+    <p>Source: <code>abi/D17FeeConfig.abi.json</code></p>
+    <p><span class="pill">constructor: 1</span><span class="pill">event: 3</span><span class="pill">function: 11</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 52px;">#</th>
+          <th style="width: 120px;">Type</th>
+          <th style="width: 190px;">Name</th>
+          <th>Signature</th>
+          <th>Inputs</th>
+          <th>Outputs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+    <td>0</td>
+    <td><span class="type-constructor">constructor</span><br><code>nonpayable</code></td>
+    <td>constructor</td>
+    <td class="sig">constructor(address,address,uint16)</td>
+    <td><div><span class="sig">address</span> owner_</div><div><span class="sig">address</span> feeRecipient_</div><div><span class="sig">uint16</span> protocolFeeBps_</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>1</td>
+    <td><span class="type-event">event</span></td>
+    <td>OwnershipTransferStarted</td>
+    <td class="sig">OwnershipTransferStarted(address,address)</td>
+    <td><div><span class="sig">address indexed</span> previousOwner</div><div><span class="sig">address indexed</span> newOwner</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>2</td>
+    <td><span class="type-event">event</span></td>
+    <td>OwnershipTransferred</td>
+    <td class="sig">OwnershipTransferred(address,address)</td>
+    <td><div><span class="sig">address indexed</span> previousOwner</div><div><span class="sig">address indexed</span> newOwner</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>3</td>
+    <td><span class="type-event">event</span></td>
+    <td>ProtocolFeeUpdated</td>
+    <td class="sig">ProtocolFeeUpdated(address,uint16)</td>
+    <td><div><span class="sig">address indexed</span> feeRecipient</div><div><span class="sig">uint16</span> protocolFeeBps</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>4</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>D17_FEE_CONFIG_ID</td>
+    <td class="sig">D17_FEE_CONFIG_ID()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">bytes32</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>5</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>MAX_PROTOCOL_FEE_BPS</td>
+    <td class="sig">MAX_PROTOCOL_FEE_BPS()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint16</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>6</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>acceptOwnership</td>
+    <td class="sig">acceptOwnership()</td>
+    <td><span class="sig">none</span></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>7</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>currentFee</td>
+    <td class="sig">currentFee()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> recipient</div><div><span class="sig">uint16</span> bps</div></td>
+  </tr>
+        <tr>
+    <td>8</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>feeRecipient</td>
+    <td class="sig">feeRecipient()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>9</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>owner</td>
+    <td class="sig">owner()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>10</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>pendingOwner</td>
+    <td class="sig">pendingOwner()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>11</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>protocolFeeBps</td>
+    <td class="sig">protocolFeeBps()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint16</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>12</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>renounceOwnership</td>
+    <td class="sig">renounceOwnership()</td>
+    <td><span class="sig">none</span></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>13</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>setProtocolFee</td>
+    <td class="sig">setProtocolFee(address,uint16)</td>
+    <td><div><span class="sig">address</span> feeRecipient_</div><div><span class="sig">uint16</span> protocolFeeBps_</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>14</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>transferOwnership</td>
+    <td class="sig">transferOwnership(address)</td>
+    <td><div><span class="sig">address</span> newOwner</div></td>
+    <td><span class="sig">none</span></td>
   </tr>
       </tbody>
     </table>
@@ -747,10 +920,10 @@
       </tbody>
     </table>
   </section>
-<section id="d17launchfactory">
-    <h2>D17LaunchFactory</h2>
-    <p>Source: <code>abi/D17LaunchFactory.abi.json</code></p>
-    <p><span class="pill">constructor: 1</span><span class="pill">function: 5</span></p>
+<section id="d17launchdeployer">
+    <h2>D17LaunchDeployer</h2>
+    <p>Source: <code>abi/D17LaunchDeployer.abi.json</code></p>
+    <p><span class="pill">constructor: 1</span><span class="pill">event: 3</span><span class="pill">function: 7</span></p>
     <table>
       <thead>
         <tr>
@@ -767,8 +940,115 @@
     <td>0</td>
     <td><span class="type-constructor">constructor</span><br><code>nonpayable</code></td>
     <td>constructor</td>
-    <td class="sig">constructor(address,address,address)</td>
-    <td><div><span class="sig">address</span> d17Factory_</div><div><span class="sig">address</span> tokenFactory_</div><div><span class="sig">address</span> liquidityVaultFactory_</div></td>
+    <td class="sig">constructor(address)</td>
+    <td><div><span class="sig">address</span> owner_</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>1</td>
+    <td><span class="type-event">event</span></td>
+    <td>LaunchDeployed</td>
+    <td class="sig">LaunchDeployed(address)</td>
+    <td><div><span class="sig">address indexed</span> launch</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>2</td>
+    <td><span class="type-event">event</span></td>
+    <td>LaunchFactoryPinned</td>
+    <td class="sig">LaunchFactoryPinned(address)</td>
+    <td><div><span class="sig">address indexed</span> launchFactory</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>3</td>
+    <td><span class="type-event">event</span></td>
+    <td>OwnershipTransferred</td>
+    <td class="sig">OwnershipTransferred(address,address)</td>
+    <td><div><span class="sig">address indexed</span> previousOwner</div><div><span class="sig">address indexed</span> newOwner</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>4</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>D17_LAUNCH_DEPLOYER_ID</td>
+    <td class="sig">D17_LAUNCH_DEPLOYER_ID()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">bytes32</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>5</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>deployLaunch</td>
+    <td class="sig">deployLaunch(bytes)</td>
+    <td><div><span class="sig">bytes</span> encodedParams</div></td>
+    <td><div><span class="sig">address</span> launch</div></td>
+  </tr>
+        <tr>
+    <td>6</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>launchFactory</td>
+    <td class="sig">launchFactory()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>7</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>launchFactoryPinned</td>
+    <td class="sig">launchFactoryPinned()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">bool</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>8</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>owner</td>
+    <td class="sig">owner()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>9</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>pinLaunchFactory</td>
+    <td class="sig">pinLaunchFactory(address)</td>
+    <td><div><span class="sig">address</span> launchFactory_</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>10</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>renounceOwnership</td>
+    <td class="sig">renounceOwnership()</td>
+    <td><span class="sig">none</span></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+      </tbody>
+    </table>
+  </section>
+<section id="d17launchfactory">
+    <h2>D17LaunchFactory</h2>
+    <p>Source: <code>abi/D17LaunchFactory.abi.json</code></p>
+    <p><span class="pill">constructor: 1</span><span class="pill">function: 6</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 52px;">#</th>
+          <th style="width: 120px;">Type</th>
+          <th style="width: 190px;">Name</th>
+          <th>Signature</th>
+          <th>Inputs</th>
+          <th>Outputs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+    <td>0</td>
+    <td><span class="type-constructor">constructor</span><br><code>nonpayable</code></td>
+    <td>constructor</td>
+    <td class="sig">constructor(address,address,address,address)</td>
+    <td><div><span class="sig">address</span> d17Factory_</div><div><span class="sig">address</span> tokenFactory_</div><div><span class="sig">address</span> liquidityVaultFactory_</div><div><span class="sig">address</span> launchDeployer_</div></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
@@ -791,12 +1071,20 @@
     <td>3</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>deployLaunch</td>
-    <td class="sig">deployLaunch((string,string,string,string,(string,string)[],uint256,uint256,uint256,uint256,uint256,address,address,uint64,uint32[5],uint32,uint32,uint256,uint256,uint256,uint16[5],uint16,uint16,bool),address)</td>
-    <td><div><span class="sig">tuple</span> config<br><span class="sig">components: string tokenName, string tokenSymbol, string description, string logoSvgUri, (string,string)[] links, uint256 tokenSupply, uint256 saleTokens, uint256 lpTokens, uint256 manualDistributionTokens, uint256 deadTokens, address deadRecipient, address treasury, uint64 startTime, uint32[5] roundSeconds, uint32 refundSeconds, uint32 settlementSeconds, uint256 minCommitWeth, uint256 minPhase1Weth, uint256 minAnchorPriceWad, uint16[5] roundSharesBps, uint16 treasuryBps, uint16 refundPenaltyBps, bool burnUnsoldSaleTokens</span></div><div><span class="sig">address</span> creator</div></td>
+    <td class="sig">deployLaunch((string,string,string,string,(string,string)[],uint256,uint256,uint256,uint256,uint256,address,address,uint64,uint32[5],uint32,uint32,uint256,uint256,uint256,uint16[5],uint16,uint16,uint16),address,address,uint16)</td>
+    <td><div><span class="sig">tuple</span> config<br><span class="sig">components: string tokenName, string tokenSymbol, string description, string logoSvgUri, (string,string)[] links, uint256 tokenSupply, uint256 saleTokens, uint256 lpTokens, uint256 manualDistributionTokens, uint256 deadTokens, address deadRecipient, address treasury, uint64 startTime, uint32[5] roundSeconds, uint32 refundSeconds, uint32 settlementSeconds, uint256 minCommitWeth, uint256 minPhase1Weth, uint256 minAnchorPriceWad, uint16[5] roundSharesBps, uint16 treasuryBps, uint16 refundPenaltyBps, uint16 maxProtocolFeeBps</span></div><div><span class="sig">address</span> creator</div><div><span class="sig">address</span> protocolFeeRecipient</div><div><span class="sig">uint16</span> protocolFeeBps</div></td>
     <td><div><span class="sig">address</span> token</div><div><span class="sig">address</span> launch</div><div><span class="sig">address</span> liquidityVault</div></td>
   </tr>
         <tr>
     <td>4</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>launchDeployer</td>
+    <td class="sig">launchDeployer()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>5</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>liquidityVaultFactory</td>
     <td class="sig">liquidityVaultFactory()</td>
@@ -804,7 +1092,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>5</td>
+    <td>6</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>tokenFactory</td>
     <td class="sig">tokenFactory()</td>
@@ -868,7 +1156,7 @@
 <section id="d17launch">
     <h2>D17Launch</h2>
     <p>Source: <code>abi/D17Launch.abi.json</code></p>
-    <p><span class="pill">constructor: 1</span><span class="pill">error: 2</span><span class="pill">event: 12</span><span class="pill">fallback: 1</span><span class="pill">function: 109</span><span class="pill">receive: 1</span></p>
+    <p><span class="pill">constructor: 1</span><span class="pill">error: 2</span><span class="pill">event: 13</span><span class="pill">fallback: 1</span><span class="pill">function: 117</span><span class="pill">receive: 1</span></p>
     <table>
       <thead>
         <tr>
@@ -885,8 +1173,8 @@
     <td>0</td>
     <td><span class="type-constructor">constructor</span><br><code>nonpayable</code></td>
     <td>constructor</td>
-    <td class="sig">constructor(address,address,address,address,address,bytes32,uint64,uint32[5],uint32,uint32,uint256,uint256,uint256,uint16[5],uint16,uint16,uint256,uint256,uint256,address,uint256,address,bool)</td>
-    <td><div><span class="sig">address</span> factory_</div><div><span class="sig">address</span> vaultConfigurator_</div><div><span class="sig">address</span> token_</div><div><span class="sig">address</span> weth_</div><div><span class="sig">address</span> treasury_</div><div><span class="sig">bytes32</span> metadataHash_</div><div><span class="sig">uint64</span> startTime_</div><div><span class="sig">uint32[5]</span> roundSeconds_</div><div><span class="sig">uint32</span> refundSeconds_</div><div><span class="sig">uint32</span> settlementSeconds_</div><div><span class="sig">uint256</span> minCommitWeth_</div><div><span class="sig">uint256</span> minPhase1Weth_</div><div><span class="sig">uint256</span> minAnchorPriceWad_</div><div><span class="sig">uint16[5]</span> roundSharesBps_</div><div><span class="sig">uint16</span> treasuryBps_</div><div><span class="sig">uint16</span> refundPenaltyBps_</div><div><span class="sig">uint256</span> saleTokens_</div><div><span class="sig">uint256</span> lpTokens_</div><div><span class="sig">uint256</span> deadTokens_</div><div><span class="sig">address</span> deadRecipient_</div><div><span class="sig">uint256</span> manualDistributionTokens_</div><div><span class="sig">address</span> manualDistributionRecipient_</div><div><span class="sig">bool</span> burnUnsoldSaleTokens_</div></td>
+    <td class="sig">constructor((address,address,address,address,address,address,bytes32,uint64,uint32[5],uint32,uint32,uint256,uint256,uint256,uint16[5],uint16,uint16,uint16,uint256,uint256,uint256,address,uint256,address))</td>
+    <td><div><span class="sig">tuple</span> p<br><span class="sig">components: address factory, address vaultConfigurator, address token, address weth, address treasury, address protocolFeeRecipient, bytes32 metadataHash, uint64 startTime, uint32[5] roundSeconds, uint32 refundSeconds, uint32 settlementSeconds, uint256 minCommitWeth, uint256 minPhase1Weth, uint256 minAnchorPriceWad, uint16[5] roundSharesBps, uint16 treasuryBps, uint16 protocolFeeBps, uint16 refundPenaltyBps, uint256 saleTokens, uint256 lpTokens, uint256 deadTokens, address deadRecipient, uint256 manualDistributionTokens, address manualDistributionRecipient</span></div></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
@@ -917,8 +1205,8 @@
     <td>4</td>
     <td><span class="type-event">event</span></td>
     <td>LateVaultSettlementClaimed</td>
-    <td class="sig">LateVaultSettlementClaimed(address,uint256,uint256,uint256,uint256,uint256)</td>
-    <td><div><span class="sig">address indexed</span> locker</div><div><span class="sig">uint256</span> saleTokens</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> lateLpTokens</div><div><span class="sig">uint256</span> grossCommittedWeth</div></td>
+    <td class="sig">LateVaultSettlementClaimed(address,uint256,uint256,uint256,uint256,uint256,uint256)</td>
+    <td><div><span class="sig">address indexed</span> locker</div><div><span class="sig">uint256</span> saleTokens</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> protocolFeeWeth</div><div><span class="sig">uint256</span> lateLpTokens</div><div><span class="sig">uint256</span> grossCommittedWeth</div></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
@@ -948,13 +1236,21 @@
         <tr>
     <td>8</td>
     <td><span class="type-event">event</span></td>
+    <td>ResidualTokensBurned</td>
+    <td class="sig">ResidualTokensBurned(uint256)</td>
+    <td><div><span class="sig">uint256</span> amount</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>9</td>
+    <td><span class="type-event">event</span></td>
     <td>RoundCommitted</td>
     <td class="sig">RoundCommitted(address,uint8,uint256)</td>
     <td><div><span class="sig">address indexed</span> locker</div><div><span class="sig">uint8 indexed</span> round</div><div><span class="sig">uint256</span> amount</div></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>9</td>
+    <td>10</td>
     <td><span class="type-event">event</span></td>
     <td>RoundRefunded</td>
     <td class="sig">RoundRefunded(address,uint8,uint256,uint256)</td>
@@ -962,7 +1258,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>10</td>
+    <td>11</td>
     <td><span class="type-event">event</span></td>
     <td>UnexpectedEthSwept</td>
     <td class="sig">UnexpectedEthSwept(address,uint256)</td>
@@ -970,7 +1266,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>11</td>
+    <td>12</td>
     <td><span class="type-event">event</span></td>
     <td>UnsoldSaleTokensBurned</td>
     <td class="sig">UnsoldSaleTokensBurned(uint256)</td>
@@ -978,15 +1274,15 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>12</td>
+    <td>13</td>
     <td><span class="type-event">event</span></td>
-    <td>UnsoldSaleTokensPaid</td>
-    <td class="sig">UnsoldSaleTokensPaid(address,uint256)</td>
-    <td><div><span class="sig">address indexed</span> recipient</div><div><span class="sig">uint256</span> amount</div></td>
+    <td>UnusedLpTokensBurned</td>
+    <td class="sig">UnusedLpTokensBurned(uint256)</td>
+    <td><div><span class="sig">uint256</span> amount</div></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>13</td>
+    <td>14</td>
     <td><span class="type-event">event</span></td>
     <td>VaultLiquidityTokensClaimed</td>
     <td class="sig">VaultLiquidityTokensClaimed(address,uint256,uint256)</td>
@@ -994,15 +1290,15 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>14</td>
+    <td>15</td>
     <td><span class="type-event">event</span></td>
     <td>VaultSettlementClaimed</td>
-    <td class="sig">VaultSettlementClaimed(address,uint256,uint256,uint256,uint256)</td>
-    <td><div><span class="sig">address indexed</span> locker</div><div><span class="sig">uint256</span> saleTokens</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> grossCommittedWeth</div></td>
+    <td class="sig">VaultSettlementClaimed(address,uint256,uint256,uint256,uint256,uint256)</td>
+    <td><div><span class="sig">address indexed</span> locker</div><div><span class="sig">uint256</span> saleTokens</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> protocolFeeWeth</div><div><span class="sig">uint256</span> grossCommittedWeth</div></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>15</td>
+    <td>16</td>
     <td><span class="type-fallback">fallback</span><br><code>payable</code></td>
     <td>fallback</td>
     <td class="sig">fallback</td>
@@ -1010,7 +1306,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>16</td>
+    <td>17</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>BPS</td>
     <td class="sig">BPS()</td>
@@ -1018,7 +1314,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>17</td>
+    <td>18</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>CANONICAL_DEAD_RECIPIENT</td>
     <td class="sig">CANONICAL_DEAD_RECIPIENT()</td>
@@ -1026,7 +1322,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>18</td>
+    <td>19</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>D17_LAUNCH_ID</td>
     <td class="sig">D17_LAUNCH_ID()</td>
@@ -1034,7 +1330,23 @@
     <td><div><span class="sig">bytes32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>19</td>
+    <td>20</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>EARLY_REFUND_PENALTY_BPS</td>
+    <td class="sig">EARLY_REFUND_PENALTY_BPS()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint16</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>21</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>EARLY_REFUND_ROUNDS</td>
+    <td class="sig">EARLY_REFUND_ROUNDS()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint8</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>22</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>FINAL_ROUND</td>
     <td class="sig">FINAL_ROUND()</td>
@@ -1042,7 +1354,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>20</td>
+    <td>23</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MIN_ANCHOR_PRICE_WAD</td>
     <td class="sig">MIN_ANCHOR_PRICE_WAD()</td>
@@ -1050,7 +1362,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>21</td>
+    <td>24</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MIN_COMMIT_WETH</td>
     <td class="sig">MIN_COMMIT_WETH()</td>
@@ -1058,7 +1370,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>22</td>
+    <td>25</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MIN_LP_TOKENS</td>
     <td class="sig">MIN_LP_TOKENS()</td>
@@ -1066,7 +1378,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>23</td>
+    <td>26</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>MIN_ROUND_ALLOCATION_TOKENS</td>
     <td class="sig">MIN_ROUND_ALLOCATION_TOKENS()</td>
@@ -1074,7 +1386,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>24</td>
+    <td>27</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>NO_ROUND</td>
     <td class="sig">NO_ROUND()</td>
@@ -1082,7 +1394,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>25</td>
+    <td>28</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>PHASE_FAILED</td>
     <td class="sig">PHASE_FAILED()</td>
@@ -1090,7 +1402,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>26</td>
+    <td>29</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>PHASE_NOT_STARTED</td>
     <td class="sig">PHASE_NOT_STARTED()</td>
@@ -1098,7 +1410,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>27</td>
+    <td>30</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>PHASE_POOL_READY</td>
     <td class="sig">PHASE_POOL_READY()</td>
@@ -1106,7 +1418,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>28</td>
+    <td>31</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>PHASE_READY_TO_FINALIZE</td>
     <td class="sig">PHASE_READY_TO_FINALIZE()</td>
@@ -1114,7 +1426,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>29</td>
+    <td>32</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>PHASE_REFUND_OPEN</td>
     <td class="sig">PHASE_REFUND_OPEN()</td>
@@ -1122,7 +1434,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>30</td>
+    <td>33</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>PHASE_ROUND_OPEN</td>
     <td class="sig">PHASE_ROUND_OPEN()</td>
@@ -1130,7 +1442,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>31</td>
+    <td>34</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>PHASE_SETTLEMENT_OPEN</td>
     <td class="sig">PHASE_SETTLEMENT_OPEN()</td>
@@ -1138,7 +1450,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>32</td>
+    <td>35</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>PHASE_TRADING_OPEN</td>
     <td class="sig">PHASE_TRADING_OPEN()</td>
@@ -1146,7 +1458,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>33</td>
+    <td>36</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>REFUND_STAGE_COUNT</td>
     <td class="sig">REFUND_STAGE_COUNT()</td>
@@ -1154,7 +1466,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>34</td>
+    <td>37</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>ROUND_COUNT</td>
     <td class="sig">ROUND_COUNT()</td>
@@ -1162,7 +1474,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>35</td>
+    <td>38</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>activeRefundWindow</td>
     <td class="sig">activeRefundWindow()</td>
@@ -1170,7 +1482,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>36</td>
+    <td>39</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>activeRound</td>
     <td class="sig">activeRound()</td>
@@ -1178,7 +1490,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>37</td>
+    <td>40</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>allFinalCommitmentsSettled</td>
     <td class="sig">allFinalCommitmentsSettled()</td>
@@ -1186,7 +1498,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>38</td>
+    <td>41</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>anchorPriceWad</td>
     <td class="sig">anchorPriceWad()</td>
@@ -1194,7 +1506,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>39</td>
+    <td>42</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>anchorReady</td>
     <td class="sig">anchorReady()</td>
@@ -1202,23 +1514,23 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>40</td>
-    <td><span class="type-function">function</span><br><code>view</code></td>
-    <td>burnUnsoldSaleTokens</td>
-    <td class="sig">burnUnsoldSaleTokens()</td>
+    <td>43</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>burnResidualTokens</td>
+    <td class="sig">burnResidualTokens()</td>
     <td><span class="sig">none</span></td>
-    <td><div><span class="sig">bool</span> arg0</div></td>
+    <td><div><span class="sig">uint256</span> amount</div></td>
   </tr>
         <tr>
-    <td>41</td>
+    <td>44</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>claimLateSettlement</td>
     <td class="sig">claimLateSettlement()</td>
     <td><span class="sig">none</span></td>
-    <td><div><span class="sig">uint256</span> saleTokenAmount</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> lateLpTokens</div></td>
+    <td><div><span class="sig">uint256</span> saleTokenAmount</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> protocolFeeWeth</div><div><span class="sig">uint256</span> lateLpTokens</div></td>
   </tr>
         <tr>
-    <td>42</td>
+    <td>45</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>claimVaultLiquidityTokens</td>
     <td class="sig">claimVaultLiquidityTokens()</td>
@@ -1226,15 +1538,15 @@
     <td><div><span class="sig">uint256</span> liquidityTokens</div><div><span class="sig">uint256</span> wethForPool</div></td>
   </tr>
         <tr>
-    <td>43</td>
+    <td>46</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>claimVaultSettlement</td>
     <td class="sig">claimVaultSettlement()</td>
     <td><span class="sig">none</span></td>
-    <td><div><span class="sig">uint256</span> saleTokenAmount</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div></td>
+    <td><div><span class="sig">uint256</span> saleTokenAmount</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> protocolFeeWeth</div></td>
   </tr>
         <tr>
-    <td>44</td>
+    <td>47</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>configureLiquidityVault</td>
     <td class="sig">configureLiquidityVault(address)</td>
@@ -1242,7 +1554,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>45</td>
+    <td>48</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>contributedBy</td>
     <td class="sig">contributedBy(address,uint8)</td>
@@ -1250,7 +1562,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>46</td>
+    <td>49</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>deadRecipient</td>
     <td class="sig">deadRecipient()</td>
@@ -1258,7 +1570,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>47</td>
+    <td>50</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>deadTokens</td>
     <td class="sig">deadTokens()</td>
@@ -1266,7 +1578,15 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>48</td>
+    <td>51</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>effectiveLpTokens</td>
+    <td class="sig">effectiveLpTokens()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>52</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>factory</td>
     <td class="sig">factory()</td>
@@ -1274,7 +1594,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>49</td>
+    <td>53</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>finalCommittedWeth</td>
     <td class="sig">finalCommittedWeth()</td>
@@ -1282,7 +1602,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>50</td>
+    <td>54</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>finalRoundTokenPool</td>
     <td class="sig">finalRoundTokenPool()</td>
@@ -1290,7 +1610,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>51</td>
+    <td>55</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>finalizeLaunch</td>
     <td class="sig">finalizeLaunch()</td>
@@ -1298,7 +1618,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>52</td>
+    <td>56</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>finalized</td>
     <td class="sig">finalized()</td>
@@ -1306,7 +1626,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>53</td>
+    <td>57</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>finalizedAt</td>
     <td class="sig">finalizedAt()</td>
@@ -1314,7 +1634,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>54</td>
+    <td>58</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>isRoundClaimable</td>
     <td class="sig">isRoundClaimable(uint8)</td>
@@ -1322,7 +1642,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>55</td>
+    <td>59</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lateLpTokensReleased</td>
     <td class="sig">lateLpTokensReleased()</td>
@@ -1330,7 +1650,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>56</td>
+    <td>60</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lateSettledCommittedWeth</td>
     <td class="sig">lateSettledCommittedWeth()</td>
@@ -1338,7 +1658,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>57</td>
+    <td>61</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lateSettledLiquidityWeth</td>
     <td class="sig">lateSettledLiquidityWeth()</td>
@@ -1346,7 +1666,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>58</td>
+    <td>62</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>launchFailed</td>
     <td class="sig">launchFailed()</td>
@@ -1354,7 +1674,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>59</td>
+    <td>63</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>launchPhase</td>
     <td class="sig">launchPhase()</td>
@@ -1362,7 +1682,15 @@
     <td><div><span class="sig">uint8</span> phaseKind</div><div><span class="sig">uint8</span> index</div><div><span class="sig">uint256</span> startsAt</div><div><span class="sig">uint256</span> endsAt</div></td>
   </tr>
         <tr>
-    <td>60</td>
+    <td>64</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>liquidityBps</td>
+    <td class="sig">liquidityBps()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>65</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>liquidityPoolCreated</td>
     <td class="sig">liquidityPoolCreated()</td>
@@ -1370,7 +1698,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>61</td>
+    <td>66</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>liquidityVault</td>
     <td class="sig">liquidityVault()</td>
@@ -1378,7 +1706,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>62</td>
+    <td>67</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lockerPositionState</td>
     <td class="sig">lockerPositionState(address)</td>
@@ -1386,7 +1714,7 @@
     <td><div><span class="sig">bool</span> liquidityClaimed</div><div><span class="sig">bool</span> finalSaleTokensClaimed</div><div><span class="sig">uint256</span> refundWeth</div><div><span class="sig">uint256</span> penaltyWeth</div><div><span class="sig">bool[5]</span> refunded</div></td>
   </tr>
         <tr>
-    <td>63</td>
+    <td>68</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lpTokens</td>
     <td class="sig">lpTokens()</td>
@@ -1394,7 +1722,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>64</td>
+    <td>69</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>manualDistributionRecipient</td>
     <td class="sig">manualDistributionRecipient()</td>
@@ -1402,7 +1730,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>65</td>
+    <td>70</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>manualDistributionTokens</td>
     <td class="sig">manualDistributionTokens()</td>
@@ -1410,7 +1738,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>66</td>
+    <td>71</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>markLiquidityPoolCreated</td>
     <td class="sig">markLiquidityPoolCreated(address,uint256,uint256,uint256)</td>
@@ -1418,7 +1746,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>67</td>
+    <td>72</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>metadataHash</td>
     <td class="sig">metadataHash()</td>
@@ -1426,7 +1754,7 @@
     <td><div><span class="sig">bytes32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>68</td>
+    <td>73</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>minAnchorPriceWad</td>
     <td class="sig">minAnchorPriceWad()</td>
@@ -1434,7 +1762,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>69</td>
+    <td>74</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>minCommitWeth</td>
     <td class="sig">minCommitWeth()</td>
@@ -1442,7 +1770,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>70</td>
+    <td>75</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>minPhase1Weth</td>
     <td class="sig">minPhase1Weth()</td>
@@ -1450,7 +1778,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>71</td>
+    <td>76</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>officialLpMinted</td>
     <td class="sig">officialLpMinted()</td>
@@ -1458,7 +1786,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>72</td>
+    <td>77</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>officialPair</td>
     <td class="sig">officialPair()</td>
@@ -1466,7 +1794,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>73</td>
+    <td>78</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>officialTokenUsedForLp</td>
     <td class="sig">officialTokenUsedForLp()</td>
@@ -1474,7 +1802,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>74</td>
+    <td>79</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>officialWethUsedForLp</td>
     <td class="sig">officialWethUsedForLp()</td>
@@ -1482,7 +1810,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>75</td>
+    <td>80</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>penaltyWethPaid</td>
     <td class="sig">penaltyWethPaid()</td>
@@ -1490,7 +1818,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>76</td>
+    <td>81</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>poolCreatedAt</td>
     <td class="sig">poolCreatedAt()</td>
@@ -1498,7 +1826,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>77</td>
+    <td>82</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>poolCreationOpensAt</td>
     <td class="sig">poolCreationOpensAt()</td>
@@ -1506,7 +1834,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>78</td>
+    <td>83</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>poolSettledCommittedWeth</td>
     <td class="sig">poolSettledCommittedWeth()</td>
@@ -1514,7 +1842,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>79</td>
+    <td>84</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>poolSettledLiquidityWeth</td>
     <td class="sig">poolSettledLiquidityWeth()</td>
@@ -1522,7 +1850,15 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>80</td>
+    <td>85</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>poolTokenAllocation</td>
+    <td class="sig">poolTokenAllocation()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>86</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>previewFinalSaleTokens</td>
     <td class="sig">previewFinalSaleTokens(address)</td>
@@ -1530,7 +1866,7 @@
     <td><div><span class="sig">uint256</span> saleTokenAmount</div></td>
   </tr>
         <tr>
-    <td>81</td>
+    <td>87</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>previewRoundTokens</td>
     <td class="sig">previewRoundTokens(address,uint8)</td>
@@ -1538,23 +1874,39 @@
     <td><div><span class="sig">uint256</span> saleTokenAmount</div></td>
   </tr>
         <tr>
-    <td>82</td>
-    <td><span class="type-function">function</span><br><code>view</code></td>
-    <td>previewSettlement</td>
-    <td class="sig">previewSettlement(address)</td>
-    <td><div><span class="sig">address</span> locker</div></td>
-    <td><div><span class="sig">uint256</span> saleTokenAmount</div><div><span class="sig">uint256</span> grossCommittedWeth</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div></td>
-  </tr>
-        <tr>
-    <td>83</td>
+    <td>88</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>previewVaultSettlement</td>
     <td class="sig">previewVaultSettlement(address)</td>
     <td><div><span class="sig">address</span> locker</div></td>
-    <td><div><span class="sig">uint256</span> saleTokenAmount</div><div><span class="sig">uint256</span> grossCommittedWeth</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div></td>
+    <td><div><span class="sig">uint256</span> saleTokenAmount</div><div><span class="sig">uint256</span> grossCommittedWeth</div><div><span class="sig">uint256</span> wethForVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> protocolFeeWeth</div></td>
   </tr>
         <tr>
-    <td>84</td>
+    <td>89</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>protocolFeeBps</td>
+    <td class="sig">protocolFeeBps()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint16</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>90</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>protocolFeeRecipient</td>
+    <td class="sig">protocolFeeRecipient()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>91</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>protocolFeeWethPaid</td>
+    <td class="sig">protocolFeeWethPaid()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>92</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>recordRoundCommitment</td>
     <td class="sig">recordRoundCommitment(uint8,uint256)</td>
@@ -1562,7 +1914,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>85</td>
+    <td>93</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>refundPenaltyBps</td>
     <td class="sig">refundPenaltyBps()</td>
@@ -1570,7 +1922,7 @@
     <td><div><span class="sig">uint16</span> arg0</div></td>
   </tr>
         <tr>
-    <td>86</td>
+    <td>94</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>refundSeconds</td>
     <td class="sig">refundSeconds()</td>
@@ -1578,7 +1930,7 @@
     <td><div><span class="sig">uint32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>87</td>
+    <td>95</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>releaseFailedRefund</td>
     <td class="sig">releaseFailedRefund()</td>
@@ -1586,7 +1938,7 @@
     <td><div><span class="sig">uint256</span> refundWeth</div></td>
   </tr>
         <tr>
-    <td>88</td>
+    <td>96</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>releaseRoundRefund</td>
     <td class="sig">releaseRoundRefund()</td>
@@ -1594,7 +1946,7 @@
     <td><div><span class="sig">uint8</span> round</div><div><span class="sig">uint256</span> refundWeth</div><div><span class="sig">uint256</span> penaltyWeth</div></td>
   </tr>
         <tr>
-    <td>89</td>
+    <td>97</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>retainedPenaltyWeth</td>
     <td class="sig">retainedPenaltyWeth()</td>
@@ -1602,7 +1954,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>90</td>
+    <td>98</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>rolloverToFinalRound</td>
     <td class="sig">rolloverToFinalRound()</td>
@@ -1610,7 +1962,7 @@
     <td><div><span class="sig">uint256</span> rolloverTokens</div></td>
   </tr>
         <tr>
-    <td>91</td>
+    <td>99</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundAnchorTargetWeth</td>
     <td class="sig">roundAnchorTargetWeth(uint8)</td>
@@ -1618,7 +1970,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>92</td>
+    <td>100</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundAnchorUnderfillRemainingWeth</td>
     <td class="sig">roundAnchorUnderfillRemainingWeth(uint8)</td>
@@ -1626,7 +1978,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>93</td>
+    <td>101</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundBaseTokenAllocation</td>
     <td class="sig">roundBaseTokenAllocation(uint8)</td>
@@ -1634,7 +1986,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>94</td>
+    <td>102</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundClaimTime</td>
     <td class="sig">roundClaimTime(uint8)</td>
@@ -1642,7 +1994,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>95</td>
+    <td>103</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundDiscoveredPriceWad</td>
     <td class="sig">roundDiscoveredPriceWad(uint8)</td>
@@ -1650,7 +2002,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>96</td>
+    <td>104</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundEnd</td>
     <td class="sig">roundEnd(uint8)</td>
@@ -1658,7 +2010,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>97</td>
+    <td>105</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundRaised</td>
     <td class="sig">roundRaised(uint256)</td>
@@ -1666,7 +2018,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>98</td>
+    <td>106</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundSeconds</td>
     <td class="sig">roundSeconds(uint256)</td>
@@ -1674,7 +2026,7 @@
     <td><div><span class="sig">uint32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>99</td>
+    <td>107</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundSharesBps</td>
     <td class="sig">roundSharesBps(uint256)</td>
@@ -1682,7 +2034,7 @@
     <td><div><span class="sig">uint16</span> arg0</div></td>
   </tr>
         <tr>
-    <td>100</td>
+    <td>108</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundSoldTokens</td>
     <td class="sig">roundSoldTokens(uint8)</td>
@@ -1690,7 +2042,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>101</td>
+    <td>109</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundStart</td>
     <td class="sig">roundStart(uint8)</td>
@@ -1698,7 +2050,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>102</td>
+    <td>110</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundTokenAllocation</td>
     <td class="sig">roundTokenAllocation(uint8)</td>
@@ -1706,7 +2058,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>103</td>
+    <td>111</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>rulesHash</td>
     <td class="sig">rulesHash()</td>
@@ -1714,7 +2066,7 @@
     <td><div><span class="sig">bytes32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>104</td>
+    <td>112</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>saleTokens</td>
     <td class="sig">saleTokens()</td>
@@ -1722,7 +2074,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>105</td>
+    <td>113</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>settledCommittedWeth</td>
     <td class="sig">settledCommittedWeth()</td>
@@ -1730,7 +2082,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>106</td>
+    <td>114</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>settledLiquidityWeth</td>
     <td class="sig">settledLiquidityWeth()</td>
@@ -1738,7 +2090,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>107</td>
+    <td>115</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>settlementSeconds</td>
     <td class="sig">settlementSeconds()</td>
@@ -1746,7 +2098,7 @@
     <td><div><span class="sig">uint32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>108</td>
+    <td>116</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>settlementStartsAt</td>
     <td class="sig">settlementStartsAt()</td>
@@ -1754,7 +2106,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>109</td>
+    <td>117</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>startTime</td>
     <td class="sig">startTime()</td>
@@ -1762,7 +2114,7 @@
     <td><div><span class="sig">uint64</span> arg0</div></td>
   </tr>
         <tr>
-    <td>110</td>
+    <td>118</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>sweepUnexpectedEthToTreasury</td>
     <td class="sig">sweepUnexpectedEthToTreasury()</td>
@@ -1770,7 +2122,7 @@
     <td><div><span class="sig">uint256</span> amount</div></td>
   </tr>
         <tr>
-    <td>111</td>
+    <td>119</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>token</td>
     <td class="sig">token()</td>
@@ -1778,7 +2130,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>112</td>
+    <td>120</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>totalCommittedWeth</td>
     <td class="sig">totalCommittedWeth()</td>
@@ -1786,7 +2138,7 @@
     <td><div><span class="sig">uint256</span> total</div></td>
   </tr>
         <tr>
-    <td>113</td>
+    <td>121</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>totalLiquidityWeth</td>
     <td class="sig">totalLiquidityWeth()</td>
@@ -1794,7 +2146,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>114</td>
+    <td>122</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>tradingOpen</td>
     <td class="sig">tradingOpen()</td>
@@ -1802,7 +2154,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>115</td>
+    <td>123</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>tradingOpenAt</td>
     <td class="sig">tradingOpenAt()</td>
@@ -1810,7 +2162,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>116</td>
+    <td>124</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>treasury</td>
     <td class="sig">treasury()</td>
@@ -1818,7 +2170,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>117</td>
+    <td>125</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>treasuryBps</td>
     <td class="sig">treasuryBps()</td>
@@ -1826,7 +2178,7 @@
     <td><div><span class="sig">uint16</span> arg0</div></td>
   </tr>
         <tr>
-    <td>118</td>
+    <td>126</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>treasuryWethPaid</td>
     <td class="sig">treasuryWethPaid()</td>
@@ -1834,7 +2186,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>119</td>
+    <td>127</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>unsoldSaleTokensBurned</td>
     <td class="sig">unsoldSaleTokensBurned()</td>
@@ -1842,7 +2194,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>120</td>
+    <td>128</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>unsoldSaleTokensSettled</td>
     <td class="sig">unsoldSaleTokensSettled()</td>
@@ -1850,7 +2202,15 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>121</td>
+    <td>129</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>unusedLpTokensBurned</td>
+    <td class="sig">unusedLpTokensBurned()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>130</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>vaultConfigurator</td>
     <td class="sig">vaultConfigurator()</td>
@@ -1858,7 +2218,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>122</td>
+    <td>131</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>vaultLiquidityClaimed</td>
     <td class="sig">vaultLiquidityClaimed()</td>
@@ -1866,7 +2226,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>123</td>
+    <td>132</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>vaultLiquidityTokensClaimed</td>
     <td class="sig">vaultLiquidityTokensClaimed()</td>
@@ -1874,7 +2234,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>124</td>
+    <td>133</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>weth</td>
     <td class="sig">weth()</td>
@@ -1882,7 +2242,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>125</td>
+    <td>134</td>
     <td><span class="type-receive">receive</span><br><code>payable</code></td>
     <td>receive</td>
     <td class="sig">receive</td>
@@ -1976,8 +2336,8 @@
     <td>8</td>
     <td><span class="type-event">event</span></td>
     <td>VaultSettlementCompleted</td>
-    <td class="sig">VaultSettlementCompleted(address,address,address,address,uint256,uint256,uint256,uint256,uint256)</td>
-    <td><div><span class="sig">address indexed</span> launch</div><div><span class="sig">address indexed</span> liquidityVault</div><div><span class="sig">address indexed</span> settler</div><div><span class="sig">address</span> owner</div><div><span class="sig">uint256</span> saleTokens</div><div><span class="sig">uint256</span> wethSentToVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> grossCommittedWeth</div><div><span class="sig">uint256</span> residualWeth</div></td>
+    <td class="sig">VaultSettlementCompleted(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256)</td>
+    <td><div><span class="sig">address indexed</span> launch</div><div><span class="sig">address indexed</span> liquidityVault</div><div><span class="sig">address indexed</span> settler</div><div><span class="sig">address</span> owner</div><div><span class="sig">uint256</span> saleTokens</div><div><span class="sig">uint256</span> wethSentToVault</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> protocolFeeWeth</div><div><span class="sig">uint256</span> grossCommittedWeth</div><div><span class="sig">uint256</span> residualWeth</div></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
@@ -2058,7 +2418,7 @@
     <td>positions</td>
     <td class="sig">positions(address)</td>
     <td><div><span class="sig">address</span> arg0</div></td>
-    <td><div><span class="sig">bool</span> known</div><div><span class="sig">bool</span> liquiditySettled</div><div><span class="sig">address</span> token</div><div><span class="sig">address</span> liquidityVault</div><div><span class="sig">bytes32</span> rulesHash</div><div><span class="sig">uint256</span> ethCommitted</div><div><span class="sig">uint256</span> wethCommitted</div><div><span class="sig">uint256</span> wethRefunded</div><div><span class="sig">uint256</span> penaltyPaid</div><div><span class="sig">uint256</span> claimedSaleTokens</div><div><span class="sig">uint256</span> wethSentToVault</div><div><span class="sig">uint256</span> wethForLp</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> withdrawableTokens</div><div><span class="sig">uint256</span> residualWeth</div><div><span class="sig">bool</span> finalSaleTokensClaimed</div></td>
+    <td><div><span class="sig">bool</span> known</div><div><span class="sig">bool</span> liquiditySettled</div><div><span class="sig">address</span> token</div><div><span class="sig">address</span> liquidityVault</div><div><span class="sig">bytes32</span> rulesHash</div><div><span class="sig">uint256</span> ethCommitted</div><div><span class="sig">uint256</span> wethCommitted</div><div><span class="sig">uint256</span> wethRefunded</div><div><span class="sig">uint256</span> penaltyPaid</div><div><span class="sig">uint256</span> claimedSaleTokens</div><div><span class="sig">uint256</span> wethSentToVault</div><div><span class="sig">uint256</span> wethForLp</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> protocolFeeWeth</div><div><span class="sig">uint256</span> withdrawableTokens</div><div><span class="sig">uint256</span> residualWeth</div><div><span class="sig">bool</span> finalSaleTokensClaimed</div></td>
   </tr>
         <tr>
     <td>19</td>
@@ -2170,7 +2530,7 @@
 <section id="d17liquidityvault">
     <h2>D17LiquidityVault</h2>
     <p>Source: <code>abi/D17LiquidityVault.abi.json</code></p>
-    <p><span class="pill">constructor: 1</span><span class="pill">error: 1</span><span class="pill">event: 5</span><span class="pill">fallback: 1</span><span class="pill">function: 22</span><span class="pill">receive: 1</span></p>
+    <p><span class="pill">constructor: 1</span><span class="pill">error: 2</span><span class="pill">event: 7</span><span class="pill">fallback: 1</span><span class="pill">function: 33</span><span class="pill">receive: 1</span></p>
     <table>
       <thead>
         <tr>
@@ -2194,13 +2554,29 @@
         <tr>
     <td>1</td>
     <td><span class="type-error">error</span></td>
+    <td>BurnFailed</td>
+    <td class="sig">BurnFailed()</td>
+    <td><span class="sig">none</span></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>2</td>
+    <td><span class="type-error">error</span></td>
     <td>TransferFailed</td>
     <td class="sig">TransferFailed()</td>
     <td><span class="sig">none</span></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>2</td>
+    <td>3</td>
+    <td><span class="type-event">event</span></td>
+    <td>CreatorTokensReleased</td>
+    <td class="sig">CreatorTokensReleased(address,uint256)</td>
+    <td><div><span class="sig">address indexed</span> recipient</div><div><span class="sig">uint256</span> amount</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>4</td>
     <td><span class="type-event">event</span></td>
     <td>ExcessWethSwept</td>
     <td class="sig">ExcessWethSwept(address,uint256)</td>
@@ -2208,15 +2584,23 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>3</td>
+    <td>5</td>
     <td><span class="type-event">event</span></td>
-    <td>LateLiquidityAdded</td>
-    <td class="sig">LateLiquidityAdded(address,address,uint256,uint256,uint256)</td>
-    <td><div><span class="sig">address indexed</span> locker</div><div><span class="sig">address indexed</span> pair</div><div><span class="sig">uint256</span> tokenUsed</div><div><span class="sig">uint256</span> wethUsed</div><div><span class="sig">uint256</span> lpMinted</div></td>
+    <td>FailedLaunchPenaltiesBurned</td>
+    <td class="sig">FailedLaunchPenaltiesBurned(uint256)</td>
+    <td><div><span class="sig">uint256</span> amount</div></td>
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>4</td>
+    <td>6</td>
+    <td><span class="type-event">event</span></td>
+    <td>LateLiquidityAdded</td>
+    <td class="sig">LateLiquidityAdded(address,address,uint256,uint256,uint256,uint256,uint256)</td>
+    <td><div><span class="sig">address indexed</span> locker</div><div><span class="sig">address indexed</span> pair</div><div><span class="sig">uint256</span> tokenUsed</div><div><span class="sig">uint256</span> wethUsed</div><div><span class="sig">uint256</span> lpMinted</div><div><span class="sig">uint256</span> tokensBurned</div><div><span class="sig">uint256</span> wethBurned</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>7</td>
     <td><span class="type-event">event</span></td>
     <td>OfficialPoolCreated</td>
     <td class="sig">OfficialPoolCreated(address,uint256,uint256,uint256,uint256,uint256)</td>
@@ -2224,7 +2608,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>5</td>
+    <td>8</td>
     <td><span class="type-event">event</span></td>
     <td>UnexpectedEthSwept</td>
     <td class="sig">UnexpectedEthSwept(address,uint256)</td>
@@ -2232,7 +2616,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>6</td>
+    <td>9</td>
     <td><span class="type-event">event</span></td>
     <td>UnsupportedTokenRecovered</td>
     <td class="sig">UnsupportedTokenRecovered(address,address,uint256)</td>
@@ -2240,7 +2624,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>7</td>
+    <td>10</td>
     <td><span class="type-fallback">fallback</span><br><code>payable</code></td>
     <td>fallback</td>
     <td class="sig">fallback</td>
@@ -2248,7 +2632,23 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>8</td>
+    <td>11</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>BURN_ADDRESS</td>
+    <td class="sig">BURN_ADDRESS()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>12</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>CREATOR_VESTING_SECONDS</td>
+    <td class="sig">CREATOR_VESTING_SECONDS()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>13</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>D17_LIQUIDITY_VAULT_ID</td>
     <td class="sig">D17_LIQUIDITY_VAULT_ID()</td>
@@ -2256,7 +2656,15 @@
     <td><div><span class="sig">bytes32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>9</td>
+    <td>14</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>burnFailedLaunchPenalties</td>
+    <td class="sig">burnFailedLaunchPenalties()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> amount</div></td>
+  </tr>
+        <tr>
+    <td>15</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>createOfficialPool</td>
     <td class="sig">createOfficialPool(uint256,uint256)</td>
@@ -2264,7 +2672,23 @@
     <td><div><span class="sig">address</span> pair</div><div><span class="sig">uint256</span> liquidityTokens</div><div><span class="sig">uint256</span> wethForPool</div><div><span class="sig">uint256</span> liquidity</div></td>
   </tr>
         <tr>
-    <td>10</td>
+    <td>16</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>creatorTokensReleased</td>
+    <td class="sig">creatorTokensReleased()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>17</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>failedLaunchPenaltyWethBurned</td>
+    <td class="sig">failedLaunchPenaltyWethBurned()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>18</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lateLpMinted</td>
     <td class="sig">lateLpMinted()</td>
@@ -2272,7 +2696,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>11</td>
+    <td>19</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lateTokenUsedForLp</td>
     <td class="sig">lateTokenUsedForLp()</td>
@@ -2280,7 +2704,23 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>12</td>
+    <td>20</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>lateTokensBurned</td>
+    <td class="sig">lateTokensBurned()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>21</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>lateWethBurned</td>
+    <td class="sig">lateWethBurned()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>22</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lateWethUsedForLp</td>
     <td class="sig">lateWethUsedForLp()</td>
@@ -2288,7 +2728,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>13</td>
+    <td>23</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>launch</td>
     <td class="sig">launch()</td>
@@ -2296,7 +2736,15 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>14</td>
+    <td>24</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>lockedCreatorTokens</td>
+    <td class="sig">lockedCreatorTokens()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>25</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lpMinted</td>
     <td class="sig">lpMinted()</td>
@@ -2304,7 +2752,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>15</td>
+    <td>26</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>mintLateLiquidity</td>
     <td class="sig">mintLateLiquidity(uint256,uint256)</td>
@@ -2312,7 +2760,7 @@
     <td><div><span class="sig">uint256</span> liquidity</div></td>
   </tr>
         <tr>
-    <td>16</td>
+    <td>27</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>officialPair</td>
     <td class="sig">officialPair()</td>
@@ -2320,7 +2768,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>17</td>
+    <td>28</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>poolCreated</td>
     <td class="sig">poolCreated()</td>
@@ -2328,7 +2776,15 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>18</td>
+    <td>29</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>poolCreatedAt</td>
+    <td class="sig">poolCreatedAt()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>30</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>preseededTokenReserve</td>
     <td class="sig">preseededTokenReserve()</td>
@@ -2336,7 +2792,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>19</td>
+    <td>31</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>preseededWethReserve</td>
     <td class="sig">preseededWethReserve()</td>
@@ -2344,7 +2800,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>20</td>
+    <td>32</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>recoverUnsupportedTokenToTreasury</td>
     <td class="sig">recoverUnsupportedTokenToTreasury(address,uint256)</td>
@@ -2352,7 +2808,15 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>21</td>
+    <td>33</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>releaseCreatorTokens</td>
+    <td class="sig">releaseCreatorTokens()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> amount</div></td>
+  </tr>
+        <tr>
+    <td>34</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>router</td>
     <td class="sig">router()</td>
@@ -2360,7 +2824,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>22</td>
+    <td>35</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>routerFactory</td>
     <td class="sig">routerFactory()</td>
@@ -2368,7 +2832,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>23</td>
+    <td>36</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>sweepExcessWethToTreasury</td>
     <td class="sig">sweepExcessWethToTreasury()</td>
@@ -2376,7 +2840,7 @@
     <td><div><span class="sig">uint256</span> amount</div></td>
   </tr>
         <tr>
-    <td>24</td>
+    <td>37</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>sweepUnexpectedEthToTreasury</td>
     <td class="sig">sweepUnexpectedEthToTreasury()</td>
@@ -2384,7 +2848,7 @@
     <td><div><span class="sig">uint256</span> amount</div></td>
   </tr>
         <tr>
-    <td>25</td>
+    <td>38</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>token</td>
     <td class="sig">token()</td>
@@ -2392,7 +2856,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>26</td>
+    <td>39</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>tokenUsedForPool</td>
     <td class="sig">tokenUsedForPool()</td>
@@ -2400,7 +2864,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>27</td>
+    <td>40</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>treasury</td>
     <td class="sig">treasury()</td>
@@ -2408,7 +2872,15 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>28</td>
+    <td>41</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>vestedCreatorTokens</td>
+    <td class="sig">vestedCreatorTokens()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>42</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>weth</td>
     <td class="sig">weth()</td>
@@ -2416,7 +2888,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>29</td>
+    <td>43</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>wethUsedForPool</td>
     <td class="sig">wethUsedForPool()</td>
@@ -2424,7 +2896,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>30</td>
+    <td>44</td>
     <td><span class="type-receive">receive</span><br><code>payable</code></td>
     <td>receive</td>
     <td class="sig">receive</td>

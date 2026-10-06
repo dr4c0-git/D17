@@ -3,25 +3,16 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ethers } from "ethers";
+import { EXPLORER_CONTRACTS as contracts } from "../contracts/scripts/contract-list.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const contractRoot = path.join(root, "contracts");
 const releaseRoot = path.join(root, "release");
 
-const contracts = [
-  "D17Factory",
-  "D17TokenFactory",
-  "D17LiquidityVaultFactory",
-  "D17LaunchFactory",
-  "D17LockerFactory",
-  "D17Token",
-  "D17Launch",
-  "D17Locker",
-  "D17LiquidityVault",
-];
-
 const productionSources = [
   "contracts/D17Factory.sol",
+  "contracts/D17FeeConfig.sol",
+  "contracts/D17LaunchDeployer.sol",
   "contracts/D17Launch.sol",
   "contracts/D17LaunchFactory.sol",
   "contracts/D17LiquidityVault.sol",
@@ -62,12 +53,14 @@ for (const name of contracts) {
 }
 
 const identityLiterals = {
-  factory: "D17_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE",
-  tokenFactory: "D17_TOKEN_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE",
-  liquidityVaultFactory: "D17_LIQUIDITY_VAULT_FACTORY_V14_1_REFUND_SCHEDULE_BURN_GATE",
-  launch: "D17_LAUNCH_V14_1_REFUND_SCHEDULE_BURN_GATE",
-  liquidityVault: "D17_LIQUIDITY_VAULT_V14_1_REFUND_SCHEDULE_BURN_GATE",
-  token: "D17_TOKEN_V14_1_REFUND_SCHEDULE_BURN_GATE",
+  factory: "D17_FACTORY_V15_HARDENED",
+  feeConfig: "D17_FEE_CONFIG_V15_HARDENED",
+  tokenFactory: "D17_TOKEN_FACTORY_V15_HARDENED",
+  liquidityVaultFactory: "D17_LIQUIDITY_VAULT_FACTORY_V15_HARDENED",
+  launchDeployer: "D17_LAUNCH_DEPLOYER_V15_HARDENED",
+  launch: "D17_LAUNCH_V15_HARDENED",
+  liquidityVault: "D17_LIQUIDITY_VAULT_V15_HARDENED",
+  token: "D17_TOKEN_V15_HARDENED",
 };
 
 // Reference hashes from the compiler artifacts used for this release build.
@@ -86,7 +79,7 @@ const compilerReferenceArtifacts = [
 
 const manifest = {
   schema: "d17-protocol-build-v1",
-  release: "1.0.0",
+  release: "1.1.0-v15",
   compiler: {
     version: buildInfo.solcVersion,
     longVersion: buildInfo.solcLongVersion,

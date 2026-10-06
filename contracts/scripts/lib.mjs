@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // This exact string is the immutable identity of the deployed contract family.
-export const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V14_1_REFUND_SCHEDULE_BURN_GATE"));
+export const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V15_HARDENED"));
 
 loadDotEnv(path.join(root, ".env"));
 
@@ -141,7 +141,8 @@ export function buildLaunchConfig(config, now, treasury) {
     roundSharesBps: config.roundSharesBps.map(Number),
     treasuryBps: Number(config.treasuryBps),
     refundPenaltyBps: Number(config.refundPenaltyBps),
-    burnUnsoldSaleTokens: Boolean(config.burnUnsoldSaleTokens)
+    // Consent bound: creation reverts if D17FeeConfig's fee is above this at execution.
+    maxProtocolFeeBps: Number(config.maxProtocolFeeBps ?? 200)
   };
 }
 

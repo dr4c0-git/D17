@@ -21,7 +21,26 @@ const startBlock = await provider.getBlockNumber();
 
 const weth = requireEnv("WETH_ADDRESS");
 const router = requireEnv("UNISWAP_V2_ROUTER");
+// V15 refuses to create launches while any factory owner key exists, so the deployment is
+// only usable once every owner has renounced. Keep the flag explicit for the operator.
+if (process.env.RENOUNCE_D17_FACTORY_OWNER !== "1") {
+  throw new Error("RENOUNCE_D17_FACTORY_OWNER=1 is required: V15 launches cannot be created before renounce.");
+}
+
+const feeConfigOwner = ethers.getAddress(requireEnv("FEE_CONFIG_OWNER"));
+const protocolFeeRecipient = process.env.PROTOCOL_FEE_RECIPIENT ? ethers.getAddress(process.env.PROTOCOL_FEE_RECIPIENT) : ethers.ZeroAddress;
+const protocolFeeBps = Number(process.env.PROTOCOL_FEE_BPS ?? "0");
+if (!Number.isInteger(protocolFeeBps) || protocolFeeBps < 0 || protocolFeeBps > 200) {
+  throw new Error("PROTOCOL_FEE_BPS must be an integer between 0 and 200 (2% hard cap).");
+}
+if (protocolFeeBps > 0 && protocolFeeRecipient === ethers.ZeroAddress) {
+  throw new Error("PROTOCOL_FEE_RECIPIENT is required when PROTOCOL_FEE_BPS > 0.");
+}
+
 if (chainId === MAINNET_CHAIN_ID) {
+  if ((await provider.getCode(feeConfigOwner)) === "0x") {
+    throw new Error("Mainnet FEE_CONFIG_OWNER must be a contract (multisig), not an EOA.");
+  }
   if (process.env.D17_CONFIRM_MAINNET_DEPLOY !== "1") {
     throw new Error("Refusing mainnet deployment without D17_CONFIRM_MAINNET_DEPLOY=1.");
   }
@@ -36,9 +55,17 @@ if (chainId === MAINNET_CHAIN_ID) {
   }
 }
 
-const d17FactorySigner = new ethers.Wallet(requireEnv("D17_FACTORY_PRIVATE_KEY"), provider);
-const launchFactorySigner = new ethers.Wallet(process.env.D17_LAUNCH_FACTORY_PRIVATE_KEY || requireEnv("D17_FACTORY_PRIVATE_KEY"), provider);
-const lockerFactorySigner = new ethers.Wallet(requireEnv("D17_LOCKER_FACTORY_PRIVATE_KEY"), provider);
+// One NonceManager per key: the script chains many transactions from the same key
+// (possibly through several roles), and RPCs can report a stale pending nonce.
+const nonceManagers = new Map();
+function managedSigner(privateKey) {
+  const wallet = new ethers.Wallet(privateKey, provider);
+  if (!nonceManagers.has(wallet.address)) nonceManagers.set(wallet.address, new ethers.NonceManager(wallet));
+  return nonceManagers.get(wallet.address);
+}
+const d17FactorySigner = managedSigner(requireEnv("D17_FACTORY_PRIVATE_KEY"));
+const launchFactorySigner = managedSigner(process.env.D17_LAUNCH_FACTORY_PRIVATE_KEY || requireEnv("D17_FACTORY_PRIVATE_KEY"));
+const lockerFactorySigner = managedSigner(requireEnv("D17_LOCKER_FACTORY_PRIVATE_KEY"));
 const d17FactoryDeployer = await d17FactorySigner.getAddress();
 const launchFactoryDeployer = await launchFactorySigner.getAddress();
 const lockerFactoryDeployer = await lockerFactorySigner.getAddress();
@@ -51,9 +78,14 @@ if (ethers.getAddress(owner) !== d17FactoryDeployer) {
   throw new Error("D17_FACTORY_OWNER must match D17_FACTORY_PRIVATE_KEY so the official locker factory can be pinned.");
 }
 
+const feeConfigArt = artifact("D17FeeConfig.sol", "D17FeeConfig");
+const FeeConfig = new ethers.ContractFactory(feeConfigArt.abi, feeConfigArt.bytecode, d17FactorySigner);
+const feeConfig = await FeeConfig.deploy(feeConfigOwner, protocolFeeRecipient, protocolFeeBps);
+await feeConfig.waitForDeployment();
+
 const art = artifact("D17Factory.sol", "D17Factory");
 const contractFactory = new ethers.ContractFactory(art.abi, art.bytecode, d17FactorySigner);
-const factory = await contractFactory.deploy(owner, weth, router);
+const factory = await contractFactory.deploy(owner, weth, router, await feeConfig.getAddress());
 await factory.waitForDeployment();
 
 const tokenFactoryArt = artifact("D17TokenFactory.sol", "D17TokenFactory");
@@ -100,7 +132,7 @@ let renounceTransaction = null;
 let tokenFactoryRenounceTransaction = null;
 let vaultFactoryRenounceTransaction = null;
 let launchDeployerRenounceTransaction = null;
-if (process.env.RENOUNCE_D17_FACTORY_OWNER === "1") {
+{
   const tokenFactoryRenounceTx = await tokenFactory.connect(launchFactorySigner).renounceOwnership();
   await tokenFactoryRenounceTx.wait();
   tokenFactoryRenounceTransaction = tokenFactoryRenounceTx.hash;
@@ -127,11 +159,16 @@ const deployment = {
   weth,
   router,
   factory: await factory.getAddress(),
+  feeConfig: await feeConfig.getAddress(),
+  feeConfigOwner,
+  protocolFeeRecipient,
+  protocolFeeBps,
   tokenFactory: await tokenFactory.getAddress(),
   liquidityVaultFactory: await vaultFactory.getAddress(),
   launchDeployer: await launchDeployer.getAddress(),
   launchFactory: await launchFactory.getAddress(),
   lockerFactory: await lockerFactory.getAddress(),
+  feeConfigTransaction: feeConfig.deploymentTransaction()?.hash,
   factoryTransaction: factory.deploymentTransaction()?.hash,
   tokenFactoryTransaction: tokenFactory.deploymentTransaction()?.hash,
   liquidityVaultFactoryTransaction: vaultFactory.deploymentTransaction()?.hash,

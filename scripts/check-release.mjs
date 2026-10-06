@@ -3,19 +3,9 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { collectReleaseFiles, RELEASE_MANIFEST_NAME } from "./release-files.mjs";
+import { EXPLORER_CONTRACTS as contractNames } from "../contracts/scripts/contract-list.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const contractNames = [
-  "D17Factory",
-  "D17Launch",
-  "D17LaunchFactory",
-  "D17LiquidityVault",
-  "D17LiquidityVaultFactory",
-  "D17Locker",
-  "D17LockerFactory",
-  "D17Token",
-  "D17TokenFactory",
-];
 
 const checks = [];
 function check(label, condition) {
@@ -36,7 +26,8 @@ for (const network of ["sepolia", "mainnet"]) {
   const provenance = json(`release/deployments/${network}.json`);
   check(`${network} provenance chain matches`, Number(provenance.chainId) === Number(publicManifest.chainId));
   check(`${network} provenance start block matches`, Number(provenance.startBlock) === Number(publicManifest.startBlock));
-  for (const key of ["d17Factory", "tokenFactory", "liquidityVaultFactory", "launchFactory", "lockerFactory"]) {
+  check(`${network} provenance status matches`, provenance.status === publicManifest.status);
+  for (const key of ["d17Factory", "feeConfig", "tokenFactory", "launchDeployer", "liquidityVaultFactory", "launchFactory", "lockerFactory"]) {
     check(
       `${network} ${key} provenance matches`,
       String(provenance.contracts[key]).toLowerCase() === String(publicManifest.contracts[key]).toLowerCase()

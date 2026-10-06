@@ -205,6 +205,12 @@
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "protocolFeeWeth",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "grossCommittedWeth",
         "type": "uint256"
       },
@@ -421,6 +427,11 @@
       {
         "internalType": "uint256",
         "name": "treasuryWeth",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "protocolFeeWeth",
         "type": "uint256"
       },
       {

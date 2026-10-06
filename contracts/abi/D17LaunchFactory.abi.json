@@ -15,6 +15,11 @@
         "internalType": "address",
         "name": "liquidityVaultFactory_",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "launchDeployer_",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -173,9 +178,9 @@
             "type": "uint16"
           },
           {
-            "internalType": "bool",
-            "name": "burnUnsoldSaleTokens",
-            "type": "bool"
+            "internalType": "uint16",
+            "name": "maxProtocolFeeBps",
+            "type": "uint16"
           }
         ],
         "internalType": "struct ID17LaunchFactory.LaunchConfig",
@@ -186,6 +191,16 @@
         "internalType": "address",
         "name": "creator",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "protocolFeeRecipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "protocolFeeBps",
+        "type": "uint16"
       }
     ],
     "name": "deployLaunch",
@@ -207,6 +222,19 @@
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "launchDeployer",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
