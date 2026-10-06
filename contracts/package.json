@@ -10,7 +10,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "clean": "hardhat clean",
-    "test": "node test/local-e2e.mjs",
+    "test": "node test/local-e2e.mjs && node test/hardening-e2e.mjs",
     "build:abi": "node scripts/export-abi.mjs",
     "check:explorer": "node scripts/check-explorer.mjs",
     "deploy:factory": "node scripts/deploy-factory.mjs",

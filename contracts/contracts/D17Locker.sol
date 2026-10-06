@@ -7,7 +7,7 @@ import {ID17FactoryView, ID17Launch, ID17VaultLateLiquidity, IWETH} from "./inte
 contract D17Locker {
     using D17SafeTransfer for address;
 
-    bytes32 public constant EXPECTED_LAUNCH_ID = keccak256("D17_LAUNCH_V14_1_REFUND_SCHEDULE_BURN_GATE");
+    bytes32 public constant EXPECTED_LAUNCH_ID = keccak256("D17_LAUNCH_V15_HARDENED");
     uint8 public constant ROUND_COUNT = 5;
 
     address public immutable owner;
@@ -32,6 +32,7 @@ contract D17Locker {
         uint256 wethSentToVault;
         uint256 wethForLp;
         uint256 treasuryWeth;
+        uint256 protocolFeeWeth;
         uint256 withdrawableTokens;
         uint256 residualWeth;
         bool finalSaleTokensClaimed;
@@ -54,6 +55,7 @@ contract D17Locker {
         uint256 saleTokens,
         uint256 wethSentToVault,
         uint256 treasuryWeth,
+        uint256 protocolFeeWeth,
         uint256 grossCommittedWeth,
         uint256 residualWeth
     );
@@ -167,7 +169,8 @@ contract D17Locker {
         withdrawableWeth += refundWeth;
         if (penaltyWeth > 0) accountedWeth -= penaltyWeth;
 
-        if (penaltyWeth > 0) weth.safeTransfer(ID17Launch(launch).treasury(), penaltyWeth);
+        // Penalties deepen the official pool (vault), they never reach the creator.
+        if (penaltyWeth > 0) weth.safeTransfer(ID17Launch(launch).liquidityVault(), penaltyWeth);
         emit RoundRefunded(launch, round, refundWeth, penaltyWeth);
     }
 
@@ -245,14 +248,17 @@ contract D17Locker {
         bool late = ID17Launch(launch).liquidityPoolCreated();
         uint256 wethForVault;
         uint256 treasuryWeth;
+        uint256 protocolFeeWeth;
         uint256 lateLpTokens;
         if (late) {
-            (claimedSaleTokens, wethForVault, treasuryWeth, lateLpTokens) = ID17Launch(launch).claimLateSettlement();
+            (claimedSaleTokens, wethForVault, treasuryWeth, protocolFeeWeth, lateLpTokens) =
+                ID17Launch(launch).claimLateSettlement();
         } else {
-            (claimedSaleTokens, wethForVault, treasuryWeth) = ID17Launch(launch).claimVaultSettlement();
+            (claimedSaleTokens, wethForVault, treasuryWeth, protocolFeeWeth) = ID17Launch(launch).claimVaultSettlement();
         }
         require(claimedSaleTokens == previewTotal, "FINAL_CLAIM_MISMATCH");
-        require(position.wethCommitted >= wethForVault + treasuryWeth, "LOCKED_WETH_BALANCE");
+        uint256 spent = wethForVault + treasuryWeth + protocolFeeWeth;
+        require(position.wethCommitted >= spent, "LOCKED_WETH_BALANCE");
 
         position.liquiditySettled = true;
         position.finalSaleTokensClaimed = true;
@@ -262,12 +268,14 @@ contract D17Locker {
         position.wethSentToVault = wethForVault;
         position.wethForLp = wethForVault;
         position.treasuryWeth = treasuryWeth;
+        position.protocolFeeWeth = protocolFeeWeth;
         position.token = ID17Launch(launch).token();
-        position.wethCommitted -= wethForVault + treasuryWeth;
+        position.wethCommitted -= spent;
 
         if (wethForVault > 0) weth.safeTransfer(position.liquidityVault, wethForVault);
         if (treasuryWeth > 0) weth.safeTransfer(ID17Launch(launch).treasury(), treasuryWeth);
-        accountedWeth -= wethForVault + treasuryWeth;
+        if (protocolFeeWeth > 0) weth.safeTransfer(ID17Launch(launch).protocolFeeRecipient(), protocolFeeWeth);
+        accountedWeth -= spent;
 
         if (late) {
             ID17VaultLateLiquidity(position.liquidityVault).mintLateLiquidity(lateLpTokens, wethForVault);
@@ -285,6 +293,7 @@ contract D17Locker {
             claimedSaleTokens,
             wethForVault,
             treasuryWeth,
+            protocolFeeWeth,
             grossCommittedWeth,
             position.residualWeth
         );

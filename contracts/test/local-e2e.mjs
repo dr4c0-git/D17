@@ -1,35 +1,36 @@
-import { spawn, execFileSync } from "node:child_process";
 import { readFileSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createRequire } from "node:module";
 import { ethers } from "ethers";
+import {
+  artifact,
+  assertOk,
+  compile,
+  deploy,
+  eth,
+  expectRevert,
+  failures,
+  now,
+  parseLaunchCreated,
+  record,
+  rows,
+  setTime,
+  startNode,
+  wait,
+  waitForRpc
+} from "./helpers.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
-const require = createRequire(import.meta.url);
-const hardhatCli = path.join(path.dirname(require.resolve("hardhat/package.json")), "dist/src/cli.js");
 const runDir = path.join(root, "runs", "local");
 const fixture = JSON.parse(readFileSync(path.join(root, "test", "fixtures", "local-launch.json"), "utf8"));
 const ROUND_COUNT = 5;
 const REFUND_STAGE_COUNT = 4;
 const LOGO_PREFIX = "data:image/svg+xml;base64,";
-
-const rows = {
-  action: [],
-  assertion: [],
-  locker: [],
-  walletPrice: []
-};
-const failures = [];
-
-function artifact(file, name) {
-  return JSON.parse(readFileSync(path.join(root, "artifacts", "contracts", file, `${name}.json`), "utf8"));
-}
-
-function eth(value) {
-  return ethers.parseEther(String(value));
-}
+const BPS = 10000n;
+const PROTOCOL_FEE_BPS = 100;
+const EARLY_REFUND_PENALTY_BPS = 100n;
+const BURN_ADDRESS = "0x000000000000000000000000000000000000dEaD";
 
 function metadataHash(config) {
   return ethers.keccak256(
@@ -46,27 +47,6 @@ function metadataHash(config) {
   );
 }
 
-function record(table, row) {
-  rows[table].push(row);
-}
-
-function assertOk(name, condition, detail = "") {
-  record("assertion", { name, passed: condition ? 1 : 0, detail });
-  if (!condition) failures.push(`${name}${detail ? `: ${detail}` : ""}`);
-}
-
-function errorMessage(error) {
-  return String(error.shortMessage || error.message || error);
-}
-
-function revertReason(error) {
-  if (typeof error.reason === "string") return error.reason;
-  if (Array.isArray(error.revert?.args) && typeof error.revert.args[0] === "string") return error.revert.args[0];
-  const message = errorMessage(error);
-  const match = /execution reverted: "([^"]+)"/.exec(message);
-  return match ? match[1] : message;
-}
-
 function parseContractUri(uri) {
   const prefixes = ["data:application/json;charset=utf-8,", "data:application/json;utf8,"];
   const prefix = prefixes.find((candidate) => uri.startsWith(candidate));
@@ -77,45 +57,6 @@ function parseContractUri(uri) {
 function logoUriOfByteLength(totalBytes) {
   if (totalBytes < LOGO_PREFIX.length) throw new Error("logo byte length below prefix length");
   return `${LOGO_PREFIX}${"A".repeat(totalBytes - LOGO_PREFIX.length)}`;
-}
-
-async function expectRevert(name, promiseFactory, expected) {
-  try {
-    const result = await promiseFactory();
-    if (result?.wait) await result.wait();
-  } catch (error) {
-    const message = errorMessage(error);
-    const reason = revertReason(error);
-    assertOk(name, expected ? reason === expected : true, message.slice(0, 240));
-    return;
-  }
-  assertOk(name, false, "transaction did not revert");
-}
-
-async function wait(tx, label = "transaction") {
-  const receipt = await tx.wait();
-  if (receipt.status !== 1) throw new Error(`${label} reverted`);
-  return receipt;
-}
-
-function parseLaunchCreated(factory, receipt) {
-  for (const log of receipt.logs) {
-    try {
-      const parsed = factory.interface.parseLog(log);
-      if (parsed?.name === "LaunchCreated") {
-        return {
-          creator: parsed.args.creator,
-          launch: parsed.args.launch,
-          token: parsed.args.token,
-          liquidityVault: parsed.args.liquidityVault,
-          rulesHash: parsed.args.rulesHash
-        };
-      }
-    } catch {
-      continue;
-    }
-  }
-  throw new Error("LaunchCreated event not found");
 }
 
 function parseManualDistributionConfigured(factory, receipt) {
@@ -157,56 +98,6 @@ function parseLaunchMetadataPublished(factory, receipt) {
   throw new Error("LaunchMetadataPublished event not found");
 }
 
-async function deploy(file, name, signer, args = []) {
-  const art = artifact(file, name);
-  const factory = new ethers.ContractFactory(art.abi, art.bytecode, signer);
-  const contract = await factory.deploy(...args);
-  await contract.waitForDeployment();
-  return contract;
-}
-
-async function now(provider) {
-  const block = await provider.send("eth_getBlockByNumber", ["latest", false]);
-  return Number(BigInt(block.timestamp));
-}
-
-async function setTime(provider, timestamp) {
-  const latest = await now(provider);
-  await provider.send("evm_setNextBlockTimestamp", [Math.max(Number(timestamp), latest + 1)]);
-  await provider.send("evm_mine", []);
-}
-
-function compile() {
-  execFileSync(process.execPath, [hardhatCli, "compile"], {
-    cwd: root,
-    stdio: "inherit"
-  });
-}
-
-function startNode(port) {
-  const child = spawn(process.execPath, [hardhatCli, "--network", "hardhat", "node", "--hostname", "127.0.0.1", "--port", String(port)], {
-    cwd: root,
-    stdio: ["ignore", "pipe", "pipe"]
-  });
-  child.stdout.on("data", () => {});
-  child.stderr.on("data", () => {});
-  return child;
-}
-
-async function waitForRpc(port, child) {
-  const provider = new ethers.JsonRpcProvider(`http://127.0.0.1:${port}`);
-  for (let attempt = 0; attempt < 120; attempt++) {
-    if (child.exitCode !== null) break;
-    try {
-      await provider.getBlockNumber();
-      return provider;
-    } catch {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-    }
-  }
-  throw new Error("local Hardhat RPC did not start");
-}
-
 function launchConfig(startTime, treasuryAddress) {
   return {
     tokenName: fixture.tokenName,
@@ -231,7 +122,7 @@ function launchConfig(startTime, treasuryAddress) {
     roundSharesBps: fixture.roundSharesBps,
     treasuryBps: fixture.treasuryBps,
     refundPenaltyBps: fixture.refundPenaltyBps,
-    burnUnsoldSaleTokens: Boolean(fixture.burnUnsoldSaleTokens)
+    maxProtocolFeeBps: PROTOCOL_FEE_BPS
   };
 }
 
@@ -262,10 +153,17 @@ async function main() {
     const weth = await deploy("test/TestWETH.sol", "TestWETH", deployer);
     const v2Factory = await deploy("test/TestV2Factory.sol", "TestV2Factory", deployer);
     const router = await deploy("test/TestV2Router.sol", "TestV2Router", deployer, [await v2Factory.getAddress()]);
+    const protocolFeeRecipientAddress = ethers.getAddress("0x00000000000000000000000000000000000fee01");
+    const feeConfig = await deploy("D17FeeConfig.sol", "D17FeeConfig", deployer, [
+      await deployer.getAddress(),
+      protocolFeeRecipientAddress,
+      PROTOCOL_FEE_BPS
+    ]);
     const d17Factory = await deploy("D17Factory.sol", "D17Factory", deployer, [
       await deployer.getAddress(),
       await weth.getAddress(),
-      await router.getAddress()
+      await router.getAddress(),
+      await feeConfig.getAddress()
     ]);
     const tokenFactory = await deploy("D17TokenFactory.sol", "D17TokenFactory", deployer, [
       await deployer.getAddress()
@@ -321,6 +219,20 @@ async function main() {
       async () => d17Factory.registerLockerFor.staticCall(await owners[0].getAddress(), await owners[0].getAddress()),
       "NOT_LOCKER_FACTORY"
     );
+    await expectRevert(
+      "no launch while the factory owner key exists",
+      async () => d17Factory.createLaunch.staticCall(launchConfig((await now(provider)) + 60, await treasury.getAddress())),
+      "FACTORY_NOT_RENOUNCED"
+    );
+    await wait(await d17Factory.renounceOwnership(), "renounce D17Factory");
+    await expectRevert(
+      "no launch while creation-path factory owner keys exist",
+      async () => d17Factory.createLaunch.staticCall(launchConfig((await now(provider)) + 60, await treasury.getAddress())),
+      "FACTORIES_NOT_RENOUNCED"
+    );
+    await wait(await tokenFactory.renounceOwnership(), "renounce token factory");
+    await wait(await vaultFactory.renounceOwnership(), "renounce vault factory");
+    await wait(await launchDeployer.renounceOwnership(), "renounce launch deployer");
 
     const weakConfig = launchConfig((await now(provider)) + 60, await treasury.getAddress());
     weakConfig.minPhase1Weth = eth("10");
@@ -342,6 +254,20 @@ async function main() {
       "COMMIT_TOO_SMALL"
     );
     await wait(await weakLocker.commitToRound(await weakLaunch.getAddress(), 0, weakRulesHash, { value: eth("0.5") }), "weak-anchor phase one commit");
+    // Anchor-griefing cost: a phase-one commitment refunded in the phase-one window pays the
+    // fixed early penalty into the vault.
+    const griefOwner = owners[16];
+    const griefLockerAddress = await lockerFactory.connect(griefOwner).createLockerFor.staticCall(await griefOwner.getAddress());
+    await wait(await lockerFactory.connect(griefOwner).createLockerFor(await griefOwner.getAddress()), "create grief locker");
+    const griefLocker = new ethers.Contract(griefLockerAddress, artifact("D17Locker.sol", "D17Locker").abi, griefOwner);
+    await wait(await griefLocker.commitToRound(await weakLaunch.getAddress(), 0, weakRulesHash, { value: eth("20") }), "grief commit");
+    assertOk("large phase-one commit makes the anchor look ready", await weakLaunch.anchorReady());
+    await setTime(provider, Number(await weakLaunch.roundEnd(0)) + Number(await weakLaunch.refundSeconds()) - 5);
+    await wait(await griefLocker.refundCurrentRound(await weakLaunch.getAddress()), "grief refund at the last second");
+    const weakVaultAddress = await weakLaunch.liquidityVault();
+    const griefPenalty = eth("20") * EARLY_REFUND_PENALTY_BPS / BPS;
+    assertOk("last-second phase-one refund pays early penalty into the vault", await weth.balanceOf(weakVaultAddress) === griefPenalty);
+    assertOk("griefer recovers gross minus penalty", (await griefLocker.positions(await weakLaunch.getAddress())).residualWeth === eth("20") - griefPenalty);
     await setTime(provider, Number(await weakLaunch.roundEnd(0)) + Number(await weakLaunch.refundSeconds()) + 10);
     const failedPhase = await weakLaunch.launchPhase();
     assertOk("weak phase one moves launch to failed phase", Number(failedPhase[0]) === 7);
@@ -359,6 +285,11 @@ async function main() {
     const weakPosition = await weakLocker.positions(await weakLaunch.getAddress());
     assertOk("failed launch refund unlocks committed WETH", weakPosition.residualWeth === eth("0.5"));
     assertOk("failed launch WETH never left the locker", await weth.balanceOf(weakLockerAddress) === eth("0.5"));
+    const weakVault = new ethers.Contract(weakVaultAddress, artifact("D17LiquidityVault.sol", "D17LiquidityVault").abi, deployer);
+    const deadBeforeFailedBurn = await weth.balanceOf(BURN_ADDRESS);
+    await wait(await weakVault.connect(owners[5]).burnFailedLaunchPenalties(), "burn failed-launch penalties");
+    assertOk("failed-launch penalties burned, not paid to anyone", await weth.balanceOf(BURN_ADDRESS) - deadBeforeFailedBurn === griefPenalty);
+    assertOk("failed-launch vault holds no WETH", await weth.balanceOf(weakVaultAddress) === 0n);
 
     const config = launchConfig((await now(provider)) + 60, await treasury.getAddress());
     const invalidUrlConfig = { ...config, links: [{ linkType: "website", url: "javascript:alert(1)" }] };
@@ -555,7 +486,13 @@ async function main() {
     assertOk("25/10/10/55 split accepted", manualTokens > 0n && eth(fixture.saleTokens) + eth(fixture.lpTokens) + manualTokens + eth(fixture.deadTokens) === eth(fixture.tokenSupply));
     assertOk("manual allocation getter exact", await launch.manualDistributionTokens() === manualTokens);
     assertOk("manual recipient is launch creator", await launch.manualDistributionRecipient() === deployerAddress);
-    assertOk("creator wallet received manual tokens", await token.balanceOf(deployerAddress) === manualTokens);
+    assertOk("creator allocation minted into the vault for vesting", await token.balanceOf(await vault.getAddress()) === manualTokens);
+    assertOk("creator wallet holds no tokens before vesting", await token.balanceOf(deployerAddress) === 0n);
+    assertOk("vault reports full creator allocation locked", await vault.lockedCreatorTokens() === manualTokens);
+    assertOk("nothing vested before pool creation", await vault.vestedCreatorTokens() === 0n);
+    await expectRevert("creator tokens cannot be released before pool", async () => vault.releaseCreatorTokens.staticCall(), "NOTHING_VESTED");
+    assertOk("launch snapshots protocol fee rate", Number(await launch.protocolFeeBps()) === PROTOCOL_FEE_BPS);
+    assertOk("launch snapshots protocol fee recipient", await launch.protocolFeeRecipient() === protocolFeeRecipientAddress);
     assertOk("factory holds no manual tokens", await token.balanceOf(await d17Factory.getAddress()) === 0n);
     assertOk("launch factory holds no manual tokens", await token.balanceOf(await launchFactory.getAddress()) === 0n);
     assertOk("treasury holds no manual tokens", await token.balanceOf(await treasury.getAddress()) === 0n);
@@ -566,7 +503,7 @@ async function main() {
     assertOk("manual event recipient is creator", manualEvent.recipient === deployerAddress);
     assertOk("manual event amount exact", manualEvent.amount === manualTokens);
     await expectRevert(
-      "manual tokens transfer-locked before trading opens",
+      "creator wallet has nothing to transfer before trading opens",
       async () => token.connect(deployer).transfer.staticCall(await owners[1].getAddress(), 1n),
       "TRADING_CLOSED"
     );
@@ -712,24 +649,24 @@ async function main() {
           const locker = lockers[index];
           const lockerAddress = await locker.getAddress();
           const treasuryBefore = await weth.balanceOf(await treasury.getAddress());
+          const vaultWethBefore = await weth.balanceOf(await vault.getAddress());
           const lockerWethBefore = await weth.balanceOf(lockerAddress);
+          const positionBefore = await locker.positions(await launch.getAddress());
           await wait(await locker.refundCurrentRound(await launch.getAddress()), "refund current round");
-          const treasuryDelta = await weth.balanceOf(await treasury.getAddress()) - treasuryBefore;
+          const vaultDelta = await weth.balanceOf(await vault.getAddress()) - vaultWethBefore;
           const lockerDelta = lockerWethBefore - await weth.balanceOf(lockerAddress);
           const position = await locker.positions(await launch.getAddress());
-          assertOk(`locker ${index} only penalty leaves locker r${round + 1}`, lockerDelta === treasuryDelta);
-          // Refund schedule: display rounds 1-2 (contract rounds 0-1) are free,
-          // display rounds 3-4 (contract rounds 2-3) charge the global refundPenaltyBps.
-          if (round < 2) {
-            assertOk(`locker ${index} display round ${round + 1} refund is penalty-free`, treasuryDelta === 0n);
-          } else {
-            const grossRefunded = position.wethRefunded + position.penaltyPaid;
-            assertOk(`locker ${index} display round ${round + 1} penalty charged`, treasuryDelta > 0n);
-            assertOk(
-              `locker ${index} display round ${round + 1} penalty is exact refundPenaltyBps`,
-              treasuryDelta === grossRefunded * BigInt(fixture.refundPenaltyBps) / 10000n
-            );
-          }
+          assertOk(`locker ${index} only penalty leaves locker r${round + 1}`, lockerDelta === vaultDelta);
+          assertOk(`locker ${index} treasury receives no refund penalty r${round + 1}`, await weth.balanceOf(await treasury.getAddress()) === treasuryBefore);
+          // Refund schedule: contract rounds 0-1 pay the fixed early penalty, rounds 2-3 the
+          // launch's refundPenaltyBps. Every penalty goes to the liquidity vault.
+          const grossRefunded = (position.wethRefunded + position.penaltyPaid) - (positionBefore.wethRefunded + positionBefore.penaltyPaid);
+          const expectedPenaltyBps = round < 2 ? EARLY_REFUND_PENALTY_BPS : BigInt(fixture.refundPenaltyBps);
+          assertOk(`locker ${index} display round ${round + 1} penalty charged`, vaultDelta > 0n);
+          assertOk(
+            `locker ${index} display round ${round + 1} penalty is exact`,
+            vaultDelta === grossRefunded * expectedPenaltyBps / BPS
+          );
           assertOk(`locker ${index} refund became withdrawable r${round + 1}`, position.residualWeth >= position.wethRefunded);
           record("action", { locker: index, action: "refund", round: round + 1 });
         }
@@ -784,15 +721,13 @@ async function main() {
     const treasuryTokenAfterFinalize = await token.balanceOf(await treasury.getAddress());
     const totalSupplyAfterFinalize = await token.totalSupply();
     const unsoldSettled = await launch.unsoldSaleTokensSettled();
-    if (fixture.burnUnsoldSaleTokens && unsoldSettled > 0n) {
-      assertOk("unsold sale tokens burned", await launch.unsoldSaleTokensBurned());
-      assertOk("unsold burn reduced supply", totalSupplyBeforeFinalize - totalSupplyAfterFinalize === unsoldSettled);
-      assertOk("treasury did not receive burned sale tokens", treasuryTokenAfterFinalize === treasuryTokenBeforeFinalize);
-    } else if (unsoldSettled > 0n) {
-      assertOk("unsold sale tokens settled to treasury", treasuryTokenAfterFinalize - treasuryTokenBeforeFinalize === unsoldSettled);
-    } else {
-      assertOk("no unsold sale token settlement when fully sold", totalSupplyBeforeFinalize === totalSupplyAfterFinalize);
-    }
+    const unusedLpBurned = await launch.unusedLpTokensBurned();
+    const effectiveLp = await launch.effectiveLpTokens();
+    assertOk("unsold and unused LP tokens burned at finalization", totalSupplyBeforeFinalize - totalSupplyAfterFinalize === unsoldSettled + unusedLpBurned);
+    assertOk("treasury never receives sale tokens", treasuryTokenAfterFinalize === treasuryTokenBeforeFinalize);
+    assertOk("effective LP scales with sold share", effectiveLp === eth(fixture.lpTokens) * (eth(fixture.saleTokens) - unsoldSettled) / eth(fixture.saleTokens));
+    assertOk("effective plus burned LP equals LP allocation", effectiveLp + unusedLpBurned === eth(fixture.lpTokens));
+    assertOk("final round never sells below anchor", await launch.roundDiscoveredPriceWad(4) >= await launch.anchorPriceWad());
 
     const excessLocker = lockers[0];
     const excessOwner = owners[0];
@@ -844,6 +779,8 @@ async function main() {
       "GRACE_OPEN"
     );
 
+    const feeRecipientBeforeSettlement = await weth.balanceOf(protocolFeeRecipientAddress);
+    assertOk("refunds paid no protocol fee", feeRecipientBeforeSettlement === 0n);
     for (const index of ownerSettledLockers) {
       const locker = lockers[index];
       const preview = await launch.previewVaultSettlement(await locker.getAddress());
@@ -852,9 +789,11 @@ async function main() {
       await wait(await locker.settleAndClaim(await launch.getAddress(), rulesHash), "owner settles and claims");
       const position = await locker.positions(await launch.getAddress());
       assertOk(`locker ${index} sale tokens matched vault preview`, salePreview === preview[0]);
-      assertOk(`locker ${index} gross WETH matched preview`, position.wethSentToVault + position.treasuryWeth === preview[1]);
+      assertOk(`locker ${index} gross WETH matched preview`, position.wethSentToVault + position.treasuryWeth + position.protocolFeeWeth === preview[1]);
       assertOk(`locker ${index} WETH sent to vault matched preview`, position.wethSentToVault === preview[2]);
       assertOk(`locker ${index} treasury WETH matched preview`, position.treasuryWeth === preview[3]);
+      assertOk(`locker ${index} protocol fee matched preview`, position.protocolFeeWeth === preview[4]);
+      assertOk(`locker ${index} protocol fee is exact rate`, preview[4] === preview[1] * BigInt(PROTOCOL_FEE_BPS) / BPS);
       assertOk(`locker ${index} committed WETH emptied`, await locker.lockedWeth(await launch.getAddress()) === 0n);
       assertOk(`locker ${index} final sale tokens matched preview`, position.claimedSaleTokens === salePreview);
       assertOk(`locker ${index} sale tokens remain withdrawable`, position.withdrawableTokens === salePreview);
@@ -869,7 +808,11 @@ async function main() {
 
     assertOk("launch still holds zero WETH after settlements", await weth.balanceOf(await launch.getAddress()) === 0n);
     assertOk("treasury received per-locker settlement WETH", await weth.balanceOf(await treasury.getAddress()) > treasuryWethBeforeSettlement);
-    assertOk("vault received settled WETH", await weth.balanceOf(await vault.getAddress()) === await launch.settledLiquidityWeth());
+    assertOk(
+      "vault holds settled WETH plus refund penalties",
+      await weth.balanceOf(await vault.getAddress()) === await launch.settledLiquidityWeth() + await launch.retainedPenaltyWeth()
+    );
+    assertOk("protocol fee recipient received settlement fees", await weth.balanceOf(protocolFeeRecipientAddress) === await launch.protocolFeeWethPaid());
     assertOk("official pool not live before vault creation", !(await launch.liquidityPoolCreated()));
     assertOk(
       "locker exposes no token burn path",
@@ -909,8 +852,10 @@ async function main() {
     const settledLiquidityAtPool = await launch.settledLiquidityWeth();
     const settledCommittedAtPool = await launch.settledCommittedWeth();
     assertOk("settled below final committed before pool creation", settledCommittedAtPool < finalCommitted);
-    const lpTokensTotal = eth(fixture.lpTokens);
-    const expectedInitialLpTokens = lpTokensTotal * settledLiquidityAtPool / totalLiquidity;
+    const lpTokensTotal = effectiveLp;
+    const penaltyWeth = await launch.retainedPenaltyWeth();
+    const poolWethAtCreation = settledLiquidityAtPool + penaltyWeth;
+    const expectedInitialLpTokens = lpTokensTotal * poolWethAtCreation / totalLiquidity;
     const launchTokenBeforePool = await token.balanceOf(await launch.getAddress());
 
     await wait(await vault.createOfficialPool(1n, Number((await provider.getBlock("latest")).timestamp) + 3600), "vault creates official pool with unsettled lockers");
@@ -926,11 +871,11 @@ async function main() {
     assertOk("launch phase reports trading open", Number(tradingPhase[0]) === 6);
 
     assertOk("initial pool uses proportional lp token share", await launch.officialTokenUsedForLp() === expectedInitialLpTokens);
-    assertOk("initial pool uses settled WETH only", await launch.officialWethUsedForLp() === settledLiquidityAtPool);
+    assertOk("initial pool uses settled WETH plus penalties", await launch.officialWethUsedForLp() === poolWethAtCreation);
     assertOk("pool snapshot liquidity equals settled WETH at creation", await launch.poolSettledLiquidityWeth() === settledLiquidityAtPool);
     assertOk("pool snapshot committed equals settled committed at creation", await launch.poolSettledCommittedWeth() === settledCommittedAtPool);
-    assertOk("vault pool WETH matches snapshot", await vault.wethUsedForPool() === settledLiquidityAtPool);
-    const initialRatioError = lpTokensTotal * settledLiquidityAtPool - expectedInitialLpTokens * totalLiquidity;
+    assertOk("vault pool WETH matches snapshot", await vault.wethUsedForPool() === poolWethAtCreation);
+    const initialRatioError = lpTokensTotal * poolWethAtCreation - expectedInitialLpTokens * totalLiquidity;
     assertOk("initial pool opens at canonical launch ratio", initialRatioError >= 0n && initialRatioError < totalLiquidity);
     assertOk(
       "reserved lp tokens held back in launch",
@@ -953,15 +898,20 @@ async function main() {
       const locker = lockers[index];
       const lockerAddress = await locker.getAddress();
       const preview = await launch.previewVaultSettlement(lockerAddress);
-      const expectedLateLp = lpTokensTotal * preview[2] / totalLiquidity;
+      const remainingReserve = lpTokensTotal - await launch.vaultLiquidityTokensClaimed() - await launch.lateLpTokensReleased();
+      let expectedLateLp = lpTokensTotal * preview[2] / totalLiquidity;
+      if (expectedLateLp > remainingReserve) expectedLateLp = remainingReserve;
       const treasuryBefore = await weth.balanceOf(await treasury.getAddress());
+      const feeBefore = await weth.balanceOf(protocolFeeRecipientAddress);
       const lockerWethBefore = await weth.balanceOf(lockerAddress);
       const tokenBefore = await token.balanceOf(lockerAddress);
       const launchTokenBefore = await token.balanceOf(await launch.getAddress());
       const vaultLpBefore = await pair.balanceOf(await vault.getAddress());
       const reservesBefore = await pair.getReserves();
       const releasedBefore = await launch.lateLpTokensReleased();
-      const vaultLateLpBefore = await vault.lateLpMinted();
+      const tokensBurnedBefore = await vault.lateTokensBurned();
+      const wethBurnedBefore = await vault.lateWethBurned();
+      const deadWethBefore = await weth.balanceOf(BURN_ADDRESS);
       if (viaPublic) {
         await wait(await locker.connect(deployer).settleAfterGrace(await launch.getAddress()), `public late settlement locker ${index} ${label}`);
       } else {
@@ -969,30 +919,42 @@ async function main() {
       }
       const position = await locker.positions(await launch.getAddress());
       const reservesAfter = await pair.getReserves();
-      const tokenReserveDelta = tokenIsToken0 ? reservesAfter[0] - reservesBefore[0] : reservesAfter[1] - reservesBefore[1];
-      const wethReserveDelta = tokenIsToken0 ? reservesAfter[1] - reservesBefore[1] : reservesAfter[0] - reservesBefore[0];
+      const tokenReserveBefore = tokenIsToken0 ? reservesBefore[0] : reservesBefore[1];
+      const wethReserveBefore = tokenIsToken0 ? reservesBefore[1] : reservesBefore[0];
+      const tokenReserveDelta = (tokenIsToken0 ? reservesAfter[0] : reservesAfter[1]) - tokenReserveBefore;
+      const wethReserveDelta = (tokenIsToken0 ? reservesAfter[1] : reservesAfter[0]) - wethReserveBefore;
+      const tokensBurned = await vault.lateTokensBurned() - tokensBurnedBefore;
+      const wethBurned = await vault.lateWethBurned() - wethBurnedBefore;
       assertOk(`late locker ${index} sale tokens match preview ${label}`, position.claimedSaleTokens === preview[0]);
       assertOk(`late locker ${index} received sale tokens ${label}`, await token.balanceOf(lockerAddress) - tokenBefore === preview[0]);
       assertOk(`late locker ${index} tokens withdrawable ${label}`, position.withdrawableTokens === preview[0]);
-      assertOk(`late locker ${index} lp-share WETH entered official pool ${label}`, wethReserveDelta === preview[2]);
-      assertOk(`late locker ${index} reserved lp tokens entered official pool ${label}`, tokenReserveDelta === expectedLateLp);
+      assertOk(`late locker ${index} lp-share WETH fully pooled or burned ${label}`, wethReserveDelta + wethBurned === preview[2]);
+      assertOk(`late locker ${index} reserved lp tokens fully pooled or burned ${label}`, tokenReserveDelta + tokensBurned === expectedLateLp);
+      assertOk(`late locker ${index} burned WETH reached burn address ${label}`, await weth.balanceOf(BURN_ADDRESS) - deadWethBefore === wethBurned);
+      assertOk(`late locker ${index} burns at most one side ${label}`, tokensBurned === 0n || wethBurned === 0n);
+      // Balanced at the live reserve ratio: deposit ratio equals reserve ratio within 1 wei rounding.
+      const crossDiff = tokenReserveDelta * wethReserveBefore - wethReserveDelta * tokenReserveBefore;
+      const crossAbs = crossDiff < 0n ? -crossDiff : crossDiff;
+      assertOk(`late locker ${index} deposit matches pair ratio ${label}`, crossAbs <= (tokenReserveBefore > wethReserveBefore ? tokenReserveBefore : wethReserveBefore));
       assertOk(
         `late locker ${index} launch released reserved lp plus sale tokens ${label}`,
         launchTokenBefore - await token.balanceOf(await launch.getAddress()) === expectedLateLp + preview[0]
       );
       assertOk(`late locker ${index} treasury gets only the on-time fee ${label}`, await weth.balanceOf(await treasury.getAddress()) - treasuryBefore === preview[3]);
+      assertOk(`late locker ${index} protocol gets only the on-time fee ${label}`, await weth.balanceOf(protocolFeeRecipientAddress) - feeBefore === preview[4]);
       assertOk(`late locker ${index} paid exactly final commitment ${label}`, lockerWethBefore - await weth.balanceOf(lockerAddress) === preview[1]);
-      assertOk(`late locker ${index} fee plus pool share equals gross ${label}`, preview[2] + preview[3] === preview[1]);
+      assertOk(`late locker ${index} fees plus pool share equal gross ${label}`, preview[2] + preview[3] + preview[4] === preview[1]);
       assertOk(`late locker ${index} committed WETH emptied ${label}`, await locker.lockedWeth(await launch.getAddress()) === 0n);
       assertOk(`late locker ${index} vault received locked late LP ${label}`, await pair.balanceOf(await vault.getAddress()) - vaultLpBefore > 0n);
-      assertOk(`late locker ${index} vault late counters advance ${label}`, await vault.lateLpMinted() > vaultLateLpBefore);
       assertOk(`late locker ${index} launch release counter advances ${label}`, await launch.lateLpTokensReleased() - releasedBefore === expectedLateLp);
       assertOk(`late locker ${index} vault holds no loose WETH ${label}`, await weth.balanceOf(await vault.getAddress()) === 0n);
       record("action", {
         locker: index,
         action: viaPublic ? "late-settle-topup-public" : "late-settle-topup-owner",
-        wethToPool: preview[2].toString(),
+        wethToPool: wethReserveDelta.toString(),
         lateLpTokens: expectedLateLp.toString(),
+        tokensBurned: tokensBurned.toString(),
+        wethBurned: wethBurned.toString(),
         saleTokens: preview[0].toString()
       });
     }
@@ -1000,8 +962,8 @@ async function main() {
     // First late top-up while the pair still sits at the launch ratio.
     await settleLate(lateOwnerSettleIndex, false, "at launch ratio");
 
-    // Move the market price, then prove late top-ups still work at the launch ratio: all
-    // deposited value enters the pair (reserve deltas exact) and LP is minted to the vault.
+    // Move the market price, then prove late top-ups pair at the live ratio: nothing is
+    // donated one-sided (sandwich-proof) and the unpairable remainder is burned.
     const reservesBeforePriceMove = await pair.getReserves();
     await wait(await router.connect(trader).swapExactTokensForTokens(
       await weth.getAddress(),
@@ -1050,9 +1012,9 @@ async function main() {
       await launch.vaultLiquidityTokensClaimed() + await launch.lateLpTokensReleased() <= lpTokensTotal
     );
     assertOk(
-      "vault late totals equal per-locker sums",
-      await vault.lateWethUsedForLp() === await launch.lateSettledLiquidityWeth()
-        && await vault.lateTokenUsedForLp() === await launch.lateLpTokensReleased()
+      "vault late totals plus burns equal per-locker sums",
+      await vault.lateWethUsedForLp() + await vault.lateWethBurned() === await launch.lateSettledLiquidityWeth()
+        && await vault.lateTokenUsedForLp() + await vault.lateTokensBurned() === await launch.lateLpTokensReleased()
     );
     assertOk("grace boundary unchanged after pool creation and late top-ups", await launch.poolCreationOpensAt() === graceOpensAt);
 
@@ -1083,6 +1045,26 @@ async function main() {
         === eth(fixture.saleTokens) - unsoldSettled - totalClaimedSaleTokens + reservedLpDust
     );
     assertOk("reserved lp dust is negligible", reservedLpDust < eth("1"));
+    const residual = await token.balanceOf(await launch.getAddress());
+    const supplyBeforeResidualBurn = await token.totalSupply();
+    await wait(await launch.connect(owners[3]).burnResidualTokens(), "anyone burns residual launch dust");
+    assertOk("residual launch dust burned", await token.balanceOf(await launch.getAddress()) === 0n);
+    assertOk("residual burn reduced supply", supplyBeforeResidualBurn - await token.totalSupply() === residual);
+
+    // Creator allocation vests linearly from pool creation.
+    const poolCreatedAtTs = await vault.poolCreatedAt();
+    const vestingSeconds = await vault.CREATOR_VESTING_SECONDS();
+    await setTime(provider, Number(poolCreatedAtTs + vestingSeconds / 2n));
+    await wait(await vault.connect(owners[4]).releaseCreatorTokens(), "release half-vested creator tokens");
+    const releasedHalf = await token.balanceOf(deployerAddress);
+    const halfNow = BigInt(await now(provider)) - poolCreatedAtTs;
+    assertOk("creator receives linear vested share", releasedHalf === manualTokens * halfNow / vestingSeconds);
+    assertOk("creator half vested is about half", releasedHalf > manualTokens * 49n / 100n && releasedHalf < manualTokens * 51n / 100n);
+    await setTime(provider, Number(poolCreatedAtTs + vestingSeconds) + 1);
+    await wait(await vault.releaseCreatorTokens(), "release fully vested creator tokens");
+    assertOk("creator receives full allocation after vesting", await token.balanceOf(deployerAddress) === manualTokens);
+    assertOk("vault holds no creator tokens after vesting", await vault.lockedCreatorTokens() === 0n);
+    await expectRevert("nothing left to vest", async () => vault.releaseCreatorTokens.staticCall(), "NOTHING_VESTED");
 
     await wait(await token.connect(deployer).transfer(await owners[1].getAddress(), eth("1")), "manual tokens transferable after trading opens");
     assertOk("manual tokens moved after trading opened", await token.balanceOf(await owners[1].getAddress()) >= eth("1"));
@@ -1144,10 +1126,13 @@ async function main() {
     );
     const settledLwB = await launchB.settledLiquidityWeth();
     const totalLwB = await launchB.totalLiquidityWeth();
-    const expectedLpB = eth(fixture.lpTokens) * settledLwB / totalLwB;
+    const effectiveLpB = await launchB.effectiveLpTokens();
+    const expectedLpB = effectiveLpB * settledLwB / totalLwB;
     assertOk("launch B initial pool takes near-full lp allocation", await launchB.officialTokenUsedForLp() === expectedLpB);
-    assertOk("launch B near-full share within rounding dust", eth(fixture.lpTokens) - expectedLpB < eth("1"));
+    assertOk("launch B near-full share within rounding dust", effectiveLpB - expectedLpB < eth("1"));
     assertOk("launch B pool WETH equals settled snapshot", await launchB.officialWethUsedForLp() === settledLwB && await launchB.poolSettledLiquidityWeth() === settledLwB);
+    assertOk("launch B underfilled final round burned unsold sale and LP tokens", await launchB.unsoldSaleTokensSettled() > 0n && effectiveLpB < eth(fixture.lpTokens));
+    assertOk("launch B final round priced at or above anchor", await launchB.roundDiscoveredPriceWad(4) >= await launchB.anchorPriceWad());
     assertOk("launch B trading open", await launchB.tradingOpen());
     assertOk("launch B released no late lp", await launchB.lateLpTokensReleased() === 0n && await launchB.lateSettledCommittedWeth() === 0n);
 
