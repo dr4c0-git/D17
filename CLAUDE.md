@@ -35,6 +35,10 @@ La CI (`.github/workflows/ci.yml`) exige en plus que `contracts/abi`,
 commités (`git diff --exit-code`). Toute modif de contrat ⇒ régénérer ABI,
 release, checksums (`npm run release:checksums`), `contracts/docs/contract-explorer.html`.
 
+`RELEASE_SHA256SUMS.txt` couvre **chaque fichier du dépôt** (y compris ce
+CLAUDE.md) : après tout ajout/modification de fichier, lancer
+`npm run release:checksums` puis `npm run check:release`, sinon la CI casse.
+
 Compilateur : solc 0.8.24, viaIR, optimizer runs=1, evm shanghai, bytecodeHash none.
 
 ### Sandbox cloud : solc bloqué
