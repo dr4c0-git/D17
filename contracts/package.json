@@ -10,7 +10,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "clean": "hardhat clean",
-    "test": "node test/local-e2e.mjs && node test/hardening-e2e.mjs",
+    "test": "node test/local-e2e.mjs && node test/hardening-e2e.mjs && node test/mainnet-floors-e2e.mjs",
     "test:fuzz": "node test/fuzz-invariants.mjs",
     "build:abi": "node scripts/export-abi.mjs && node scripts/build-explorer.mjs",
     "check:explorer": "node scripts/check-explorer.mjs",

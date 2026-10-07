@@ -11,7 +11,7 @@ suite are summarised in [V15_HARDENING.md](./V15_HARDENING.md).
 ## 1. Overview & scope
 
 **Status:** local E2E green — **567/567** assertions in `test/local-e2e.mjs` and **52/52**
-in `test/hardening-e2e.mjs`; stateful fuzz `test/fuzz-invariants.mjs` green (4 seeds × 8 campaigns, 82,030 invariant checks, 381 adversarial probes, 0 failures). Slither 0.11.6 reports no exploitable finding. V15 is **not
+in `test/hardening-e2e.mjs`, **33/33** in `test/mainnet-floors-e2e.mjs`; stateful fuzz `test/fuzz-invariants.mjs` green (4 seeds × 8 campaigns, 82,030 invariant checks, 381 adversarial probes, 0 failures). Slither 0.11.6 reports no exploitable finding. V15 is **not
 deployed** on any network yet and has **not** received a formal professional third-party
 audit.
 
@@ -620,6 +620,13 @@ Indexing rule (product-level): D17 pipelines ingest only the events above — ne
   with the remainder burned; effective LP and canonical opening ratio; late settlement after
   a price **drop** (surplus WETH burned, no tokens burned); residual burn gating; forced-ETH
   sweep as WETH. **52 assertions, 0 failures.**
+- **Mainnet minimums** (`contracts/test/mainnet-floors-e2e.mjs`, local simulation with
+  chain id 1, Hardhat network `mainnetSim`): start 1 second short of 24 hours rejected and
+  exactly 24 hours accepted; each of the five rounds, the refund window and the settlement
+  window rejected at 59m59s; testnet-valid short durations rejected; then a full launch at
+  exactly the minimums (1-hour rounds and windows): no commitment during the notice, a
+  refund in the last seconds of the window, finalization, settlement and pool creation one
+  hour after finalization. **33 assertions, 0 failures.**
 - **Stateful fuzz** (`contracts/test/fuzz-invariants.mjs`, `npm run test:fuzz -w
   @d17/contracts`, `FUZZ_SEED` / `FUZZ_CAMPAIGNS`): each campaign draws a random launch
   configuration within the factory bounds and plays a random lifecycle (mixed, dust and
@@ -634,8 +641,8 @@ Indexing rule (product-level): D17 pipelines ingest only the events above — ne
   `create:launch`. The terminal's creator-vesting release button was exercised in a
   browser against a local node with Sepolia's chain id.
 - Run everything with `npm ci && npm test`.
-- **Coverage gaps worth noting**: the fuzz suite is seeded and not run in CI; the mainnet-only minimums
-  (`block.chainid == 1`) are not exercised by the local suites; no mainnet-fork tests; no
+- **Coverage gaps worth noting**: the fuzz suite is seeded and not run in CI; no mainnet-fork tests (the mainnet minimums run
+  on a local chain-id-1 simulation, with mock WETH and router); no
   Sepolia evidence for V15 yet.
 
 ## 11. Known limitations & review status

@@ -38,7 +38,7 @@ with a protocol fee. Repository: `dr4c0-git/D17`. Default branch:
 ```bash
 npm ci                                     # Node 22.13+ or 24+
 npm test                                   # typecheck + api + contracts + web tests
-npm run test:contracts                     # E2E suites (~2 min): 567 + 52 assertions
+npm run test:contracts                     # E2E suites (~2 min): 567 + 52 + 33 assertions
 npm run test:fuzz -w @d17/contracts        # stateful fuzz, ~15 min per 8 campaigns (FUZZ_SEED, FUZZ_CAMPAIGNS)
 npm run build                              # Next.js (apps/web)
 npm run build:abi -w @d17/contracts        # ABIs + docs/contract-explorer.html
@@ -106,7 +106,7 @@ future launches only.
 | 9 | Rounding dust | Fixed: `burnResidualTokens()`; plus a real bug fixed (last late settler blocked by `LP_RESERVE_EXCEEDED`). |
 | 10 | WETH pre-seeded into the pair | Analysed: not exploitable, kept (documented). |
 | 11 | Sweep blocked by the treasury | Fixed: ETH→WETH wrap. |
-| 12 | Timestamps / stealth launches | Mainnet floors (24 h notice, windows ≥ 1 h). Not tested locally (chainid 1). |
+| 12 | Timestamps / stealth launches | Mainnet floors (24 h notice, windows ≥ 1 h). Tested by `test/mainnet-floors-e2e.mjs` on the `mainnetSim` network (local EDR, chain id 1): exact boundaries plus a full launch at the minimum durations (33 assertions). |
 | 13 | Front-end | Checks feeConfig + wiring; "not deployed" banner; decoding by name; "Creator vesting" panel + release button in the Trading stage (tested in a browser against a local node). |
 
 Other bugs fixed: deploy script nonce (`NonceManager` per key).
@@ -148,6 +148,5 @@ and `git checkout apps/web/next-env.d.ts` (rewritten by `next dev`).
 
 ## Still to do
 
-- Mainnet-floor test (node with chainId 1).
 - External audit.
 - Optional: add a fork copyright line to `LICENSE` (without removing the existing one).

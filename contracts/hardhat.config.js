@@ -42,6 +42,15 @@ export default defineConfig({
       blockGasLimit: 40_000_000,
       transactionGasCap: false
     },
+    // Local simulation with chain id 1, used only by test/mainnet-floors-e2e.mjs to exercise
+    // the mainnet-only launch minimums (24 h notice, 1 h windows). Not a real network.
+    mainnetSim: {
+      type: "edr-simulated",
+      chainType: "l1",
+      chainId: 1,
+      blockGasLimit: 40_000_000,
+      transactionGasCap: false
+    },
     sepolia: {
       type: "http",
       chainType: "l1",
