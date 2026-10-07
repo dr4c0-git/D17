@@ -1,8 +1,8 @@
 # CLAUDE.md — project memory
 
 Fork of `0xlocker/D17` (MIT license), turned into a proprietary "D17 V15" launchpad
-with a protocol fee. Repository: `dr4c0-git/D17`. Working branch:
-`claude/hopeful-pasteur-4lq2ho`. Upstream docs: https://d17docs.vercel.app/docs
+with a protocol fee. Repository: `dr4c0-git/D17`. Default branch:
+`main` (V15 merged from `v15-hardening`). Upstream docs: https://d17docs.vercel.app/docs
 (unreachable from the cloud sandbox; local copies in `docs/`).
 
 ## Standing constraints (set by the owner)
