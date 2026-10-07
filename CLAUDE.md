@@ -17,6 +17,11 @@ with a protocol fee. Repository: `dr4c0-git/D17`. Working branch:
   cannot be circumvented. Guarantees: no discretionary creator access to funds, LP
   locked forever, immutable rules per launch (`rulesHash`), no admin key in the
   creation path.
+- **Commit authorship**: every commit is authored and committed as `dr4c0` with the
+  GitHub noreply address of `dr4c0-git` (user id 254115178), set via `git config`
+  (the address itself is not written here: `check:release` rejects email addresses).
+  Never add `Co-Authored-By: Claude`, `Claude-Session` or any other Claude/AI attribution
+  to commits, PRs or GitHub comments.
 
 ## Status (2026-10-06)
 
@@ -34,6 +39,7 @@ with a protocol fee. Repository: `dr4c0-git/D17`. Working branch:
 npm ci                                     # Node 22.13+ or 24+
 npm test                                   # typecheck + api + contracts + web tests
 npm run test:contracts                     # E2E suites (~2 min): 567 + 52 assertions
+npm run test:fuzz -w @d17/contracts        # stateful fuzz, ~15 min per 8 campaigns (FUZZ_SEED, FUZZ_CAMPAIGNS)
 npm run build                              # Next.js (apps/web)
 npm run build:abi -w @d17/contracts        # ABIs + docs/contract-explorer.html
 npm run release:protocol && npm run release:checksums && npm run check:release
@@ -95,7 +101,7 @@ future launches only.
 | 4 | Code-size headroom | Fixed: `D17LaunchDeployer`. |
 | 5 | No audit | **Cannot be fixed here.** Slither 0.11.6: no exploitable finding. External audit required before mainnet. |
 | 6 | Late liquidity / MEV | Fixed: live ratio, remainder burned. Residual: IL of a sandwiched liquidity add. |
-| 7 | Test coverage | Improved: `test/hardening-e2e.mjs` + shared helpers. No fuzzing yet. |
+| 7 | Test coverage | Improved: `test/hardening-e2e.mjs` + shared helpers + stateful fuzz `test/fuzz-invariants.mjs` (4 seeds × 8 campaigns, 82,030 invariant checks, 381 adversarial probes, 0 failures). Fuzz is not in `npm test`/CI (runtime). |
 | 8 | Deployment trust | Fixed: launches refused while an owner key exists; deploy script enforces renounce; `verify:factory` checks it. |
 | 9 | Rounding dust | Fixed: `burnResidualTokens()`; plus a real bug fixed (last late settler blocked by `LP_RESERVE_EXCEEDED`). |
 | 10 | WETH pre-seeded into the pair | Analysed: not exploitable, kept (documented). |
@@ -142,6 +148,6 @@ and `git checkout apps/web/next-env.d.ts` (rewritten by `next dev`).
 
 ## Still to do
 
-- Fuzzing/invariant tests; mainnet-floor test (node with chainId 1).
+- Mainnet-floor test (node with chainId 1).
 - External audit.
 - Optional: add a fork copyright line to `LICENSE` (without removing the existing one).

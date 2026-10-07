@@ -11,7 +11,7 @@ suite are summarised in [V15_HARDENING.md](./V15_HARDENING.md).
 ## 1. Overview & scope
 
 **Status:** local E2E green — **567/567** assertions in `test/local-e2e.mjs` and **52/52**
-in `test/hardening-e2e.mjs`. Slither 0.11.6 reports no exploitable finding. V15 is **not
+in `test/hardening-e2e.mjs`; stateful fuzz `test/fuzz-invariants.mjs` green (4 seeds × 8 campaigns, 82,030 invariant checks, 381 adversarial probes, 0 failures). Slither 0.11.6 reports no exploitable finding. V15 is **not
 deployed** on any network yet and has **not** received a formal professional third-party
 audit.
 
@@ -620,11 +620,21 @@ Indexing rule (product-level): D17 pipelines ingest only the events above — ne
   with the remainder burned; effective LP and canonical opening ratio; late settlement after
   a price **drop** (surplus WETH burned, no tokens burned); residual burn gating; forced-ETH
   sweep as WETH. **52 assertions, 0 failures.**
+- **Stateful fuzz** (`contracts/test/fuzz-invariants.mjs`, `npm run test:fuzz -w
+  @d17/contracts`, `FUZZ_SEED` / `FUZZ_CAMPAIGNS`): each campaign draws a random launch
+  configuration within the factory bounds and plays a random lifecycle (mixed, dust and
+  whale commits; refunds in every window; failed launches; explicit or lazy finalization;
+  on-time, third-party and late settlements; WETH donations and price moves; residual burn;
+  creator vesting). After every action it checks WETH conservation per position and through
+  the vault, the launch token ledger, exact fees and penalties, the anchor floor (to 1 WAD
+  unit), the LP reserve bound, live-ratio late deposits and vesting bounds; any revert of a
+  valid action is a liveness failure, and adversarial calls are probed for their expected
+  reverts. Last run: 4 seeds × 8 campaigns, 82,030 invariant checks, 381 adversarial probes, 0 failures. Not part of `npm test` (≈15 min per 8 campaigns).
 - **Deployment dry run** on a local node: `deploy:factory` → `verify:factory` (40/40) →
   `create:launch`. The terminal's creator-vesting release button was exercised in a
   browser against a local node with Sepolia's chain id.
 - Run everything with `npm ci && npm test`.
-- **Coverage gaps worth noting**: no property-based/fuzz suite; the mainnet-only minimums
+- **Coverage gaps worth noting**: the fuzz suite is seeded and not run in CI; the mainnet-only minimums
   (`block.chainid == 1`) are not exercised by the local suites; no mainnet-fork tests; no
   Sepolia evidence for V15 yet.
 

@@ -9,7 +9,8 @@ output during a clean verification run.
 - Production Solidity checksums: 14/14.
 - Solidity 0.8.24 compile with the documented settings.
 - Published creation-bytecode and ABI parity: 11/11 deployable contracts.
-- Local lifecycle suite: 567/567 named assertions; V15 hardening suite: 52/52.
+- Local lifecycle suite: 567/567 named assertions; V15 hardening suite: 52/52;
+  stateful fuzz (`npm run test:fuzz -w @d17/contracts`): 4 seeds × 8 campaigns, 82,030 invariant checks, 381 adversarial probes, 0 failures.
 - ABI export and readable explorer coverage: 11/11 contracts.
 - Largest deployed code size: `D17LaunchDeployer` 22,759 bytes (limit 24,576);
   `D17LaunchFactory` 5,129 bytes.
