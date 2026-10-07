@@ -114,8 +114,8 @@ export function compile() {
   });
 }
 
-export function startNode(port) {
-  const child = spawn(process.execPath, [hardhatCli, "--network", "hardhat", "node", "--hostname", "127.0.0.1", "--port", String(port)], {
+export function startNode(port, network = "hardhat") {
+  const child = spawn(process.execPath, [hardhatCli, "--network", network, "node", "--hostname", "127.0.0.1", "--port", String(port)], {
     cwd: root,
     stdio: ["ignore", "pipe", "pipe"]
   });
