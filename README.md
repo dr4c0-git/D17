@@ -186,6 +186,13 @@ or `?view=expert`) shows the full terminal described below; the choice is rememb
 
 ### Launch deployer
 
+`/deploy` opens a **guided form**: six short steps in plain language (your token, how
+the tokens are shared, what you earn, when and how long with ready-made durations,
+safety net, check and create) with recommended defaults: as many tokens in the pool as
+for buyers, so trading opens at the price buyers paid. The round-1 price floor is
+derived from the round-1 minimum, so creators only set one number. **Advanced
+settings** (top bar, or `?mode=advanced`) shows every field described below.
+
 - Builds a launch against the canonical factory and shipped ABI.
 - Configures token metadata, supply allocation, treasury terms, five round
   shares, schedule, minimums and the global refund penalty.

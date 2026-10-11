@@ -148,6 +148,11 @@ durations. For automated checks, Playwright with an injected `window.ethereum` r
   "personal vault", commit = "put in", refund = "take back", settle = "collect tokens",
   finalize = "close the sale", create pool = "open trading". Any rule change must be
   reflected in its "How this launch works" sentences.
+- `apps/web/app/deploy/deploy-client.tsx`: guided form by default (same state, checks,
+  simulation and transaction as the advanced form). Duration presets live in
+  `DURATION_PRESETS` (quick is disabled on mainnet: windows must be >= 1 h). In guided
+  mode `minAnchorPriceWad` = round-1 minimum / round-1 allocation (floored at the
+  contract minimum), so the price floor never adds a second condition.
 - `docs/blog/`: 9 V15 essays (post 09 explains the protocol fee).
 - Opening price: it follows the average price paid and equals it (net of fees) only when
   `lpTokens == saleTokens`; never write that it is always equal.

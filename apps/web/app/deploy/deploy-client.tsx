@@ -48,6 +48,15 @@ const FEE_CONFIG_ABI = ["function currentFee() view returns (address recipient, 
 
 type LinkRow = { linkType: string; url: string };
 
+type DurationPreset = "quick" | "standard" | "long" | "custom";
+/** Ready-made schedules (minutes). Mainnet requires every round and window to last at
+ *  least one hour, so "quick" is testnet/local only. */
+const DURATION_PRESETS: Record<Exclude<DurationPreset, "custom">, { round: number; refund: number; settlement: number; label: string; detail: string }> = {
+  quick: { round: 10, refund: 5, settlement: 10, label: "Quick", detail: "5 rounds of 10 minutes · about 1 hour in total" },
+  standard: { round: 60, refund: 60, settlement: 60, label: "Standard", detail: "5 rounds of 1 hour · about 9 hours in total" },
+  long: { round: 1440, refund: 720, settlement: 1440, label: "Long", detail: "5 rounds of 1 day · about 7 days in total" },
+};
+
 /** The bundled deploy contract: factory addresses, createLaunch ABI and
  * validation limits. */
 type DeployerSchema = {
@@ -177,21 +186,25 @@ function DeployForm() {
   const [logoSvgUri, setLogoSvgUri] = useState("");
   const [logoError, setLogoError] = useState("");
 
-  const [salePct, setSalePct] = useState(25);
-  const [lpPct, setLpPct] = useState(10);
+  const [salePct, setSalePct] = useState(45);
+  const [lpPct, setLpPct] = useState(45);
   // Optional manual allocation is sent to the launch creator.
-  const [depPct, setDepPct] = useState(0);
-  const [treasuryPct, setTreasuryPct] = useState(1);
+  const [depPct, setDepPct] = useState(5);
+  const [treasuryPct, setTreasuryPct] = useState(5);
   const [treasury, setTreasury] = useState("");
   const [minCommit, setMinCommit] = useState("0.01");
 
   // The deployed contract fixes the schedule at five rounds.
   const [sharesPct, setSharesPct] = useState<number[]>([40, 15, 15, 15, 15]);
-  const [roundMinutes, setRoundMinutes] = useState<number[]>([10, 10, 10, 10, 10]);
-  const [refundMinutes, setRefundMinutes] = useState(5);
-  const [refundCostPct, setRefundCostPct] = useState(17);
-  const [settlementMinutes, setSettlementMinutes] = useState(10);
-  const [opensIn, setOpensIn] = useState("30");
+  const defaultPreset: DurationPreset = IS_MAINNET ? "standard" : "quick";
+  const [durationPreset, setDurationPreset] = useState<DurationPreset>(defaultPreset);
+  const [roundMinutes, setRoundMinutes] = useState<number[]>(Array(ROUND_COUNT).fill(DURATION_PRESETS[defaultPreset].round));
+  const [refundMinutes, setRefundMinutes] = useState(DURATION_PRESETS[defaultPreset].refund);
+  const [refundCostPct, setRefundCostPct] = useState(10);
+  const [settlementMinutes, setSettlementMinutes] = useState(DURATION_PRESETS[defaultPreset].settlement);
+  const [opensIn, setOpensIn] = useState(IS_MAINNET ? "1500" : "30");
+  // Guided (plain-language) form by default; "Advanced settings" shows every field.
+  const [advanced, setAdvanced] = useState(false);
   const [customStart, setCustomStart] = useState("");
 
   const [minPhase1Weth, setMinPhase1Weth] = useState("1");
@@ -228,6 +241,15 @@ function DeployForm() {
   }, []);
 
   useEffect(() => {
+    try {
+      const requested = new URLSearchParams(window.location.search).get("mode");
+      if (requested === "advanced" || (requested !== "guided" && window.localStorage.getItem("d17-deploy-mode") === "advanced")) {
+        setAdvanced(true);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
     setMounted(true);
     const timer = window.setInterval(() => setTick((t) => t + 1), 30_000);
     return () => window.clearInterval(timer);
@@ -260,6 +282,33 @@ function DeployForm() {
   }, [customStart, opensIn]);
 
   const sharesSum = sharesPct.reduce((total, pct) => total + pct, 0);
+
+  const roundOneAllocationWei = (() => {
+    if (!Number.isSafeInteger(saleTokens) || saleTokens <= 0) return 0n;
+    return (ethers.parseUnits(String(saleTokens), 18) * BigInt(Math.round((sharesPct[0] ?? 0) * 100))) / 10_000n;
+  })();
+  const autoAnchorWei = (() => {
+    if (roundOneAllocationWei <= 0n) return MIN_ANCHOR_PRICE_WAD;
+    const floor = (decimalToWei(minPhase1Weth) * 1_000_000_000_000_000_000n) / roundOneAllocationWei;
+    return floor > MIN_ANCHOR_PRICE_WAD ? floor : MIN_ANCHOR_PRICE_WAD;
+  })();
+  const anchorFloorWei = advanced ? decimalToWei(minAnchorPrice) : autoAnchorWei;
+
+  const applyDuration = (preset: DurationPreset) => {
+    setDurationPreset(preset);
+    if (preset === "custom") return;
+    const values = DURATION_PRESETS[preset];
+    setRoundMinutes(Array(ROUND_COUNT).fill(values.round));
+    setRefundMinutes(values.refund);
+    setSettlementMinutes(values.settlement);
+  };
+  const changeMode = (next: boolean) => {
+    setAdvanced(next);
+    if (next) setDurationPreset("custom");
+    try {
+      window.localStorage.setItem("d17-deploy-mode", next ? "advanced" : "guided");
+    } catch {}
+  };
 
   // Preview schedule: same shape the participant Rounds table renders.
   const schedule = useMemo(() => {
@@ -335,7 +384,7 @@ function DeployForm() {
   // the actual transaction rules.
   if (decimalToWei(minCommit) < MIN_COMMIT_WEI) problems.push("min commit below 0.001 ETH");
   if (decimalToWei(minPhase1Weth) < decimalToWei(minCommit)) problems.push("phase-1 minimum below min commit");
-  if (decimalToWei(minAnchorPrice) < MIN_ANCHOR_PRICE_WAD) problems.push("anchor price below contract minimum");
+  if (anchorFloorWei < MIN_ANCHOR_PRICE_WAD) problems.push("anchor price below contract minimum");
   if (!ethers.isAddress(factoryAddress) || ethers.getAddress(factoryAddress) !== ethers.getAddress(DEFAULT_FACTORY)) problems.push("factory address mismatch");
   if (treasury && !ethers.isAddress(treasury)) problems.push("treasury address");
   if (!PROTOCOL_DEPLOYED) problems.push(`protocol not deployed on ${CHAIN_NAME} yet`);
@@ -383,7 +432,7 @@ function DeployForm() {
     settlementSeconds: Math.round(settlementMinutes * 60),
     minCommitWeth: decimalToWei(minCommit),
     minPhase1Weth: decimalToWei(minPhase1Weth),
-    minAnchorPriceWad: decimalToWei(minAnchorPrice),
+    minAnchorPriceWad: anchorFloorWei,
     roundSharesBps: sharesPct.map((pct) => Math.round(pct * 100)) as [number, number, number, number, number],
     treasuryBps: Math.round(treasuryPct * 100),
     refundPenaltyBps: Math.round(refundCostPct * 100),
@@ -511,6 +560,358 @@ function DeployForm() {
   const day = (at: number) => (mounted ? formatDay(at) : "--/--");
   const startClock = clock(startTime);
 
+  const symbolLabel = tokenSymbol.trim() || "tokens";
+  const poolEthPct = protocolFeeBps === null ? null : Math.max(0, 100 - treasuryPct - protocolFeeBps / 100);
+  const startOptions = IS_MAINNET
+    ? [{ value: "1500", label: "In about a day (25 h)" }]
+    : [
+        { value: "15", label: "In 15 minutes" },
+        { value: "30", label: "In 30 minutes" },
+        { value: "60", label: "In 1 hour" },
+        { value: "1500", label: "In about a day (25 h)" },
+      ];
+  const linkValue = (type: string) => links.find((link) => link.linkType === type)?.url ?? "";
+  const setLinkValue = (type: string, url: string) =>
+    setLinks((current) =>
+      current.some((link) => link.linkType === type)
+        ? current.map((link) => (link.linkType === type ? { ...link, url } : link))
+        : [...current, { linkType: type, url }]
+    );
+  const friendlyProblems = problems.map((problem) => {
+    if (problem === "token name") return "Give your token a name (step 1).";
+    if (problem === "token symbol") return "Give your token a short ticker (step 1).";
+    if (problem.startsWith("links must")) return "Links must start with https:// (step 1).";
+    if (problem === "allocation over 100%") return "The token split adds up to more than 100% (step 2).";
+    if (problem.startsWith("deployer allocation over")) return "Your own share of the tokens can be at most 10% (step 2).";
+    if (problem.startsWith("treasury share over")) return "Your share of the ETH can be at most 10% (step 3).";
+    if (problem === "treasury address") return "The address that receives your ETH share is not valid (step 3).";
+    if (problem.startsWith("refund cost outside")) return "The take-back fee for rounds 3 and 4 must be between 1% and 25% (step 4).";
+    if (problem.startsWith("start must be announced")) return "On mainnet a launch must be announced at least 24 hours ahead (step 4).";
+    if (problem === "start time is in the past") return "The start time is in the past (step 4).";
+    if (problem.startsWith("round length outside") || problem.startsWith("refund and claim windows"))
+      return IS_MAINNET ? "On mainnet every round and window must last at least 1 hour (step 4)." : "Round lengths are out of range (step 4).";
+    if (problem === "min commit below 0.001 ETH") return "The smallest amount must be at least 0.001 ETH (step 5).";
+    if (problem === "phase-1 minimum below min commit") return "The round 1 minimum must be at least the smallest amount (step 5).";
+    if (problem.startsWith("protocol not deployed")) return `D17 is not open on ${CHAIN_NAME} yet.`;
+    if (problem === "protocol fee not loaded") return "Loading the D17 fee…";
+    return problem;
+  });
+
+  const card = "border border-hairline bg-panel/40 px-5 py-5 sm:px-6";
+  const stepTitle = "text-[18px] font-semibold text-ink";
+  const help = "mt-1 text-[14px] leading-relaxed text-dim";
+  const fieldLabel = "block text-[14px] font-semibold text-ink";
+  const input =
+    "mt-1.5 w-full border border-hairline bg-paper px-3 py-2.5 text-[16px] text-ink outline-none placeholder:text-quiet focus-visible:border-dim";
+  const choice = (active: boolean) =>
+    `w-full border px-4 py-3 text-left transition-colors ${active ? "border-ink bg-panel" : "border-hairline hover:border-dim"}`;
+  const pctInput = (value: number, onChange: (value: number) => void, label: string) => (
+    <span className="inline-flex items-center gap-1">
+      <input
+        type="number"
+        min={0}
+        max={100}
+        value={value}
+        aria-label={label}
+        onChange={(event) => onChange(clampPct(event.target.value))}
+        className="w-20 border border-hairline bg-paper px-2 py-1.5 text-right text-[16px] tabular-nums text-ink outline-none focus-visible:border-dim"
+      />
+      <span className="text-[15px] text-dim">%</span>
+    </span>
+  );
+
+  const guidedForm = (
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-6 sm:px-6">
+      <div>
+        <h1 className="text-[26px] font-semibold leading-tight text-ink">Create a launch</h1>
+        <p className="mt-2 text-[15px] leading-relaxed text-dim">
+          Answer six short steps. The rules you choose are locked into your launch forever: nobody, not you and not D17,
+          can change them later. That is what lets people trust it.
+        </p>
+      </div>
+
+      <section className={card}>
+        <h2 className={stepTitle}>1. Your token</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label>
+            <span className={fieldLabel}>Name</span>
+            <input className={input} value={tokenName} onChange={(event) => setTokenName(event.target.value)} placeholder="My Token" />
+          </label>
+          <label>
+            <span className={fieldLabel}>Ticker</span>
+            <input className={input} value={tokenSymbol} onChange={(event) => setTokenSymbol(event.target.value.toUpperCase())} placeholder="MYTKN" />
+            <span className="mt-1 block text-[13px] text-quiet">A short name, like ETH or PEPE.</span>
+          </label>
+        </div>
+        <label className="mt-4 block">
+          <span className={fieldLabel}>Description</span>
+          <textarea
+            className={`${input} h-24 resize-none`}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="One or two sentences people will read first."
+          />
+        </label>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label>
+            <span className={fieldLabel}>Website (optional)</span>
+            <input className={input} value={linkValue("website")} onChange={(event) => setLinkValue("website", event.target.value)} placeholder="https://…" />
+          </label>
+          <label>
+            <span className={fieldLabel}>X / Twitter (optional)</span>
+            <input className={input} value={linkValue("x")} onChange={(event) => setLinkValue("x", event.target.value)} placeholder="https://x.com/…" />
+          </label>
+        </div>
+        <label className="mt-4 block">
+          <span className={fieldLabel}>Logo (optional, SVG file up to 8 KB)</span>
+          <input
+            type="file"
+            accept=".svg,image/svg+xml"
+            onChange={(event) => void onLogoFile(event.target.files?.[0])}
+            className="mt-1.5 block w-full text-[14px] text-dim file:mr-3 file:border file:border-hairline file:bg-paper file:px-3 file:py-1.5 file:text-[14px] file:text-ink"
+          />
+        </label>
+        {logoError && <p className="mt-1 text-[14px] text-alert">{logoError}</p>}
+      </section>
+
+      <section className={card}>
+        <h2 className={stepTitle}>2. How the tokens are shared</h2>
+        <label className="mt-4 block">
+          <span className={fieldLabel}>Total number of tokens</span>
+          <input className={input} value={supply} onChange={(event) => setSupply(event.target.value)} inputMode="numeric" />
+        </label>
+        <div className="mt-4 flex h-3 w-full overflow-hidden border border-hairline" aria-hidden>
+          <div style={{ width: `${Math.min(salePct, 100)}%` }} className="bg-ink" />
+          <div style={{ width: `${Math.min(lpPct, Math.max(0, 100 - salePct))}%` }} className="bg-live" />
+          <div style={{ width: `${Math.min(depPct, Math.max(0, 100 - salePct - lpPct))}%` }} className="bg-electric" />
+        </div>
+        <ul className="mt-4 flex flex-col gap-3 text-[15px]">
+          <li className="flex flex-wrap items-center justify-between gap-2">
+            <span>
+              <span className="mr-2 inline-block h-2.5 w-2.5 bg-ink align-middle" aria-hidden />
+              For buyers, sold in the 5 rounds
+            </span>
+            {pctInput(salePct, setSalePct, "Share for buyers")}
+          </li>
+          <li className="flex flex-wrap items-center justify-between gap-2">
+            <span>
+              <span className="mr-2 inline-block h-2.5 w-2.5 bg-live align-middle" aria-hidden />
+              Locked forever in the trading pool
+            </span>
+            {pctInput(lpPct, setLpPct, "Share locked in the trading pool")}
+          </li>
+          <li className="flex flex-wrap items-center justify-between gap-2">
+            <span>
+              <span className="mr-2 inline-block h-2.5 w-2.5 bg-electric align-middle" aria-hidden />
+              For you, unlocked little by little over 6 months (max 10%)
+            </span>
+            {pctInput(depPct, setDepPct, "Your share of the tokens")}
+          </li>
+          <li className="flex flex-wrap items-center justify-between gap-2 text-dim">
+            <span>
+              <span className="mr-2 inline-block h-2.5 w-2.5 border border-hairline align-middle" aria-hidden />
+              Destroyed (the rest)
+            </span>
+            <span className={`text-[16px] tabular-nums ${overAllocated ? "font-semibold text-alert" : "text-ink"}`}>
+              {overAllocated ? "Over 100%" : `${deadAddressPct}%`}
+            </span>
+          </li>
+        </ul>
+        <p className={help}>
+          {salePct === lpPct
+            ? "Same share for buyers and for the pool: trading opens at the price buyers paid. "
+            : "Tip: give the pool the same share as buyers, so trading opens at the price buyers paid. "}
+          Tokens nobody buys are destroyed at the end of the sale.
+        </p>
+      </section>
+
+      <section className={card}>
+        <h2 className={stepTitle}>3. What you earn</h2>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[15px]">
+          <span className="font-semibold text-ink">Your share of the ETH raised (0 to 10%)</span>
+          {pctInput(treasuryPct, setTreasuryPct, "Your share of the ETH raised")}
+        </div>
+        <label className="mt-4 block">
+          <span className={fieldLabel}>Sent to this address</span>
+          <input className={input} value={treasury} onChange={(event) => setTreasury(event.target.value)} placeholder="Your wallet (filled in when you connect)" />
+        </label>
+        <p className={help}>
+          Out of every 1 ETH that stays in the sale:{" "}
+          <span className="font-semibold text-ink">{poolEthPct === null ? "…" : `${poolEthPct}%`}</span> is locked forever in
+          the trading pool, <span className="font-semibold text-ink">{treasuryPct}%</span> goes to you
+          {protocolFeeBps !== null && protocolFeeBps > 0 ? (
+            <>
+              {" "}
+              and <span className="font-semibold text-ink">{protocolFeeBps / 100}%</span> is the D17 fee
+            </>
+          ) : null}
+          . You never receive ETH from refunds or from a cancelled launch.
+        </p>
+      </section>
+
+      <section className={card}>
+        <h2 className={stepTitle}>4. When and how long</h2>
+        <label className="mt-4 block">
+          <span className={fieldLabel}>Round 1 opens</span>
+          <select
+            value={customStart ? "custom" : opensIn}
+            onChange={(event) =>
+              event.target.value === "custom"
+                ? setCustomStart(toDateTimeLocal(new Date(Date.now() + (IS_MAINNET ? 26 : 1) * 3_600_000)))
+                : (setCustomStart(""), setOpensIn(event.target.value))
+            }
+            className={input}
+          >
+            {startOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+            <option value="custom">At a date and time I choose</option>
+          </select>
+        </label>
+        {customStart && (
+          <input type="datetime-local" value={customStart} onChange={(event) => setCustomStart(event.target.value)} className={input} />
+        )}
+        <p className="mt-1 text-[13px] text-quiet">
+          {mounted ? `Opens ${new Date(startTime * 1000).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}.` : ""}
+          {IS_MAINNET ? " On mainnet, launches are announced at least 24 hours ahead." : ""}
+        </p>
+        <p className={`${fieldLabel} mt-5`}>Length of the sale</p>
+        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+          {(Object.keys(DURATION_PRESETS) as Exclude<DurationPreset, "custom">[]).map((key) => {
+            const preset = DURATION_PRESETS[key];
+            const unavailable = IS_MAINNET && key === "quick";
+            return (
+              <button
+                key={key}
+                type="button"
+                disabled={unavailable}
+                onClick={() => applyDuration(key)}
+                aria-pressed={durationPreset === key}
+                className={`${choice(durationPreset === key)} disabled:cursor-not-allowed disabled:opacity-40`}
+              >
+                <span className="block text-[15px] font-semibold text-ink">{preset.label}</span>
+                <span className="mt-0.5 block text-[13px] text-dim">{unavailable ? "Not allowed on mainnet" : preset.detail}</span>
+              </button>
+            );
+          })}
+        </div>
+        {durationPreset === "custom" && (
+          <p className="mt-2 text-[13px] text-quiet">Custom durations set in Advanced settings.</p>
+        )}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-2 text-[15px]">
+          <span className="font-semibold text-ink">Fee to take ETH back after rounds 3 and 4 (1 to 25%)</span>
+          {pctInput(refundCostPct, setRefundCostPct, "Take-back fee after rounds 3 and 4")}
+        </div>
+        <p className={help}>
+          After each of the first 4 rounds, buyers get a short window to take their ETH back: 1% after rounds 1 and 2, the
+          fee above after rounds 3 and 4. These fees go into the trading pool, never to you.
+        </p>
+      </section>
+
+      <section className={card}>
+        <h2 className={stepTitle}>5. Safety net</h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label>
+            <span className={fieldLabel}>Minimum to raise in round 1 (ETH)</span>
+            <input className={input} value={minPhase1Weth} onChange={(event) => setMinPhase1Weth(event.target.value)} inputMode="decimal" />
+          </label>
+          <label>
+            <span className={fieldLabel}>Smallest amount per person (ETH)</span>
+            <input className={input} value={minCommit} onChange={(event) => setMinCommit(event.target.value)} inputMode="decimal" />
+          </label>
+        </div>
+        <p className={help}>
+          If round 1 raises less than the minimum, the launch is cancelled and everyone gets all of their ETH back. Round 1
+          also sets the lowest price: no later round can sell cheaper.
+        </p>
+      </section>
+
+      <section className={card}>
+        <h2 className={stepTitle}>6. Check and create</h2>
+        <div className="mt-4 flex items-center gap-3">
+          {logoSvgUri ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={logoSvgUri} alt="" className="h-12 w-12 border border-hairline" />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center border border-hairline text-[13px] font-semibold text-dim">{initials}</div>
+          )}
+          <div className="min-w-0">
+            <p className="text-[18px] font-semibold text-ink">
+              {tokenName.trim() || "Your token"} <span className="text-[15px] font-normal text-dim">({tokenSymbol.trim() || "TICKER"})</span>
+            </p>
+            <p className="truncate text-[14px] text-dim">{description.trim() || "Your description shows here."}</p>
+          </div>
+        </div>
+        <ul className="mt-4 flex list-disc flex-col gap-1.5 pl-5 text-[15px] leading-relaxed text-dim">
+          <li>
+            {compact(supplyTokens)} {symbolLabel}: {salePct}% for buyers, {lpPct}% locked in the pool
+            {depPct > 0 ? `, ${depPct}% for you over 6 months` : ""}
+            {!overAllocated && deadAddressPct > 0 ? `, ${deadAddressPct}% destroyed` : ""}.
+          </li>
+          <li>
+            Opens {mounted ? new Date(startTime * 1000).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "…"}:{" "}
+            {durationPreset !== "custom" ? DURATION_PRESETS[durationPreset].detail.split(" · ")[0] : "5 rounds"}.
+          </li>
+          <li>
+            Round 1 must raise at least {minPhase1Weth || "0"} ETH, or everyone is refunded.
+          </li>
+          <li>
+            You receive {treasuryPct}% of the ETH raised{depPct > 0 ? ` and ${depPct}% of the tokens over 6 months` : ""}.
+          </li>
+        </ul>
+        {!ready && (
+          <ul className="mt-4 flex flex-col gap-1 border-l-2 border-alert pl-3 text-[14px] text-dim">
+            {friendlyProblems.map((problem) => (
+              <li key={problem}>{problem}</li>
+            ))}
+          </ul>
+        )}
+        {error && (
+          <p className="mt-4 text-[14px] text-alert" role="alert">
+            {error}
+          </p>
+        )}
+        {result ? (
+          <div className="mt-5">
+            <p className="text-[18px] font-semibold text-live">Your launch is created ✓</p>
+            <p className={help}>Share the link of your launch page so people can join when round 1 opens.</p>
+            <a
+              href={d17Href("/", { launch: result.launch })}
+              className="mt-3 block w-full bg-ink px-4 py-3 text-center text-[15px] font-semibold text-paper hover:opacity-90"
+            >
+              Open my launch page
+            </a>
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={walletAddress ? () => void deploy() : () => void connectWallet()}
+              disabled={Boolean(busy) || (Boolean(walletAddress) && !ready)}
+              className="mt-5 h-12 w-full bg-ink px-4 text-[15px] font-semibold text-paper transition-opacity disabled:opacity-40"
+            >
+              {busy ? plainBusy(busy) : walletAddress ? "Create my launch" : "Connect my wallet"}
+            </button>
+            <p className="mt-2 text-[13px] leading-relaxed text-quiet">
+              We first test your launch for free. Your wallet then asks you to confirm one transaction (you only pay the network
+              fee).{" "}
+              {IS_MAINNET ? "This is mainnet: real ETH." : `This is ${CHAIN_NAME}: test ETH only.`}
+            </p>
+          </>
+        )}
+      </section>
+
+      <p className="pt-1 text-center text-[14px] text-dim">
+        Need every setting (round shares, exact durations, price floor)?{" "}
+        <button type="button" onClick={() => changeMode(true)} className="text-electric underline underline-offset-2 hover:text-ink">
+          Advanced settings
+        </button>
+      </p>
+    </div>
+  );
+
   return (
     <main className="min-h-dvh bg-paper text-ink">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-4 py-3 sm:px-6">
@@ -518,13 +919,20 @@ function DeployForm() {
           <a href={d17Href("/")} className="font-semibold text-ink hover:underline">
             D17
           </a>{" "}
-          <span className="text-dim">Launch terminal</span> <span className="text-live">· Deploy</span>{" "}
-          <span className="text-quiet">{NETWORK_LABEL}</span>
+          <span className="text-dim">{advanced ? "Launch terminal" : "Launchpad"}</span>{" "}
+          <span className="text-live">· {advanced ? "Deploy" : "Create a launch"}</span> <span className="text-quiet">{NETWORK_LABEL}</span>
         </p>
         <div className="flex items-center gap-3">
           <NetworkSwitch disabled={Boolean(busy)} />
+          <button
+            type="button"
+            onClick={() => changeMode(!advanced)}
+            className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink"
+          >
+            {advanced ? "Guided form" : "Advanced settings"}
+          </button>
           <a href={d17Href("/")} className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink">
-            Terminal
+            {advanced ? "Terminal" : "All launches"}
           </a>
           <button type="button" onClick={connectWallet} className="border border-ink bg-ink px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.02em] text-paper">
             {walletAddress ? shortAddress(walletAddress) : "Connect wallet"}
@@ -532,6 +940,10 @@ function DeployForm() {
         </div>
       </header>
 
+      {!advanced ? (
+        guidedForm
+      ) : (
+      <>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-hairline px-4 py-2 font-mono text-[10px] uppercase tracking-[0.02em] sm:px-6">
         <span className="text-quiet">How a launch runs</span>
         <span className="text-dim">
@@ -897,8 +1309,18 @@ function DeployForm() {
           </p>
         </div>
       </div>
+      </>
+      )}
     </main>
   );
+}
+
+/** The deploy steps in plain words for the guided form. */
+function plainBusy(busy: string) {
+  if (busy.startsWith("Simulating")) return "Testing your launch…";
+  if (busy.startsWith("Waiting for your signature")) return "Confirm in your wallet…";
+  if (busy.startsWith("Deploying")) return "Creating your launch…";
+  return busy;
 }
 
 function byteLength(value: string) {

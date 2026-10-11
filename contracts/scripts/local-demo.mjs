@@ -38,7 +38,15 @@ function log(message) {
 
 function cleanup() {
   for (const child of children) {
-    if (child.exitCode === null) child.kill("SIGTERM");
+    if (child.exitCode !== null) continue;
+    // The web app runs in its own process group (npm → next): stop the whole group.
+    if (child.spawnargs[0] === "npm") {
+      try {
+        process.kill(-child.pid, "SIGTERM");
+        continue;
+      } catch {}
+    }
+    child.kill("SIGTERM");
   }
   if (envWritten) {
     rmSync(envLocalPath, { force: true });
@@ -223,7 +231,7 @@ async function main() {
       ""
     ].join("\n"));
     envWritten = true;
-    const web = spawn("npm", ["run", "dev", "-w", "@d17/web"], { cwd: repoRoot, stdio: ["ignore", "inherit", "inherit"] });
+    const web = spawn("npm", ["run", "dev", "-w", "@d17/web"], { cwd: repoRoot, stdio: ["ignore", "inherit", "inherit"], detached: true });
     children.push(web);
   }
 
