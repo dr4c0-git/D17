@@ -65,6 +65,38 @@ The button does **not** deploy the optional indexed API and does not grant
 access to D17's temporary hosted infrastructure. No seed phrase, private key,
 database or D17 API credential is requested.
 
+## Try the interface for free (local demo)
+
+One command runs everything on your own computer with free test ETH: a private
+Ethereum chain, the full V15 contract suite (with mock WETH and Uniswap V2), two
+demo launches played by bot wallets, and the web app.
+
+```bash
+npm ci
+npm run demo:local
+```
+
+Then open [http://localhost:3000/?network=local](http://localhost:3000/?network=local)
+and follow the instructions printed in the terminal:
+
+1. In your wallet (MetaMask or similar, ideally a separate browser profile), add a
+   network: RPC `http://127.0.0.1:8545`, chain id `31337`, currency `ETH`.
+2. Import one of the two test accounts printed by the script (10,000 test ETH each).
+   They are Hardhat's public test accounts: never send real funds to them.
+3. Explore:
+   - **Demo Fast Track** starts within a minute and runs to the end by itself in
+     about 8 minutes (commits, a refund, finalization, settlement, pool creation),
+     so you can see every stage up to Trading and the creator vesting panel.
+   - **Demo Walkthrough** starts after about 3 minutes, with 4-minute rounds and
+     2-minute windows: commit, refund, finalize, settle and create the pool yourself.
+   - `/deploy` creates your own launch (local rules: rounds of at least 60 seconds).
+
+`Ctrl+C` stops everything; the chain is thrown away. After a restart, reset your
+wallet's transaction history for that network (MetaMask: Settings → Advanced →
+Clear activity tab data), otherwise it reuses stale nonces. The script writes
+`apps/web/.env.local` while it runs and removes it when it stops. Add
+`-- --no-web` to start only the chain and the bots.
+
 ## Start locally in five steps
 
 The simplest setup reads Ethereum directly from an RPC endpoint. It needs no
@@ -80,7 +112,7 @@ D17 server, database, API key from this project or wallet private key.
 ### 2. Clone and install
 
 ```bash
-git clone https://github.com/0xlocker/D17.git
+git clone https://github.com/dr4c0-git/D17.git
 cd D17
 npm ci
 ```

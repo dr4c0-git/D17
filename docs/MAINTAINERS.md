@@ -41,6 +41,7 @@ npm test                                   # typecheck + api + contracts + web t
 npm run test:contracts                     # E2E suites (~2 min): 567 + 52 + 33 assertions
 npm run test:fuzz -w @d17/contracts        # stateful fuzz, ~15 min per 8 campaigns (FUZZ_SEED, FUZZ_CAMPAIGNS)
 npm run build                              # Next.js (apps/web)
+npm run demo:local                         # local chain + V15 suite + bot launches + web app (free test ETH)
 npm run build:abi -w @d17/contracts        # ABIs + docs/contract-explorer.html
 npm run release:protocol && npm run release:checksums && npm run check:release
 ```
@@ -126,13 +127,13 @@ Other bugs fixed: deploy script nonce (`NonceManager` per key).
 
 Validated local dry run: deploy → verify (40/40) → create-launch (1% fee frozen).
 
-Local UI test (without touching the repo): temporary Hardhat config with
-`networks.hardhat.chainId = 11155111` started via
-`npx hardhat --config <tmp> --network hardhat node` (without `--network hardhat` the
-chain id stays 31337), `apps/web/deployments/sepolia.json` + `.env.local` pointed at the
-node, Playwright (scratchpad) with an injected `window.ethereum` relaying to the node and
-`page.clock` set to the chain time. Afterwards restore the manifest, delete `.env.local`
-and `git checkout apps/web/next-env.d.ts` (rewritten by `next dev`).
+Local UI test: `npm run demo:local` (`contracts/scripts/local-demo.mjs`). The web app has
+a third network, `local` (chain id 31337), that only exists when
+`NEXT_PUBLIC_D17_ENABLE_LOCAL=true`; the script writes that and the suite addresses into
+`apps/web/.env.local` and removes it (and restores `next-env.d.ts`) on Ctrl+C. The UI
+uses the wall clock, so the demo never time-travels the chain: launches use short real
+durations. For automated checks, Playwright with an injected `window.ethereum` relaying
+`eth_sendTransaction` to the node works (the node's accounts are unlocked).
 
 ## Documentation (keep in sync with the code)
 

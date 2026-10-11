@@ -1,10 +1,13 @@
 import mainnetDeployment from "@/deployments/mainnet.json";
 import sepoliaDeployment from "@/deployments/sepolia.json";
 import { CHAIN_ID } from "@/lib/d17Api";
+import { LOCAL_NETWORK_ENABLED } from "@/lib/d17Network";
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export type PublicDeployment = {
   chainId: number;
-  network: "mainnet" | "sepolia";
+  network: "mainnet" | "sepolia" | "local";
   protocolVersion: string;
   /** "not-deployed" until the V15 contract suite is deployed and published. */
   status: "deployed" | "not-deployed";
@@ -22,10 +25,32 @@ export type PublicDeployment = {
   router: string;
 };
 
+/** Local Hardhat suite deployed by `npm run demo:local`, read from apps/web/.env.local
+ *  (git-ignored). Next.js only inlines literal process.env.NEXT_PUBLIC_* reads. */
+const localDeployment: PublicDeployment = {
+  chainId: 31337,
+  network: "local",
+  protocolVersion: "V15_HARDENED",
+  status: process.env.NEXT_PUBLIC_D17_LOCAL_D17_FACTORY ? "deployed" : "not-deployed",
+  startBlock: 0,
+  contracts: {
+    d17Factory: process.env.NEXT_PUBLIC_D17_LOCAL_D17_FACTORY || ZERO_ADDRESS,
+    feeConfig: process.env.NEXT_PUBLIC_D17_LOCAL_FEE_CONFIG || ZERO_ADDRESS,
+    tokenFactory: process.env.NEXT_PUBLIC_D17_LOCAL_TOKEN_FACTORY || ZERO_ADDRESS,
+    launchDeployer: process.env.NEXT_PUBLIC_D17_LOCAL_LAUNCH_DEPLOYER || ZERO_ADDRESS,
+    launchFactory: process.env.NEXT_PUBLIC_D17_LOCAL_LAUNCH_FACTORY || ZERO_ADDRESS,
+    liquidityVaultFactory: process.env.NEXT_PUBLIC_D17_LOCAL_VAULT_FACTORY || ZERO_ADDRESS,
+    lockerFactory: process.env.NEXT_PUBLIC_D17_LOCAL_LOCKER_FACTORY || ZERO_ADDRESS,
+  },
+  weth: process.env.NEXT_PUBLIC_D17_LOCAL_WETH || ZERO_ADDRESS,
+  router: process.env.NEXT_PUBLIC_D17_LOCAL_ROUTER || ZERO_ADDRESS,
+};
+
 export const DEPLOYMENTS: Record<number, PublicDeployment> = {
   11155111: sepoliaDeployment as PublicDeployment,
   1: mainnetDeployment as PublicDeployment,
 };
+if (LOCAL_NETWORK_ENABLED) DEPLOYMENTS[31337] = localDeployment;
 
 export const PUBLIC_DEPLOYMENT = DEPLOYMENTS[CHAIN_ID];
 

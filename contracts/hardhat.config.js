@@ -51,6 +51,16 @@ export default defineConfig({
       blockGasLimit: 40_000_000,
       transactionGasCap: false
     },
+    // Chain for `npm run demo:local` (chain id 31337). Blocks may share a timestamp so a
+    // burst of deployment transactions does not push the chain clock ahead of the wall
+    // clock the web app counts down with.
+    localDemo: {
+      type: "edr-simulated",
+      chainType: "l1",
+      allowBlocksWithSameTimestamp: true,
+      blockGasLimit: 40_000_000,
+      transactionGasCap: false
+    },
     sepolia: {
       type: "http",
       chainType: "l1",

@@ -36,6 +36,7 @@
     "typecheck": "npm run typecheck -w @d17/web",
     "test:api": "npm test -w @d17/api",
     "test:contracts": "npm test -w @d17/contracts",
+    "demo:local": "npm run demo:local -w @d17/contracts --",
     "release:protocol": "node scripts/generate-protocol-release.mjs",
     "release:checksums": "node scripts/generate-release-checksums.mjs",
     "check:docs": "node scripts/check-doc-links.mjs",

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { ACTIVE_NETWORK_KEY, networkSwitchHref, type D17NetworkKey } from "@/lib/d17Network";
+import { ACTIVE_NETWORK_KEY, LOCAL_NETWORK_ENABLED, networkSwitchHref, type D17NetworkKey } from "@/lib/d17Network";
 
 const OPTIONS: { key: D17NetworkKey; label: string }[] = [
   { key: "sepolia", label: "Testnet" },
   { key: "mainnet", label: "Mainnet" },
+  ...(LOCAL_NETWORK_ENABLED ? [{ key: "local" as const, label: "Local" }] : []),
 ];
 
 export function NetworkSwitch({ disabled = false }: { disabled?: boolean }) {
