@@ -84,8 +84,10 @@ and follow the instructions printed in the terminal:
    `31337`); accept. To add it by hand: RPC `http://127.0.0.1:8545`, chain id `31337`,
    currency `ETH`. MetaMask's built-in "Localhost 8545" network uses chain id 1337, which
    is not the demo chain.
-2. Import one of the two test accounts printed by the script (10,000 test ETH each).
-   They are Hardhat's public test accounts: never send real funds to them.
+2. Get test ETH: either import one of the two test accounts printed by the script
+   (10,000 test ETH each; Hardhat's public test accounts, never send real funds to
+   them), or credit your own address from a second terminal:
+   `npm run demo:fund -- 0xYourAddress` (100 test ETH, or add an amount).
 3. Explore:
    - **Demo Fast Track** starts within a minute and runs to the end by itself in
      about 8 minutes (commits, a refund, finalization, settlement, pool creation),

@@ -254,6 +254,8 @@ async function main() {
         friend  ${friend.address}
                 ${friend.key}
       These keys are published by Hardhat: never send real funds to them.
+      Or credit your own address (second terminal):
+        npm run demo:fund -- 0xYourAddress [amount]
    3. After each restart of this script, reset the wallet's nonce cache
       (MetaMask: Settings > Advanced > Clear activity tab data).
 
