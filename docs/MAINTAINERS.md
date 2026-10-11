@@ -22,6 +22,8 @@ with a protocol fee. Repository: `dr4c0-git/D17`. Default branch:
   (the address itself is not written here: `check:release` rejects email addresses).
   No AI-assistant attribution (co-author trailers, session links, signatures) in
   commits, PRs or GitHub comments.
+- **No em dash for the owner**: in everything written for the owner (documents, notes,
+  messages, drafts to send), never use the em dash (U+2014); use a plain hyphen "-" instead.
 
 ## Status (2026-10-06)
 
@@ -138,7 +140,7 @@ durations. For automated checks, Playwright with an injected `window.ethereum` r
 ## Documentation (keep in sync with the code)
 
 - `docs/V15_HARDENING.md`: public disclosure of the V15 changes and the fee.
-- `docs/CONTRACTS_TECHNICAL.md`: V15 reference with `File.sol:line` citations —
+- `docs/CONTRACTS_TECHNICAL.md`: V15 reference with `File.sol:line` citations -
   **any contract change shifts lines: re-check the citations.**
 - `contracts/docs/ABI_TRACEABILITY.md`: 364 classified entries (consumer, indexed or
   not). After an ABI change, keep the existing V15 classification and classify new
