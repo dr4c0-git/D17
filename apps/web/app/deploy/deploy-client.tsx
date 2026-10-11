@@ -22,6 +22,7 @@ import {
 } from "@/lib/d17Api";
 import { LOCAL_DEPLOYER_SCHEMA, PROTOCOL_DEPLOYED, PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
 import { d17Href } from "@/lib/d17Network";
+import { ensureWalletChain } from "@/lib/walletChain";
 
 declare global {
   interface Window {
@@ -443,8 +444,9 @@ function DeployForm() {
     setError("");
     try {
       if (!window.ethereum) throw new Error("No browser wallet found.");
+      await window.ethereum.request({ method: "eth_requestAccounts" });
+      await ensureWalletChain(window.ethereum);
       const provider = new ethers.BrowserProvider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
       const network = await provider.getNetwork();
       if (network.chainId !== CHAIN_ID_BIG) throw new Error(`Switch your wallet to ${CHAIN_NAME} — this deployer serves ${CHAIN_NAME} only.`);
       const signer = await provider.getSigner();
@@ -461,6 +463,7 @@ function DeployForm() {
     setBusy("Simulating…");
     try {
       if (!window.ethereum) throw new Error("No browser wallet found.");
+      await ensureWalletChain(window.ethereum);
       const provider = new ethers.BrowserProvider(window.ethereum);
       const network = await provider.getNetwork();
       if (network.chainId !== CHAIN_ID_BIG) throw new Error(`Switch your wallet to ${CHAIN_NAME} first.`);

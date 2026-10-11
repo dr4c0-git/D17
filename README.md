@@ -79,8 +79,11 @@ npm run demo:local
 Then open [http://localhost:3000/?network=local](http://localhost:3000/?network=local)
 and follow the instructions printed in the terminal:
 
-1. In your wallet (MetaMask or similar, ideally a separate browser profile), add a
-   network: RPC `http://127.0.0.1:8545`, chain id `31337`, currency `ETH`.
+1. Use a wallet (MetaMask or similar, ideally in a separate browser profile). When you
+   connect, the site asks the wallet to add and switch to the demo network (chain id
+   `31337`); accept. To add it by hand: RPC `http://127.0.0.1:8545`, chain id `31337`,
+   currency `ETH`. MetaMask's built-in "Localhost 8545" network uses chain id 1337, which
+   is not the demo chain.
 2. Import one of the two test accounts printed by the script (10,000 test ETH each).
    They are Hardhat's public test accounts: never send real funds to them.
 3. Explore:

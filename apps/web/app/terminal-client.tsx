@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SimpleView, type SimpleModel, type SimplePhase } from "./simple-view";
+import { ensureWalletChain } from "@/lib/walletChain";
 import {
   apiBase,
   CHAIN_ID,
@@ -2573,8 +2574,9 @@ function ParticipantsTerminal() {
           setOwnerLockers([]);
         });
       }
+      await injected.request({ method: "eth_requestAccounts" });
+      await ensureWalletChain(injected);
       const provider = new ethers.BrowserProvider(injected);
-      await provider.send("eth_requestAccounts", []);
       await assertChain(provider);
       const signer = await provider.getSigner();
       setWalletAddress(await signer.getAddress());
@@ -2936,8 +2938,10 @@ function ParticipantsTerminal() {
     setPendingAction(label);
     setTxStartedAt(Math.floor(Date.now() / 1000));
     try {
-      const provider = new ethers.BrowserProvider(resolveWalletForTx());
-      await provider.send("eth_requestAccounts", []);
+      const wallet = resolveWalletForTx();
+      await wallet.request({ method: "eth_requestAccounts" });
+      await ensureWalletChain(wallet);
+      const provider = new ethers.BrowserProvider(wallet);
       await assertChain(provider);
       const signer = await provider.getSigner();
       setWalletAddress(await signer.getAddress());
@@ -6984,7 +6988,8 @@ function parseContractError(error: unknown) {
   if (reason && messages[reason]) return { message: messages[reason], raw };
   if (reason) return { message: humanizeReason(reason), raw };
   if (lower.includes("user rejected") || lower.includes("action_rejected")) return { message: messages.ACTION_REJECTED, raw };
-  if (raw.includes("Switch your wallet to")) return { message: `Switch your wallet to ${CHAIN_NAME} and try again.`, raw };
+  if (raw.includes("Switch your wallet to"))
+    return { message: `Your wallet is on another network. Accept the switch to ${CHAIN_NAME} in your wallet, then try again.`, raw };
   if (raw.includes("No browser wallet found")) return { message: "No browser wallet was found. Open the page in a wallet-enabled browser.", raw };
   if (raw.includes("Multiple wallets detected")) return { message: "More than one wallet extension is installed. Pick one in the wallet chooser, then try again.", raw };
   if (raw.includes("is not a valid address")) return { message: "One of the address fields is not a valid Ethereum address.", raw };

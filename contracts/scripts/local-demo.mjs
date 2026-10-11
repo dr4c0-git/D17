@@ -245,7 +245,9 @@ async function main() {
  Chain RPC      ${RPC_URL}   chain id 31337   currency ETH
 
  Wallet (MetaMask or similar, ideally in a separate browser profile):
-   1. Add a network: RPC ${RPC_URL}, chain id 31337, symbol ETH.
+   1. Network: when you connect, the site asks your wallet to add and switch to
+      it (chain id 31337). To add it by hand: RPC ${RPC_URL}, chain id 31337,
+      symbol ETH. MetaMask's built-in "Localhost 8545" uses 1337: wrong network.
    2. Import one of these PUBLIC Hardhat test accounts (10,000 test ETH each):
         you     ${you.address}
                 ${you.key}
