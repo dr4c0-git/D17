@@ -2,7 +2,7 @@
 
 Fork of `0xlocker/D17` (MIT license), turned into a proprietary "D17 V15" launchpad
 with a protocol fee. Repository: `dr4c0-git/D17`. Work directly on
-`main` (owner's choice): no side branches; `v15-hardening` is an obsolete copy to delete. Upstream docs: https://d17docs.vercel.app/docs
+`main` (owner's choice): no side branches. Upstream docs: https://d17docs.vercel.app/docs
 (unreachable from the cloud sandbox; local copies in `docs/`).
 
 ## Standing constraints (set by the owner)
