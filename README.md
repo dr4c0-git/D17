@@ -167,6 +167,12 @@ for a seed phrase or private key.
 
 ### Participant terminal
 
+The terminal opens in a **simple view**: one column in plain language, the current
+step explained in one sentence, one clear action at a time (connect your wallet,
+create your personal vault, put in ETH, take it back, collect your tokens, send them
+to your wallet) and the launch's rules in everyday words. **Expert view** (top bar,
+or `?view=expert`) shows the full terminal described below; the choice is remembered.
+
 - Discovers registered D17 launches on Sepolia and mainnet.
 - Shows the complete lifecycle: scheduled rounds, refund windows,
   finalization, settlement, pool readiness and trading.

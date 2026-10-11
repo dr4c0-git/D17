@@ -58,6 +58,9 @@ export default defineConfig({
       type: "edr-simulated",
       chainType: "l1",
       allowBlocksWithSameTimestamp: true,
+      // A block every second, like a live network: the contracts' phase follows
+      // block.timestamp, so an idle chain would otherwise freeze the launch's clock.
+      mining: { auto: true, interval: 1000 },
       blockGasLimit: 40_000_000,
       transactionGasCap: false
     },

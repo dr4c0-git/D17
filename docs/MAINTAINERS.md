@@ -143,6 +143,11 @@ durations. For automated checks, Playwright with an injected `window.ethereum` r
 - `contracts/docs/ABI_TRACEABILITY.md`: 364 classified entries (consumer, indexed or
   not). After an ABI change, keep the existing V15 classification and classify new
   entries by hand (there is no generator in the repo).
+- `apps/web/app/simple-view.tsx`: the default plain-language participant view (presentation
+  only; data and transactions come from `ParticipantsTerminal`). Vocabulary: locker =
+  "personal vault", commit = "put in", refund = "take back", settle = "collect tokens",
+  finalize = "close the sale", create pool = "open trading". Any rule change must be
+  reflected in its "How this launch works" sentences.
 - `docs/blog/`: 9 V15 essays (post 09 explains the protocol fee).
 - Opening price: it follows the average price paid and equals it (net of fees) only when
   `lpTokens == saleTokens`; never write that it is always equal.

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SimpleView, type SimpleModel, type SimplePhase } from "./simple-view";
 import {
   apiBase,
   CHAIN_ID,
@@ -586,6 +587,7 @@ type PositionSnapshot = {
   withdrawableWeth: string;
   withdrawableWethExact: string;
   residualWeth: string;
+  residualWethExact: string;
   withdrawableTokens: string;
   withdrawableTokensExact: string;
   claimedSaleTokens: string;
@@ -904,6 +906,27 @@ function ParticipantsTerminal() {
   const [knownLaunches, setKnownLaunches] = useState<KnownLaunch[]>([]);
   const [newLaunchCount, setNewLaunchCount] = useState(0);
   const [railTab, setRailTab] = useState<"rounds" | "launches">("rounds");
+  // Simple view (plain language, one action at a time) is the default; the full
+  // terminal is the "expert" view. ?view=expert|simple overrides and is remembered.
+  const [viewMode, setViewMode] = useState<"simple" | "expert">("simple");
+  useEffect(() => {
+    try {
+      const requested = new URLSearchParams(window.location.search).get("view");
+      const saved = window.localStorage.getItem("d17-view");
+      const next = requested === "expert" || requested === "simple" ? requested : saved === "expert" ? "expert" : "simple";
+      setViewMode(next);
+    } catch {}
+  }, []);
+  const changeViewMode = (next: "simple" | "expert") => {
+    setViewMode(next);
+    try {
+      window.localStorage.setItem("d17-view", next);
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", next);
+      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    } catch {}
+    window.scrollTo({ top: 0 });
+  };
   const knownLaunchesRef = useRef<KnownLaunch[]>([]);
   const seenLaunchesRef = useRef<Set<string> | null>(null);
   const launchesSeededRef = useRef(false);
@@ -2860,6 +2883,27 @@ function ParticipantsTerminal() {
     });
   };
 
+  /** Simple view: refunded ETH waiting in the locker goes back to the wallet as ETH —
+   *  the locker releases WETH, then the wallet unwraps it (two confirmations). */
+  const withdrawEthToWallet = async () => {
+    await sendTx("send ETH back to wallet", async (signer) => {
+      requireAddress(lockerAddress, "Locker");
+      requireAddress(launchAddress, "Launch contract");
+      requireAddress(wethAddress, "WETH");
+      const residual = ethers.parseEther(position?.residualWethExact || "0");
+      const available = ethers.parseEther(position?.withdrawableWethExact || "0");
+      const amount = residual < available ? residual : available;
+      if (amount <= 0n) throw new Error("Nothing to send back");
+      const locker = await contractWithSigner("D17Locker", lockerAddress, signer);
+      const tx = (await locker.withdrawUnlockedWeth(launchAddress, amount)) as ethers.ContractTransactionResponse;
+      await waitForTx(tx, "WETH withdrawal");
+      const weth = new ethers.Contract(wethAddress, ["function withdraw(uint256 amount)"], signer);
+      const unwrap = (await weth.withdraw(amount)) as ethers.ContractTransactionResponse;
+      await waitForTx(unwrap, "WETH to ETH");
+      return unwrap.hash;
+    });
+  };
+
   const withdrawTokens = async (amountOverride?: string) => {
     await sendTx("withdraw sale tokens", async (signer) => {
       requireAddress(lockerAddress, "Locker");
@@ -3143,34 +3187,183 @@ function ParticipantsTerminal() {
     </>
   );
 
+  const simplePhase: SimplePhase = !phase
+    ? "unknown"
+    : phase.phaseKind === PHASE.NOT_STARTED
+      ? "not-started"
+      : phase.phaseKind === PHASE.ROUND_OPEN
+        ? "round"
+        : phase.phaseKind === PHASE.REFUND_OPEN
+          ? "refund"
+          : phase.phaseKind === PHASE.READY_TO_FINALIZE
+            ? "finalize"
+            : phase.phaseKind === PHASE.SETTLEMENT_OPEN
+              ? "settle"
+              : phase.phaseKind === PHASE.POOL_READY
+                ? "pool-ready"
+                : phase.phaseKind === PHASE.TRADING_OPEN
+                  ? "trading"
+                  : phase.phaseKind === PHASE.FAILED
+                    ? "failed"
+                    : "unknown";
+  const simpleSupply = launchConfig
+    ? launchConfig.saleTokens + launchConfig.lpTokens + launchConfig.deadTokens + launchConfig.manualTokens
+    : 0n;
+  const simplePct = (part: bigint) =>
+    simpleSupply > 0n ? Math.round((Number(part) / Number(simpleSupply)) * 100) : 0;
+  const simpleModel: SimpleModel = {
+    chainName: CHAIN_NAME,
+    isMainnet: IS_MAINNET,
+    hasLaunch,
+    loaded: stateLoaded && Boolean(phase),
+    phase: simplePhase,
+    roundIndex: phase && (phase.phaseKind === PHASE.ROUND_OPEN || phase.phaseKind === PHASE.REFUND_OPEN) ? phase.index : 0,
+    startsAt: phase?.startsAt ?? 0,
+    endsAt: phase && isFiniteEnd(phase.endsAt) ? phase.endsAt : 0,
+    rounds: rounds.slice(0, ROUND_COUNT).map((round, index) => ({
+      startAt: round.startAt,
+      endAt: round.endAt,
+      refundEndAt: round.refundEndAt,
+      takeBackFeePct: round.deflectionCostPct,
+      hasTakeBack: roundHasRefundWindow(round, index),
+    })),
+    nowSeconds,
+    launch: launchMetadata
+      ? {
+          name: launchMetadata.tokenName?.trim() || "",
+          symbol: launchMetadata.tokenSymbol?.trim() || tokenSymbol,
+          description: launchMetadata.description || "",
+          logoSrc: launchMetadata.logo?.svgUrl ? `${apiBase()}${launchMetadata.logo.svgUrl}` : launchMetadata.logoSvgUri || "",
+          links: (launchMetadata.links || [])
+            .filter((link) => link.url && /^https?:\/\//i.test(link.url))
+            .map((link) => ({ label: link.linkType.charAt(0).toUpperCase() + link.linkType.slice(1), url: link.url })),
+          verified: Boolean(launchMetadata.verified),
+        }
+      : null,
+    rulesMismatch: rulesState === "mismatch",
+    rules: launchConfig
+      ? {
+          creatorEthPct: launchConfig.treasuryPct,
+          feePct: launchConfig.protocolFeePct,
+          laterTakeBackFeePct: launchConfig.refundPenaltyPct,
+          supply: Number(ethers.formatUnits(simpleSupply, 18)),
+          salePct: simplePct(launchConfig.saleTokens),
+          poolPct: simplePct(launchConfig.lpTokens),
+          creatorTokenPct: simplePct(launchConfig.manualTokens),
+          burnedPct: simplePct(launchConfig.deadTokens),
+        }
+      : null,
+    raisedEth: Number(launchStats?.totalCommittedWeth ?? 0),
+    participants: lockerSummaries.length,
+    minimumEth: Number(launchStats?.anchorTargetWeth ?? 0),
+    minimumReached: Boolean(launchStats?.anchorReady),
+    roundOneRaisedEth: Number(roundMarket[0]?.raisedWeth ?? 0),
+    priceEthPerToken: stagePrice ? Number(stagePrice.value) : null,
+    wallet: { connected: hasWallet, hasVault: hasLocker, findingVault: lockerLookupPending },
+    mine: {
+      totalEth: totalCommitted,
+      totalTokens: totalPreviewTokens,
+      rows: positionRows.map((item) => ({
+        round: item.round,
+        eth: Number(item.committedWeth),
+        tokens: Number(Number(item.claimedTokens) > 0 ? item.claimedTokens : item.previewTokens),
+        takenBack: item.refunded,
+        collected: item.tokensClaimed,
+      })),
+      collected: Boolean(position?.known && position.liquiditySettled),
+      tokensToSend: Number(position?.withdrawableTokens || 0),
+      ethToRecover: Number(position?.lockedWeth || 0),
+      ethWaiting: Math.min(Number(position?.residualWethExact || 0), Number(position?.withdrawableWethExact || 0)),
+    },
+    takeBack: { eth: refundableWeth, feePct: refundCostPct },
+    amount: contribution,
+    setAmount: setContribution,
+    estimateTokens: commitEstimate ? Number(commitEstimate.exact) : null,
+    pending: pendingAction,
+    pendingSeconds: txElapsed,
+    canCommit: canCommit && !isReplay,
+    canTakeBack: canRefund && refundableWeth > 0 && !isReplay,
+    canClose: canFinalize && !isReplay,
+    canCollect: canSettleAndClaim && !isReplay,
+    canOpenTrading: phase?.phaseKind === PHASE.POOL_READY && !ethers.isAddress(poolAddress) && !isReplay,
+    canSend: canWithdrawTokens && !isReplay,
+    canRecover: canFailedRefund && hasLocker && Number(position?.lockedWeth || 0) > 0 && !isReplay,
+    tokenAddress,
+    creatorVesting: creatorVesting
+      ? (() => {
+          const computed = vestedCreatorAmount(creatorVesting, nowSeconds);
+          const vested = computed > creatorVesting.released ? computed : creatorVesting.released;
+          return {
+            total: Number(ethers.formatUnits(creatorVesting.total, 18)),
+            unlocked: Number(ethers.formatUnits(vested, 18)),
+            sent: Number(ethers.formatUnits(creatorVesting.released, 18)),
+            fullyUnlockedAt: creatorVesting.startsAt + creatorVesting.periodSeconds,
+            canSend: vested > creatorVesting.released && !pendingAction && !isReplay,
+          };
+        })()
+      : null,
+    otherLaunches: knownLaunches.map((item) => ({
+      address: item.launch,
+      label: item.symbol || shortAddress(item.launch),
+      status: item.phaseLabel,
+      current: hasLaunch && item.launch.toLowerCase() === launchAddress.toLowerCase(),
+    })),
+    actions: {
+      connect: () => void connectWallet(),
+      createVault: () => void createLocker(),
+      commit: () => void commitToRound(),
+      takeBack: () => void refundCurrentRound(),
+      close: () => void finalizeLaunch(),
+      collect: () => void settleAndClaim(),
+      openTrading: () => void createOfficialPool(),
+      send: () => void withdrawTokens(position?.withdrawableTokensExact),
+      recover: () => void refundFailedLaunch(),
+      sendEth: () => void withdrawEthToWallet(),
+      releaseCreator: () => void releaseCreatorTokens(),
+      selectLaunch,
+      expertView: () => changeViewMode("expert"),
+    },
+  };
+  const simpleView = viewMode === "simple";
+
   return (
     <CurrencyContext.Provider value={currency}>
-    <main className="flex min-h-dvh flex-col bg-paper text-ink xl:h-dvh xl:overflow-hidden">
+    <main className={`flex min-h-dvh flex-col bg-paper text-ink ${simpleView ? "" : "xl:h-dvh xl:overflow-hidden"}`}>
       {!PROTOCOL_DEPLOYED && (
         <p className="shrink-0 border-b border-hairline px-4 py-2 font-mono text-[10px] uppercase tracking-[0.02em] text-alert sm:px-6" role="status">
-          The D17 V15 contracts are not deployed on {CHAIN_NAME} yet — no launch can be created or joined on this network.
+          {simpleView
+            ? `D17 is not open on ${CHAIN_NAME} yet: no launch can be created or joined here.`
+            : `The D17 V15 contracts are not deployed on ${CHAIN_NAME} yet — no launch can be created or joined on this network.`}
         </p>
       )}
       <header className="shrink-0 border-b border-hairline">
         <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
           <p className="flex items-baseline gap-3 font-mono text-[10px] uppercase tracking-[0.02em]">
             <span className="text-ink">D17</span>
-            <span className="hidden text-dim sm:inline">Launch terminal</span>
+            <span className="hidden text-dim sm:inline">{simpleView ? "Launchpad" : "Launch terminal"}</span>
             <span className="hidden text-quiet sm:inline">{NETWORK_LABEL}</span>
           </p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <div className="hidden flex-wrap items-center gap-x-3 gap-y-2 md:flex">{topbarControls}</div>
+            {!simpleView && <div className="hidden flex-wrap items-center gap-x-3 gap-y-2 md:flex">{topbarControls}</div>}
             {/* Nav links + wallet live in their own cluster, fenced from the
                 status toggles by a hairline. */}
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 md:border-l md:border-hairline md:pl-3">
             <NetworkSwitch disabled={Boolean(pendingAction)} />
+            <button
+              type="button"
+              onClick={() => changeViewMode(simpleView ? "expert" : "simple")}
+              title={simpleView ? "Charts, every transaction, contract addresses" : "Plain-language view"}
+              className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink max-xl:min-h-11 max-xl:inline-flex max-xl:items-center"
+            >
+              {simpleView ? "Expert view" : "Simple view"}
+            </button>
             <a
               href={d17Href("/deploy")}
               className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink max-xl:min-h-11 max-xl:inline-flex max-xl:items-center"
             >
-              Deploy
+              {simpleView ? "Create a launch" : "Deploy"}
             </a>
-            <Dialog>
+            {!simpleView && <Dialog>
               <DialogTrigger asChild>
                 <Button size="sm" variant="ghost">
                   Wallet setup
@@ -3196,7 +3389,7 @@ function ParticipantsTerminal() {
                   </p>
                 </div>
               </DialogContent>
-            </Dialog>
+            </Dialog>}
             {walletAddress ? (
               <div className="inline-flex items-center gap-1.5">
                 <Button
@@ -3293,11 +3486,19 @@ function ParticipantsTerminal() {
         </div>
         {/* Mobile control strip: one thumb-scrollable row (launch switcher,
             replay, toggles) with 44px hit areas — type stays 10px. */}
+        {!simpleView && (
         <div className="flex items-center gap-x-4 overflow-x-auto border-t border-faint px-4 whitespace-nowrap sm:px-6 md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0 [&_button]:min-h-11 [&_select]:min-h-11">
           {topbarControls}
         </div>
+        )}
       </header>
 
+      {simpleView ? (
+        <div className="flex-1">
+          <SimpleView m={simpleModel} />
+        </div>
+      ) : (
+      <>
       {/* Mobile section nav: the phase chip + underlined jump links with a
           scrollspy — the 5-screen page never needs manual travel. Sticky,
           horizontally scrollable, xl:hidden. */}
@@ -4195,12 +4396,14 @@ function ParticipantsTerminal() {
           )}
         </aside>
       </div>
+      </>
+      )}
 
       {/* Mobile action bar: the phase's one primary action, under the thumb,
           only while the real CTA is off-screen. Connect fires directly;
           everything else jumps to the stage CTA (single source of truth for
           transactions — the bar never duplicates tx logic). */}
-      {actionBarVisible && mobileAction && (
+      {!simpleView && actionBarVisible && mobileAction && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-paper px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] xl:hidden">
           <Button className="w-full" onClick={jumpToStageCta}>
             {mobileAction.label} <span aria-hidden>→</span>
@@ -5863,6 +6066,7 @@ function toPositionSnapshot(raw: ethers.Result | null, lockedWeth: bigint, withd
       withdrawableWeth: formatEth(withdrawableWeth),
       withdrawableWethExact: ethers.formatEther(withdrawableWeth),
       residualWeth: "0",
+      residualWethExact: "0",
       withdrawableTokens: "0",
       withdrawableTokensExact: "0",
       claimedSaleTokens: "0",
@@ -5882,6 +6086,7 @@ function toPositionSnapshot(raw: ethers.Result | null, lockedWeth: bigint, withd
     withdrawableWeth: formatEth(withdrawableWeth),
     withdrawableWethExact: ethers.formatEther(withdrawableWeth),
     residualWeth: formatEth(raw.residualWeth as bigint),
+    residualWethExact: ethers.formatEther(raw.residualWeth as bigint),
     withdrawableTokens: formatToken(raw.withdrawableTokens as bigint),
     withdrawableTokensExact: ethers.formatUnits(raw.withdrawableTokens as bigint, 18),
     claimedSaleTokens: formatToken(raw.claimedSaleTokens as bigint),
