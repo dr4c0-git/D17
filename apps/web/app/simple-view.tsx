@@ -377,6 +377,8 @@ function ActionCard({ m }: { m: SimpleModel }) {
   const symbol = m.launch?.symbol || "tokens";
   const round = m.roundIndex + 1;
   const current = m.rounds[m.roundIndex];
+  // Round 1 missed its minimum: the launch will be cancelled, so taking ETH back now only costs a fee.
+  const roundOneMissed = m.roundIndex === 0 && m.minimumEth > 0 && !m.minimumReached;
   let body: ReactNode = null;
 
   if (m.phase === "not-started") {
@@ -437,8 +439,8 @@ function ActionCard({ m }: { m: SimpleModel }) {
   } else if (m.phase === "refund") {
     body = (
       <>
-        <Steps m={m} verb="Take back my ETH (optional)" />
-        {m.roundIndex === 0 && m.minimumEth > 0 && !m.minimumReached ? (
+        <Steps m={m} verb={roundOneMissed ? "Wait for the cancellation" : "Take back my ETH (optional)"} />
+        {roundOneMissed ? (
           <p className="mt-3 text-[15px] leading-relaxed text-dim">
             Nothing to do. <span className="font-semibold text-ink">Do not take your ETH back now</span>: it would cost
             {" "}{m.takeBack.feePct}%, while the cancellation gives everything back, with no fee.

@@ -7,7 +7,8 @@
 > manifests in `deployments/` read `"not-deployed"` until the suite is deployed on
 > Sepolia (then mainnet), verified and published. The upstream V14 addresses are not
 > compatible with this tree. Every rule change is listed in
-> [docs/V15_HARDENING.md](./docs/V15_HARDENING.md).
+> [docs/V15_HARDENING.md](./docs/V15_HARDENING.md); the history of the fork is in
+> [CHANGELOG.md](./CHANGELOG.md).
 
 ![D17 launch terminal: fair launches, mechanically](./d17-main.png)
 
