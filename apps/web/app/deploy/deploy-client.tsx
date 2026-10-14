@@ -598,7 +598,7 @@ function DeployForm() {
     if (problem.startsWith("protocol not deployed")) return `D17 is not open on ${CHAIN_NAME} yet.`;
     if (problem === "protocol fee not loaded") return "Loading the D17 fee…";
     return problem;
-  });
+  }).sort((left, right) => stepOf(left) - stepOf(right));
 
   const card = "border border-hairline bg-panel/40 px-5 py-5 sm:px-6";
   const stepTitle = "text-[18px] font-semibold text-ink";
@@ -1316,6 +1316,12 @@ function DeployForm() {
       )}
     </main>
   );
+}
+
+/** Step number quoted in a guided-form message ("(step 3)"), for ordering; 9 when none. */
+function stepOf(message: string) {
+  const match = /\(step (\d)\)/.exec(message);
+  return match ? Number(match[1]) : 9;
 }
 
 /** The deploy steps in plain words for the guided form. */

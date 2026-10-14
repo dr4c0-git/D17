@@ -1,6 +1,6 @@
 # D17
 
-> **Fork notice — D17 V15.** This repository is a fork of
+> **Fork notice - D17 V15.** This repository is a fork of
 > [0xlocker/D17](https://github.com/0xlocker/D17) (MIT, original copyright kept in
 > `LICENSE`). It ships hardened V15 contracts with a published protocol fee (at most
 > 2%, charged only on successful settlement). V15 is **not deployed** yet: the
@@ -175,7 +175,9 @@ for a seed phrase or private key.
 The terminal opens in a **simple view**: one column in plain language, the current
 step explained in one sentence, one clear action at a time (connect your wallet,
 create your personal vault, put in ETH, take it back, collect your tokens, send them
-to your wallet) and the launch's rules in everyday words. **Expert view** (top bar,
+to your wallet) and the launch's rules in everyday words. During the sale a
+**price per round** chart shows what each round paid against the round-1 floor
+(the token only trades once the sale is over). **Expert view** (top bar,
 or `?view=expert`) shows the full terminal described below; the choice is remembered.
 
 - Discovers registered D17 launches on Sepolia and mainnet.

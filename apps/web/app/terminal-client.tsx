@@ -918,6 +918,9 @@ function ParticipantsTerminal() {
       setViewMode(next);
     } catch {}
   }, []);
+  useEffect(() => {
+    setPlainLanguage(viewMode === "simple");
+  }, [viewMode]);
   const changeViewMode = (next: "simple" | "expert") => {
     setViewMode(next);
     try {
@@ -1856,7 +1859,9 @@ function ParticipantsTerminal() {
         })();
         setAnchorPriceWeth(anchorWad > 0n ? formatWethPerToken(anchorWad) : "");
         const minCommit = toWei(config.minCommitWeth ?? detail.minCommitWeth);
-        const anchorTarget = toWei(apiRounds[0]?.anchorTargetWeth);
+        // Round 1 minimum is minPhase1Weth: the per-round anchor target is always 0 for round 1.
+        const minPhase1 = toWei(config.minPhase1Weth ?? detail.minPhase1Weth);
+        const anchorTarget = minPhase1 > 0n ? minPhase1 : toWei(apiRounds[0]?.anchorTargetWeth);
         // Canonical total: the contract's own totalCommittedWeth (served on
         // the detail). The old locker-sum retained refund PENALTIES that the
         // contract removes from the raise (fixture: 1.5078 vs correct 1.502).
@@ -1865,7 +1870,8 @@ function ParticipantsTerminal() {
           totalCommittedWeth: formatEth(canonicalTotal > 0n ? canonicalTotal : totalNet > 0n ? totalNet : 0n),
           minCommitWeth: ethers.formatEther(minCommit),
           minCommitLabel: formatEth(minCommit),
-          anchorReady: previous?.anchorReady ?? true, // not exposed by the API
+          // Not exposed by the API: approximated from round 1 net raise (ignores the min anchor price).
+          anchorReady: anchorTarget > 0n ? perRoundRaised[0] >= anchorTarget : previous?.anchorReady ?? true,
           anchorTargetWeth: anchorTarget > 0n ? formatEth(anchorTarget) : previous?.anchorTargetWeth ?? "0",
         }));
 
@@ -1950,7 +1956,8 @@ function ParticipantsTerminal() {
         launch.totalCommittedWeth().catch(() => 0n) as Promise<bigint>,
         launch.minCommitWeth().catch(() => 0n) as Promise<bigint>,
         launch.anchorReady().catch(() => false) as Promise<boolean>,
-        launch.roundAnchorTargetWeth(0).catch(() => 0n) as Promise<bigint>,
+        // Round 1 minimum: minPhase1Weth (roundAnchorTargetWeth(0) is always 0 since round 1 sets the anchor).
+        (launch.minPhase1Weth() as Promise<bigint>).catch(() => launch.roundAnchorTargetWeth(0)).catch(() => 0n) as Promise<bigint>,
         launch.saleTokens().catch(() => 0n) as Promise<bigint>,
         launch.lpTokens().catch(() => 0n) as Promise<bigint>,
         launch.deadTokens().catch(() => 0n) as Promise<bigint>,
@@ -2581,7 +2588,9 @@ function ParticipantsTerminal() {
       const signer = await provider.getSigner();
       setWalletAddress(await signer.getAddress());
       toast("Wallet connected", {
-        description: `${name || "Wallet"} is ready for locker actions on ${CHAIN_NAME}.`,
+        description: plainLanguage
+          ? "Your wallet is ready. What you can do is shown below."
+          : `${name || "Wallet"} is ready for locker actions on ${CHAIN_NAME}.`,
         icon: <span className="font-mono text-[12px] text-ink">✓</span>,
       });
     } catch (error) {
@@ -2759,9 +2768,11 @@ function ParticipantsTerminal() {
     apiActivityCacheRef.current = null;
     rpcActivityCacheRef.current = null;
     rpcBlockTimesRef.current = new Map();
-    toast("Launch selected", {
-      description: "Rules, token, phase, and locker factory will be read from this launch.",
-    });
+    if (!plainLanguage) {
+      toast("Launch selected", {
+        description: "Rules, token, phase, and locker factory will be read from this launch.",
+      });
+    }
   };
 
   // api mode: on first load, always jump to the newest indexed launch (the
@@ -2948,14 +2959,14 @@ function ParticipantsTerminal() {
       const hash = await action(signer);
       if (hash) {
         setTxLog((current) => [{ label, hash, at: Math.floor(Date.now() / 1000) }, ...current].slice(0, 8));
-        toast("Transaction confirmed", {
-          description: label,
+        toast(plainLanguage ? "Done" : "Transaction confirmed", {
+          description: txLabel(label),
           icon: <span className="font-mono text-[12px] text-live">✓</span>,
         });
         await Promise.all([refreshState({ announce: false }), refreshActivity()]);
       }
     } catch (error) {
-      showError(`${label} failed`, error);
+      showError(plainLanguage ? `${txLabel(label)}: it did not go through` : `${label} failed`, error);
     } finally {
       setPendingAction("");
       setTxStartedAt(0);
@@ -3262,6 +3273,12 @@ function ParticipantsTerminal() {
     minimumEth: Number(launchStats?.anchorTargetWeth ?? 0),
     minimumReached: Boolean(launchStats?.anchorReady),
     roundOneRaisedEth: Number(roundMarket[0]?.raisedWeth ?? 0),
+    roundMarket: rounds.slice(0, ROUND_COUNT).map((_, index) => {
+      const market = roundMarket[index];
+      const price = market?.hasPrice ? Number(market.priceWeth) : 0;
+      return { priceEth: price > 0 ? price : null, raisedEth: Number(market?.raisedWeth ?? 0) };
+    }),
+    roundOneTokens: launchConfig ? (Number(ethers.formatUnits(launchConfig.saleTokens, 18)) * (rounds[0]?.allocationPct ?? 0)) / 100 : 0,
     priceEthPerToken: stagePrice ? Number(stagePrice.value) : null,
     wallet: { connected: hasWallet, hasVault: hasLocker, findingVault: lockerLookupPending },
     mine: {
@@ -6037,9 +6054,34 @@ async function assertChain(provider: ethers.BrowserProvider) {
   }
 }
 
+/** True while the simple (plain-language) view is shown: toasts then use plain words. */
+let plainLanguage = true;
+function setPlainLanguage(value: boolean) {
+  plainLanguage = value;
+}
+
+const PLAIN_TX_LABELS: Record<string, string> = {
+  "create locker": "Create your personal vault",
+  "commit to round": "Put in ETH",
+  "refund current round": "Take back your ETH",
+  "refund failed launch": "Get your ETH back",
+  "finalize launch": "Close the sale",
+  "settle and claim": "Collect your tokens",
+  "settle after claim window": "Collect your tokens",
+  "create official pool": "Open trading",
+  "release creator tokens": "Send the creator's unlocked tokens",
+  "send ETH back to wallet": "Send ETH to your wallet",
+  "withdraw sale tokens": "Send tokens to your wallet",
+  "withdraw WETH": "Send WETH to your wallet",
+};
+
+function txLabel(label: string) {
+  return plainLanguage ? PLAIN_TX_LABELS[label] ?? label : label;
+}
+
 async function waitForTx(tx: ethers.ContractTransactionResponse, label: string) {
-  toast("Transaction submitted", {
-    description: `${label}: ${tx.hash}`,
+  toast(plainLanguage ? "Sent, waiting for confirmation" : "Transaction submitted", {
+    description: plainLanguage ? "This usually takes a few seconds." : `${label}: ${tx.hash}`,
     icon: <span className="font-mono text-[12px] text-ink">→</span>,
   });
   const receipt = await tx.wait();
@@ -6990,7 +7032,11 @@ function parseContractError(error: unknown) {
   if (lower.includes("user rejected") || lower.includes("action_rejected")) return { message: messages.ACTION_REJECTED, raw };
   if (raw.includes("Switch your wallet to"))
     return { message: `Your wallet is on another network. Accept the switch to ${CHAIN_NAME} in your wallet, then try again.`, raw };
-  if (raw.includes("No browser wallet found")) return { message: "No browser wallet was found. Open the page in a wallet-enabled browser.", raw };
+  if (raw.includes("No browser wallet found"))
+    return {
+      message: "No wallet found in this browser. Install MetaMask (metamask.io), or open this page in your wallet app's browser.",
+      raw,
+    };
   if (raw.includes("Multiple wallets detected")) return { message: "More than one wallet extension is installed. Pick one in the wallet chooser, then try again.", raw };
   if (raw.includes("is not a valid address")) return { message: "One of the address fields is not a valid Ethereum address.", raw };
   if (raw.includes("Contribution must be greater than 0")) return { message: "Contribution must be greater than 0 ETH.", raw };

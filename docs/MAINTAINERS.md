@@ -150,6 +150,8 @@ durations. For automated checks, Playwright with an injected `window.ethereum` r
   "personal vault", commit = "put in", refund = "take back", settle = "collect tokens",
   finalize = "close the sale", create pool = "open trading". Any rule change must be
   reflected in its "How this launch works" sentences.
+- Round 1 minimum in the web app is `minPhase1Weth`: `roundAnchorTargetWeth(0)` is always 0
+  (round 1 sets the anchor), so never read the minimum from it.
 - `apps/web/app/deploy/deploy-client.tsx`: guided form by default (same state, checks,
   simulation and transaction as the advanced form). Duration presets live in
   `DURATION_PRESETS` (quick is disabled on mainnet: windows must be >= 1 h). In guided

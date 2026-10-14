@@ -5,7 +5,7 @@
 // click away behind "Expert view". This file only presents data computed by
 // ParticipantsTerminal; it reads nothing from the chain itself.
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -63,6 +63,8 @@ export type SimpleModel = {
   minimumEth: number; // round 1 minimum
   minimumReached: boolean;
   roundOneRaisedEth: number;
+  roundOneTokens: number; // tokens sold in round 1 (all of them, once the minimum is reached)
+  roundMarket: { priceEth: number | null; raisedEth: number }[]; // per round, price = ETH per token
   priceEthPerToken: number | null;
   wallet: { connected: boolean; hasVault: boolean; findingVault: boolean };
   mine: {
@@ -135,6 +137,7 @@ export function SimpleView({ m }: { m: SimpleModel }) {
           <ActionCard m={m} />
           {m.mine.ethWaiting > 0 && m.wallet.hasVault && <EthWaiting m={m} />}
           <Numbers m={m} />
+          {!["not-started", "failed", "unknown"].includes(m.phase) && <RoundPriceChart m={m} />}
           {(m.mine.totalEth > 0 || m.mine.rows.length > 0) && <Participation m={m} />}
           {m.phase === "trading" && m.creatorVesting && m.creatorVesting.total > 0 && <CreatorTokens m={m} />}
           {m.rules && <HowItWorks m={m} />}
@@ -202,6 +205,14 @@ function statusText(m: SimpleModel): { title: string; detail: string } {
         detail: `${duration(Math.max(0, m.endsAt - m.nowSeconds))} left to join this round.`,
       };
     case "refund":
+      if (m.roundIndex === 0 && m.minimumEth > 0 && !m.minimumReached) {
+        return {
+          title: "Round 1 did not reach its minimum",
+          detail: `It raised ${eth(m.roundOneRaisedEth)} of the ${eth(m.minimumEth)} ETH it needed. In ${duration(
+            Math.max(0, m.endsAt - m.nowSeconds)
+          )} the launch will be cancelled and everyone gets all of their ETH back, with no fee.`,
+        };
+      }
       return {
         title: `Round ${round} is over`,
         detail: `If you changed your mind, you can take your round ${round} ETH back for the next ${duration(
@@ -427,7 +438,16 @@ function ActionCard({ m }: { m: SimpleModel }) {
     body = (
       <>
         <Steps m={m} verb="Take back my ETH (optional)" />
-        {m.takeBack.eth > 0 ? (
+        {m.roundIndex === 0 && m.minimumEth > 0 && !m.minimumReached ? (
+          <p className="mt-3 text-[15px] leading-relaxed text-dim">
+            Nothing to do. <span className="font-semibold text-ink">Do not take your ETH back now</span>: it would cost
+            {" "}{m.takeBack.feePct}%, while the cancellation gives everything back, with no fee.
+          </p>
+        ) : m.mine.rows.some((row) => row.round === m.roundIndex && row.takenBack) ? (
+          <p className="mt-3 text-[15px] font-semibold leading-relaxed text-live">
+            ✓ You took back your round {round} ETH.{m.mine.ethWaiting > 0 ? " Last step below: send it to your wallet." : ""}
+          </p>
+        ) : m.takeBack.eth > 0 ? (
           <>
             <p className="mt-3 text-[15px] leading-relaxed text-dim">
               You put {eth(m.takeBack.eth)} ETH in round {round}. If you take it back now, you receive{" "}
@@ -536,7 +556,13 @@ function ActionCard({ m }: { m: SimpleModel }) {
       ) : (
         <>
           <p className="text-[15px] leading-relaxed text-dim">
-            {m.wallet.connected ? "You have no ETH in this launch." : "Connect your wallet to get your ETH back."}
+            {!m.wallet.connected
+              ? "Connect your wallet to get your ETH back."
+              : m.mine.ethWaiting > 0 || m.mine.rows.some((row) => row.takenBack)
+                ? m.mine.ethWaiting > 0
+                  ? "✓ Your ETH is out of the launch. Last step below: send it to your wallet."
+                  : "✓ Your ETH is back in your wallet."
+                : "You have no ETH in this launch."}
           </p>
           {!m.wallet.connected && <Cta m={m} label="" onClick={() => undefined} disabled />}
         </>
@@ -614,7 +640,8 @@ function Numbers({ m }: { m: SimpleModel }) {
       value: `1 ETH ≈ ${tokens(1 / m.priceEthPerToken)} ${symbol}`,
     });
   }
-  const showMinimum = m.minimumEth > 0 && ["not-started", "round"].includes(m.phase) && m.roundIndex === 0 && !m.minimumReached;
+  const showMinimum =
+    m.minimumEth > 0 && ["not-started", "round", "refund"].includes(m.phase) && m.roundIndex === 0 && !m.minimumReached;
   return (
     <section className={card}>
       <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
@@ -641,19 +668,132 @@ function Numbers({ m }: { m: SimpleModel }) {
   );
 }
 
+/** Price paid in each round, against the round-1 price that no round can go below. */
+function RoundPriceChart({ m }: { m: SimpleModel }) {
+  const [hovered, setHovered] = useState<number | null>(null);
+  const symbol = m.launch?.symbol || "tokens";
+  const rounds = m.roundMarket.slice(0, 5);
+  const floor = rounds[0]?.priceEth ?? null;
+  const prices = rounds.map((round) => round.priceEth ?? 0);
+  const max = Math.max(...prices, floor ?? 0);
+  if (!floor || max <= 0) return null;
+
+  const current = ["round", "refund"].includes(m.phase) ? m.roundIndex : -1;
+  const pct = (price: number) => `${(price / max) * 100}%`;
+  const perEth = (price: number) => `1 ETH ≈ ${tokens(1 / price)} ${symbol}`;
+  const focus = hovered ?? (current >= 0 ? current : null);
+  const focusRound = focus !== null ? rounds[focus] : null;
+
+  // Plain HTML bars (not an SVG) so labels keep their size on every screen width.
+  return (
+    <section className={card}>
+      <h2 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-quiet">Price per round</h2>
+      <p className="mt-1 text-[14px] leading-relaxed text-dim">
+        No round can sell cheaper than round 1 (dashed line). A busy round pays more.
+      </p>
+      <p className="mt-3 min-h-[20px] text-[14px] text-ink tabular-nums" aria-live="polite">
+        {focusRound
+          ? focusRound.priceEth
+            ? `Round ${focus! + 1}: ${perEth(focusRound.priceEth)} · ${eth(focusRound.raisedEth)} ETH raised`
+            : `Round ${focus! + 1}: no price yet`
+          : "Hover or tap a round to see its price."}
+      </p>
+      <div className="relative mt-6 h-36 border-b border-hairline" aria-hidden>
+        <div className="absolute inset-x-0 border-t-[1.5px] border-dashed border-ink" style={{ bottom: pct(floor) }}>
+          <span className="absolute -top-5 right-0 text-[12px] text-dim">Round 1 price (the floor)</span>
+        </div>
+        <div className="flex h-full items-end gap-2 sm:gap-4">
+          {rounds.map((round, index) => {
+            const active = index === focus;
+            return (
+              <button
+                key={index}
+                type="button"
+                onMouseEnter={() => setHovered(index)}
+                onMouseLeave={() => setHovered(null)}
+                onFocus={() => setHovered(index)}
+                onBlur={() => setHovered(null)}
+                onClick={() => setHovered(index)}
+                className="flex h-full flex-1 items-end"
+                tabIndex={-1}
+              >
+                {round.priceEth ? (
+                  <span
+                    className={`block w-full rounded-t ${index === current ? "bg-ink" : active ? "bg-dim" : "bg-quiet"}`}
+                    style={{ height: pct(round.priceEth) }}
+                  />
+                ) : (
+                  <span className="block w-full rounded-t border border-b-0 border-dashed border-hairline" style={{ height: pct(floor) }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="mt-2 flex gap-2 text-center sm:gap-4">
+        {rounds.map((_, index) => (
+          <div key={index} className="flex-1">
+            <p className={`text-[13px] ${index === focus ? "font-semibold text-ink" : "text-dim"}`}>
+              <span className="sm:hidden">R{index + 1}</span>
+              <span className="hidden sm:inline">Round {index + 1}</span>
+            </p>
+            {index === current && <p className="text-[11.5px] text-quiet">{m.phase === "round" ? "now" : "take-back"}</p>}
+          </div>
+        ))}
+      </div>
+      <table className="sr-only">
+        <caption>Price per round</caption>
+        <thead>
+          <tr>
+            <th>Round</th>
+            <th>Price</th>
+            <th>ETH raised</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rounds.map((round, index) => (
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>{round.priceEth ? perEth(round.priceEth) : "no price yet"}</td>
+              <td>{eth(round.raisedEth)} ETH</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
 function Participation({ m }: { m: SimpleModel }) {
   const symbol = m.launch?.symbol || "tokens";
+  const failed = m.phase === "failed";
+  // Before round 1 reaches its minimum the contract counts no tokens yet: estimate what the
+  // round-1 share would be if it closed now (or at the minimum, whichever is higher).
+  const roundOnePending = !m.minimumReached && m.minimumEth > 0;
+  const rowTokens = (row: SimpleModel["mine"]["rows"][number]) =>
+    row.round === 0 && roundOnePending && row.tokens === 0
+      ? (row.eth * m.roundOneTokens) / Math.max(m.roundOneRaisedEth, m.minimumEth)
+      : row.tokens;
+  const total = m.mine.rows.filter((row) => !row.takenBack).reduce((sum, row) => sum + rowTokens(row), 0);
   return (
     <section className={card}>
       <h2 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-quiet">Your participation</h2>
-      {m.mine.totalEth > 0 && (
-        <p className="mt-2 text-[18px] text-ink">
-          You put in <span className="font-semibold">{eth(m.mine.totalEth)} ETH</span> → about{" "}
-          <span className="font-semibold">
-            {tokens(m.mine.totalTokens)} {symbol}
-          </span>
-        </p>
-      )}
+      {m.mine.totalEth > 0 &&
+        (failed ? (
+          <p className="mt-2 text-[18px] text-ink">
+            You put in <span className="font-semibold">{eth(m.mine.totalEth)} ETH</span>: all of it comes back to you.
+          </p>
+        ) : (
+          <p className="mt-2 text-[18px] text-ink">
+            You put in <span className="font-semibold">{eth(m.mine.totalEth)} ETH</span> → about{" "}
+            <span className="font-semibold">
+              {tokens(total)} {symbol}
+            </span>
+            {roundOnePending && m.mine.rows.some((row) => row.round === 0 && !row.takenBack) && (
+              <span className="block text-[13px] text-dim">if round 1 reaches its minimum</span>
+            )}
+          </p>
+        ))}
       <ul className="mt-3 flex flex-col gap-1.5 text-[14px] text-dim">
         {m.mine.rows.map((row) => (
           <li key={row.round} className="flex flex-wrap justify-between gap-x-4 border-b border-faint pb-1.5 last:border-b-0">
@@ -661,7 +801,9 @@ function Participation({ m }: { m: SimpleModel }) {
             <span className="tabular-nums">
               {row.takenBack
                 ? "Taken back"
-                : `${eth(row.eth)} ETH → ~${tokens(row.tokens)} ${symbol}${row.collected ? " · collected ✓" : ""}`}
+                : failed
+                  ? `${eth(row.eth)} ETH · to get back`
+                  : `${eth(row.eth)} ETH → ~${tokens(rowTokens(row))} ${symbol}${row.collected ? " · collected ✓" : ""}`}
             </span>
           </li>
         ))}
