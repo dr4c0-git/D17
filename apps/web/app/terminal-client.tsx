@@ -1223,7 +1223,8 @@ function ParticipantsTerminal() {
   const canRefund = refundRound !== null;
   const canFinalize = phase?.phaseKind === PHASE.READY_TO_FINALIZE;
   const canSettleAndClaim =
-    (phase?.phaseKind === PHASE.SETTLEMENT_OPEN || phase?.phaseKind === PHASE.POOL_READY) &&
+    // Trading open too: a position nobody settled goes through the launch's late settlement path.
+    (phase?.phaseKind === PHASE.SETTLEMENT_OPEN || phase?.phaseKind === PHASE.POOL_READY || phase?.phaseKind === PHASE.TRADING_OPEN) &&
     Boolean(position?.known && !position.liquiditySettled);
   const canWithdrawTokens = phase?.phaseKind === PHASE.TRADING_OPEN && Number(position?.withdrawableTokens || 0) > 0;
   const canFailedRefund = phase?.phaseKind === PHASE.FAILED;
@@ -2884,6 +2885,22 @@ function ParticipantsTerminal() {
     });
   };
 
+  // Asks the wallet to list the sale token: wallets only show tokens they were told about.
+  const addTokenToWallet = async () => {
+    try {
+      requireAddress(tokenAddress, "Token");
+      const wallet = resolveWalletForTx();
+      await wallet.request({
+        method: "wallet_watchAsset",
+        params: { type: "ERC20", options: { address: tokenAddress, symbol: tokenSymbol.slice(0, 11), decimals: 18 } },
+      });
+    } catch {
+      toast.error("Could not add the token to your wallet", {
+        description: `Add it by hand with this address: ${tokenAddress}`,
+      });
+    }
+  };
+
   const withdrawWeth = async () => {
     await sendTx("withdraw WETH", async (signer) => {
       requireAddress(lockerAddress, "Locker");
@@ -3054,7 +3071,11 @@ function ParticipantsTerminal() {
     if (phase.phaseKind === PHASE.SETTLEMENT_OPEN || phase.phaseKind === PHASE.POOL_READY)
       return canSettleAndClaim ? { label: "Settle & claim", kind: "jump" as const } : null;
     if (phase.phaseKind === PHASE.TRADING_OPEN)
-      return canWithdrawTokens ? { label: "Withdraw tokens", kind: "jump" as const } : null;
+      return canWithdrawTokens
+        ? { label: "Withdraw tokens", kind: "jump" as const }
+        : canSettleAndClaim
+          ? { label: "Settle & claim", kind: "jump" as const }
+          : null;
     if (phase.phaseKind === PHASE.FAILED)
       return hasLocker ? { label: "Refund from locker", kind: "jump" as const } : null;
     return null;
@@ -3307,6 +3328,7 @@ function ParticipantsTerminal() {
     canClose: canFinalize && !isReplay,
     canCollect: canSettleAndClaim && !isReplay,
     canOpenTrading: phase?.phaseKind === PHASE.POOL_READY && !ethers.isAddress(poolAddress) && !isReplay,
+    anyCollected: settledLockerCount > 0 || Boolean(position?.liquiditySettled),
     canSend: canWithdrawTokens && !isReplay,
     canRecover: canFailedRefund && hasLocker && Number(position?.lockedWeth || 0) > 0 && !isReplay,
     tokenAddress,
@@ -3341,6 +3363,7 @@ function ParticipantsTerminal() {
       recover: () => void refundFailedLaunch(),
       sendEth: () => void withdrawEthToWallet(),
       releaseCreator: () => void releaseCreatorTokens(),
+      addToken: () => void addTokenToWallet(),
       selectLaunch,
       expertView: () => changeViewMode("expert"),
     },
@@ -6235,7 +6258,8 @@ function phaseActionHint(
     return caps.canSettleAndClaim ? "You can settle after the claim window" : "Awaiting official pool creation";
   }
   if (phase.phaseKind === PHASE.TRADING_OPEN) {
-    return caps.canWithdrawTokens ? "You can withdraw unlocked sale tokens" : "Trading is live on the official pool";
+    if (caps.canWithdrawTokens) return "You can withdraw unlocked sale tokens";
+    return caps.canSettleAndClaim ? "You can still settle and claim sale tokens" : "Trading is live on the official pool";
   }
   if (phase.phaseKind === PHASE.FAILED) return "You can withdraw your failed-launch refund";
   return "";

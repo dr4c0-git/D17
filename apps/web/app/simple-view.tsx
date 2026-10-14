@@ -87,6 +87,7 @@ export type SimpleModel = {
   canClose: boolean;
   canCollect: boolean;
   canOpenTrading: boolean;
+  anyCollected: boolean; // the contract only opens trading once at least one buyer has collected
   canSend: boolean;
   canRecover: boolean;
   tokenAddress: string;
@@ -104,6 +105,7 @@ export type SimpleModel = {
     recover: () => void;
     sendEth: () => void;
     releaseCreator: () => void;
+    addToken: () => void; // asks the wallet to list the sale token
     selectLaunch: (address: string) => void;
     expertView: () => void;
   };
@@ -232,7 +234,9 @@ function statusText(m: SimpleModel): { title: string; detail: string } {
     case "pool-ready":
       return {
         title: "Ready to open trading",
-        detail: "Anyone can now open trading. The raised ETH and the tokens go into a trading pool that stays locked forever.",
+        detail: m.anyCollected
+          ? "Anyone can now open trading. The raised ETH and the tokens go into a trading pool that stays locked forever."
+          : "Trading opens as soon as one buyer has collected their tokens. The raised ETH and the tokens then go into a trading pool that stays locked forever.",
       };
     case "trading":
       return { title: "Trading is open", detail: "The sale is finished and the token can now be bought and sold." };
@@ -501,15 +505,26 @@ function ActionCard({ m }: { m: SimpleModel }) {
         )}
         {m.phase === "pool-ready" && (
           <div className="mt-5 border-t border-faint pt-4">
-            <p className="text-[15px] leading-relaxed text-dim">
-              Everything is ready: anyone can open trading now.
-            </p>
-            <Cta m={m} label="Open trading" onClick={m.actions.openTrading} disabled={!m.canOpenTrading} needsVault={false} />
+            {m.anyCollected ? (
+              <>
+                <p className="text-[15px] leading-relaxed text-dim">
+                  Everything is ready: anyone can open trading now.
+                </p>
+                <Cta m={m} label="Open trading" onClick={m.actions.openTrading} disabled={!m.canOpenTrading} needsVault={false} />
+              </>
+            ) : (
+              <p className="text-[15px] leading-relaxed text-dim">
+                Trading can open as soon as one buyer has collected their tokens.
+              </p>
+            )}
           </div>
         )}
       </>
     );
   } else if (m.phase === "trading") {
+    // Nobody collected this position before trading opened: it can still be collected (late settlement).
+    const toCollect = m.wallet.connected && !m.mine.collected && m.mine.totalTokens > 0;
+    const inWallet = m.wallet.connected && m.mine.collected && m.mine.totalEth > 0 && m.mine.tokensToSend === 0;
     body = (
       <>
         {m.mine.tokensToSend > 0 ? (
@@ -520,20 +535,40 @@ function ActionCard({ m }: { m: SimpleModel }) {
             </p>
             <Cta m={m} label="Send my tokens to my wallet" onClick={m.actions.send} disabled={!m.canSend} />
           </>
+        ) : toCollect ? (
+          <>
+            <p className="text-[15px] leading-relaxed text-dim">
+              You have about <span className="font-semibold text-ink">{tokens(m.mine.totalTokens)} {symbol}</span> to collect.
+              Collect them now, then send them to your wallet.
+            </p>
+            <Cta m={m} label="Collect my tokens" onClick={m.actions.collect} disabled={!m.canCollect} />
+          </>
         ) : (
           <>
-            <p className={`text-[15px] leading-relaxed ${m.mine.collected && m.mine.totalEth > 0 ? "font-semibold text-live" : "text-dim"}`}>
+            <p className={`text-[15px] leading-relaxed ${inWallet ? "font-semibold text-live" : "text-dim"}`}>
               {!m.wallet.connected
-                ? "Connect your wallet to see whether you have tokens waiting."
-                : m.mine.collected && m.mine.totalEth > 0
+                ? "Connect your wallet to see your tokens."
+                : inWallet
                   ? `Your ${symbol} are in your wallet ✓`
-                  : "You have no tokens waiting in your vault."}
+                  : "You did not take part in this sale."}
             </p>
             {!m.wallet.connected && <Cta m={m} label="" onClick={() => undefined} disabled />}
           </>
         )}
-        {m.isMainnet && m.tokenAddress && (
-          <p className="mt-4 text-[15px]">
+        {inWallet && m.tokenAddress && (
+          <p className="mt-3 text-[14px] leading-relaxed text-dim">
+            Do not see them in your wallet? Wallets only list the tokens they were told about.{" "}
+            <button
+              type="button"
+              onClick={m.actions.addToken}
+              className="text-electric underline underline-offset-2 hover:text-ink"
+            >
+              Show {symbol} in my wallet
+            </button>
+          </p>
+        )}
+        <div className="mt-5 border-t border-faint pt-4 text-[15px] leading-relaxed text-dim">
+          {m.isMainnet && m.tokenAddress ? (
             <a
               href={`https://app.uniswap.org/swap?outputCurrency=${m.tokenAddress}`}
               target="_blank"
@@ -542,8 +577,21 @@ function ActionCard({ m }: { m: SimpleModel }) {
             >
               Buy or sell {symbol} on Uniswap ↗
             </a>
-          </p>
-        )}
+          ) : (
+            <>
+              {symbol} now trades in its official pool, against ETH. On mainnet a link to buy or sell it on Uniswap appears
+              here. On this test network, see the pool in the{" "}
+              <button
+                type="button"
+                onClick={m.actions.expertView}
+                className="text-electric underline underline-offset-2 hover:text-ink"
+              >
+                expert view
+              </button>
+              .
+            </>
+          )}
+        </div>
       </>
     );
   } else if (m.phase === "failed") {
@@ -681,6 +729,8 @@ function RoundPriceChart({ m }: { m: SimpleModel }) {
   if (!floor || max <= 0) return null;
 
   const current = ["round", "refund"].includes(m.phase) ? m.roundIndex : -1;
+  // After the sale a round without a price had no buyers; during it, it is just not priced yet.
+  const unpriced = ["finalize", "settle", "pool-ready", "trading"].includes(m.phase) ? "no buyers" : "no price yet";
   const pct = (price: number) => `${(price / max) * 100}%`;
   const perEth = (price: number) => `1 ETH ≈ ${tokens(1 / price)} ${symbol}`;
   const focus = hovered ?? (current >= 0 ? current : null);
@@ -697,12 +747,16 @@ function RoundPriceChart({ m }: { m: SimpleModel }) {
         {focusRound
           ? focusRound.priceEth
             ? `Round ${focus! + 1}: ${perEth(focusRound.priceEth)} · ${eth(focusRound.raisedEth)} ETH raised`
-            : `Round ${focus! + 1}: no price yet`
+            : `Round ${focus! + 1}: ${unpriced}`
           : "Hover or tap a round to see its price."}
       </p>
       <div className="relative mt-6 h-36 border-b border-hairline" aria-hidden>
-        <div className="absolute inset-x-0 border-t-[1.5px] border-dashed border-ink" style={{ bottom: pct(floor) }}>
-          <span className="absolute -top-5 right-0 text-[12px] text-dim">Round 1 price (the floor)</span>
+        {/* Above the bars; the label sits on the left, over round 1, which is always at the floor. */}
+        <div className="pointer-events-none absolute inset-x-0 z-10 border-t-[1.5px] border-dashed border-ink" style={{ bottom: pct(floor) }}>
+          <span className="absolute -top-5 left-0 whitespace-nowrap text-[12px] text-dim">
+            <span className="sm:hidden">Floor</span>
+            <span className="hidden sm:inline">Round 1 price (the floor)</span>
+          </span>
         </div>
         <div className="flex h-full items-end gap-2 sm:gap-4">
           {rounds.map((round, index) => {
@@ -756,7 +810,7 @@ function RoundPriceChart({ m }: { m: SimpleModel }) {
           {rounds.map((round, index) => (
             <tr key={index}>
               <td>{index + 1}</td>
-              <td>{round.priceEth ? perEth(round.priceEth) : "no price yet"}</td>
+              <td>{round.priceEth ? perEth(round.priceEth) : unpriced}</td>
               <td>{eth(round.raisedEth)} ETH</td>
             </tr>
           ))}

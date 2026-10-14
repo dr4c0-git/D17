@@ -4,10 +4,33 @@ All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D
 newest first. V15 is not deployed yet: everything below runs locally and in the test
 suites, Sepolia comes next.
 
+## 2026-10-14 - Collecting after trading opens
+
+### Fixed
+- **Tokens not collected before trading opened could no longer be collected from the
+  app.** The contract allows it (late settlement) but the app hid the button once
+  trading was open and said "You have no tokens waiting in your vault". Trading open
+  now shows "You have about X to collect" with "Collect my tokens", then "Send my
+  tokens to my wallet". Same fix in the expert view.
+- **"Open trading" could fail with `NO_SETTLED_LIQUIDITY`** when nobody had collected
+  yet: the contract only opens trading once at least one buyer has collected. The page
+  now says so and shows the button only when it can work.
+- After the sale, a round with no buyers reads "no buyers" in the chart instead of "no
+  price yet".
+- The chart's "Round 1 price (the floor)" label sat on top of the last bar; it is now
+  on the left, above round 1 (which is always at the floor), and reads "Floor" on
+  phones.
+
+### Added
+- **"Show X in my wallet"** once the tokens are in the wallet: wallets only list the
+  tokens they were told about, this asks the wallet to add it.
+- On test networks, the trading card explains that the token now trades in its
+  official pool and points to the expert view (on mainnet it links to Uniswap).
+
 ## 2026-10-14 - Price per round chart and UX pass
 
 ### Added
-- **Price per round chart** in the simple view, shown during the sale. One bar per
+- **Price per round chart** in the simple view, shown from round 1 onward. One bar per
   round with the price everyone paid in it, a dashed line for the round-1 price (the
   floor no round can go under), the current round highlighted, rounds not priced yet
   drawn as outlines. Hover or tap a bar for its price and the ETH raised. Readable on
