@@ -490,6 +490,8 @@ type RoundMarket = {
   raisedWeth: string;
   priceWeth: string;
   hasPrice: boolean;
+  // ETH the round needs before its price rises above the round-1 floor (0 for round 1).
+  anchorTargetWeth?: string;
 };
 
 type RoundDetail = {
@@ -1183,6 +1185,7 @@ function ParticipantsTerminal() {
         raisedWeth: trimDecimals(Math.max(0, raised).toFixed(6), 6),
         priceWeth: priced ? entry.priceWeth : "0",
         hasPrice: priced,
+        anchorTargetWeth: entry.anchorTargetWeth,
       };
     });
   }, [isReplay, liveRoundMarket, replayCutoff, rounds, activityItems]);
@@ -1849,6 +1852,7 @@ function ParticipantsTerminal() {
               raisedWeth: formatEth(perRoundRaised[index] > 0n ? perRoundRaised[index] : 0n),
               priceWeth: formatWethPerToken(priceWad),
               hasPrice: priceWad > 0n,
+              anchorTargetWeth: formatEth(toWei(apiRounds[index]?.anchorTargetWeth)),
             };
           })
         );
@@ -2005,13 +2009,14 @@ function ParticipantsTerminal() {
             launch.roundEnd(round).catch(() => 0n) as Promise<bigint>,
             launch.roundRaised(round).catch(() => 0n) as Promise<bigint>,
             launch.roundDiscoveredPriceWad(round).catch(() => 0n) as Promise<bigint>,
+            launch.roundAnchorTargetWeth(round).catch(() => 0n) as Promise<bigint>,
           ])
         )
       );
       if (isStale()) return;
       const loadedRounds: RoundTerm[] = [];
       const loadedMarket: RoundMarket[] = [];
-      roundData.forEach(([shareBps, startAt, endAt, raised, priceWad], round) => {
+      roundData.forEach(([shareBps, startAt, endAt, raised, priceWad, anchorTarget], round) => {
         const refundStartAt = Number(endAt);
         const refundEndAt = round < REFUND_STAGE_COUNT ? refundStartAt + Number(loadedRefundSeconds) : 0;
         loadedRounds.push({
@@ -2032,6 +2037,7 @@ function ParticipantsTerminal() {
           raisedWeth: formatEth(raised),
           priceWeth: formatWethPerToken(priceWad),
           hasPrice: priceWad > 0n,
+          anchorTargetWeth: formatEth(anchorTarget),
         });
       });
 
@@ -2198,6 +2204,28 @@ function ParticipantsTerminal() {
       window.clearTimeout(timer);
     };
   }, [launchAddress, livePhase]);
+
+  // Direct-RPC mode has no phase stream: re-read the chain right after each phase boundary
+  // (round -> take-back -> next round) instead of waiting up to STATE_POLL_SECONDS, and as
+  // soon as the tab is visible again (browsers slow down timers in hidden tabs).
+  useEffect(() => {
+    if (dataMode() === "api" || !ethers.isAddress(launchAddress)) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refreshState({ announce: false });
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    const endsAt = livePhase?.endsAt ?? 0;
+    let timer: number | undefined;
+    // Skip boundaries long past (chain clock behind the wall clock) so this never turns into a tight poll.
+    if (livePhase && isFiniteEnd(endsAt) && endsAt > 0 && endsAt * 1000 > Date.now() - 30_000) {
+      const delayMs = Math.max(1500, endsAt * 1000 + 1500 - Date.now());
+      timer = window.setTimeout(() => void refreshState({ announce: false }), delayMs);
+    }
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.clearTimeout(timer);
+    };
+  }, [launchAddress, livePhase, refreshState]);
 
   const refreshActivity = useCallback(async ({ announce = false }: { announce?: boolean } = {}) => {
     if (!ethers.isAddress(launchAddress)) return;
@@ -3297,7 +3325,11 @@ function ParticipantsTerminal() {
     roundMarket: rounds.slice(0, ROUND_COUNT).map((_, index) => {
       const market = roundMarket[index];
       const price = market?.hasPrice ? Number(market.priceWeth) : 0;
-      return { priceEth: price > 0 ? price : null, raisedEth: Number(market?.raisedWeth ?? 0) };
+      return {
+        priceEth: price > 0 ? price : null,
+        raisedEth: Number(market?.raisedWeth ?? 0),
+        floorTargetEth: Number(market?.anchorTargetWeth ?? 0),
+      };
     }),
     roundOneTokens: launchConfig ? (Number(ethers.formatUnits(launchConfig.saleTokens, 18)) * (rounds[0]?.allocationPct ?? 0)) / 100 : 0,
     priceEthPerToken: stagePrice ? Number(stagePrice.value) : null,

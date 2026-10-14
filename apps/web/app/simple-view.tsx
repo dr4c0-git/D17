@@ -64,7 +64,8 @@ export type SimpleModel = {
   minimumReached: boolean;
   roundOneRaisedEth: number;
   roundOneTokens: number; // tokens sold in round 1 (all of them, once the minimum is reached)
-  roundMarket: { priceEth: number | null; raisedEth: number }[]; // per round, price = ETH per token
+  // Per round: price = ETH per token; floorTargetEth = ETH the round needs before its price rises above the floor.
+  roundMarket: { priceEth: number | null; raisedEth: number; floorTargetEth: number }[];
   priceEthPerToken: number | null;
   wallet: { connected: boolean; hasVault: boolean; findingVault: boolean };
   mine: {
@@ -735,6 +736,9 @@ function RoundPriceChart({ m }: { m: SimpleModel }) {
   const perEth = (price: number) => `1 ETH ≈ ${tokens(1 / price)} ${symbol}`;
   const focus = hovered ?? (current >= 0 ? current : null);
   const focusRound = focus !== null ? rounds[focus] : null;
+  // The open round has not raised enough to sell its whole allocation at the floor: its price is the floor.
+  const openRound = m.phase === "round" && current > 0 ? rounds[current] : undefined;
+  const atFloor = openRound && openRound.floorTargetEth > openRound.raisedEth ? openRound : null;
 
   // Plain HTML bars (not an SVG) so labels keep their size on every screen width.
   return (
@@ -797,6 +801,13 @@ function RoundPriceChart({ m }: { m: SimpleModel }) {
           </div>
         ))}
       </div>
+      {atFloor && (
+        <p className="mt-4 text-[14px] leading-relaxed text-dim">
+          Round {current + 1} stays at the round-1 price until{" "}
+          <span className="font-semibold text-ink">{eth(atFloor.floorTargetEth)} ETH</span> comes in (
+          {eth(atFloor.raisedEth)} ETH so far). Only above that does its price rise.
+        </p>
+      )}
       <table className="sr-only">
         <caption>Price per round</caption>
         <thead>

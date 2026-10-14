@@ -4,6 +4,22 @@ All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D
 newest first. V15 is not deployed yet: everything below runs locally and in the test
 suites, Sepolia comes next.
 
+## 2026-10-14 - Round changes shown on time, floor target in the chart
+
+### Fixed
+- **Round changes could show late in the local demo and with a direct RPC.** The page
+  re-read the chain every 15 seconds only, so with short rounds (the demo's 60-second
+  rounds) the "Put in" button could appear late, and a hidden tab (slowed down by the
+  browser) could miss a whole round. The page now re-reads the chain right after each
+  round and take-back window ends, and as soon as the tab is visible again. Checked with
+  one page left open through all 5 rounds: every round, round 4 included, accepts ETH.
+
+### Added
+- **Why a round's bar stays at the floor**: under the chart, the open round shows how
+  much ETH it needs before its price rises above the round-1 price, for example "Round
+  5 stays at the round-1 price until 0.6 ETH comes in (0.1 ETH so far)". Round 5 needs
+  more than the others: it also sells every token rounds 2 to 4 did not sell.
+
 ## 2026-10-14 - Collecting after trading opens
 
 ### Fixed
