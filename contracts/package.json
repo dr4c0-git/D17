@@ -24,6 +24,6 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-verify": "^3.0.20",
     "ethers": "^6.16.0",
-    "hardhat": "^3.4.5"
+    "hardhat": "^3.18.1"
   }
 }

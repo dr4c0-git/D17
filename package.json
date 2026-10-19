@@ -17,7 +17,8 @@
       "postcss": "8.5.19"
     },
     "postcss": "8.5.19",
-    "undici": "^6.27.0",
+    "hardhat": "3.18.1",
+    "undici": "^6.28.1",
     "ws": "^8.21.0"
   },
   "devDependencies": {
