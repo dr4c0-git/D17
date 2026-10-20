@@ -28,12 +28,26 @@ if (process.env.RENOUNCE_D17_FACTORY_OWNER !== "1") {
 }
 
 const feeConfigOwner = ethers.getAddress(requireEnv("FEE_CONFIG_OWNER"));
-const protocolFeeRecipient = process.env.PROTOCOL_FEE_RECIPIENT ? ethers.getAddress(process.env.PROTOCOL_FEE_RECIPIENT) : ethers.ZeroAddress;
+let protocolFeeRecipient = process.env.PROTOCOL_FEE_RECIPIENT ? ethers.getAddress(process.env.PROTOCOL_FEE_RECIPIENT) : ethers.ZeroAddress;
 const protocolFeeBps = Number(process.env.PROTOCOL_FEE_BPS ?? "0");
 if (!Number.isInteger(protocolFeeBps) || protocolFeeBps < 0 || protocolFeeBps > 200) {
   throw new Error("PROTOCOL_FEE_BPS must be an integer between 0 and 200 (2% hard cap).");
 }
-if (protocolFeeBps > 0 && protocolFeeRecipient === ethers.ZeroAddress) {
+// Optional ownerless fee splitter: when FEE_SPLIT_RECIPIENTS is set, the protocol fee goes
+// to a D17FeeSplitter deployed here, which splits it between those addresses.
+const feeSplitRecipients = (process.env.FEE_SPLIT_RECIPIENTS || "").split(",").map((item) => item.trim()).filter(Boolean).map((item) => ethers.getAddress(item));
+const feeSplitBps = (process.env.FEE_SPLIT_BPS || "").split(",").map((item) => item.trim()).filter(Boolean).map(Number);
+if (feeSplitRecipients.length > 0) {
+  if (feeSplitBps.length !== feeSplitRecipients.length || feeSplitBps.some((bps) => !Number.isInteger(bps) || bps <= 0)) {
+    throw new Error("FEE_SPLIT_BPS must list one positive share in basis points per FEE_SPLIT_RECIPIENTS address.");
+  }
+  if (feeSplitBps.reduce((total, bps) => total + bps, 0) !== 10000) {
+    throw new Error("FEE_SPLIT_BPS must add up to 10000 (100%).");
+  }
+  if (protocolFeeRecipient !== ethers.ZeroAddress) {
+    throw new Error("Leave PROTOCOL_FEE_RECIPIENT empty when FEE_SPLIT_RECIPIENTS is set: the splitter becomes the recipient.");
+  }
+} else if (protocolFeeBps > 0 && protocolFeeRecipient === ethers.ZeroAddress) {
   throw new Error("PROTOCOL_FEE_RECIPIENT is required when PROTOCOL_FEE_BPS > 0.");
 }
 
@@ -76,6 +90,15 @@ if (d17FactoryDeployer === lockerFactoryDeployer && process.env.ALLOW_SHARED_DEP
 const owner = process.env.D17_FACTORY_OWNER || d17FactoryDeployer;
 if (ethers.getAddress(owner) !== d17FactoryDeployer) {
   throw new Error("D17_FACTORY_OWNER must match D17_FACTORY_PRIVATE_KEY so the official locker factory can be pinned.");
+}
+
+let feeSplitter = null;
+if (feeSplitRecipients.length > 0) {
+  const splitterArt = artifact("D17FeeSplitter.sol", "D17FeeSplitter");
+  const Splitter = new ethers.ContractFactory(splitterArt.abi, splitterArt.bytecode, d17FactorySigner);
+  feeSplitter = await Splitter.deploy(weth, feeSplitRecipients, feeSplitBps);
+  await feeSplitter.waitForDeployment();
+  protocolFeeRecipient = await feeSplitter.getAddress();
 }
 
 const feeConfigArt = artifact("D17FeeConfig.sol", "D17FeeConfig");
@@ -163,6 +186,10 @@ const deployment = {
   feeConfigOwner,
   protocolFeeRecipient,
   protocolFeeBps,
+  feeSplitter: feeSplitter ? await feeSplitter.getAddress() : null,
+  feeSplitRecipients: feeSplitter ? feeSplitRecipients : [],
+  feeSplitBps: feeSplitter ? feeSplitBps : [],
+  feeSplitterTransaction: feeSplitter ? feeSplitter.deploymentTransaction()?.hash : null,
   tokenFactory: await tokenFactory.getAddress(),
   liquidityVaultFactory: await vaultFactory.getAddress(),
   launchDeployer: await launchDeployer.getAddress(),

@@ -35,8 +35,11 @@ Owner works on a Mac (Terminal, project clone in a `D17` folder), browser profil
   to Test 4 and Test 5.
 - Next: step 3 (Alchemy Sepolia RPC URL, Etherscan API key), step 4 (fill
   `contracts/.env`: Test 1 key as `D17_FACTORY_PRIVATE_KEY`, Test 2 key as
-  `D17_LOCKER_FACTORY_PRIVATE_KEY`, Test 1 address as `FEE_CONFIG_OWNER` and
-  `PROTOCOL_FEE_RECIPIENT`), then deploy, verify, publish (see "Deployment").
+  `D17_LOCKER_FACTORY_PRIVATE_KEY`, Test 1 address as `FEE_CONFIG_OWNER`,
+  `PROTOCOL_FEE_RECIPIENT` empty, fee split to test addresses with
+  `FEE_SPLIT_RECIPIENTS` = Test 3, Test 4, Test 5 and `FEE_SPLIT_BPS=5000,2500,2500`),
+  then deploy, verify, publish (see "Deployment"). Mainnet split recipients are still to
+  be provided by the project lead.
 - The owner sends back `deployments/sepolia.json` (public addresses only); the
   maintainer commits it and regenerates the release checksums. Never ask for a key or
   the content of a `.env`.
@@ -85,12 +88,13 @@ in `~/.cache/hardhat-nodejs/compilers-v3/{linux-amd64,wasm}/` with a minimal `li
 For a background local node, never run `pkill -f "hardhat node"` in the same shell
 command (it kills the shell itself); run the node as a separate background task.
 
-## V15 architecture (11 contracts, `contracts/contracts/`)
+## V15 architecture (12 contracts, `contracts/contracts/`)
 
 | Contract | Role |
 |---|---|
 | `D17Factory` | Registry, config validation, fee snapshot (`feeConfig` immutable), `isLocker`. Refuses `createLaunch` while `owner != 0`. Mainnet floors (chainid 1): start ≥ 24 h ahead, windows ≥ 1 h. |
 | `D17FeeConfig` | **Only remaining owner** (multisig). `protocolFeeBps ≤ MAX_PROTOCOL_FEE_BPS = 200`, recipient; two-step ownership; renounceable. Affects future launches only. |
+| `D17FeeSplitter` | Optional fee recipient, no owner: fixed recipients and shares (sum 10 000 bps), permissionless `distribute(token)` / `distributeEth()`. Deployed by `deploy:factory` when `FEE_SPLIT_RECIPIENTS` / `FEE_SPLIT_BPS` are set (then leave `PROTOCOL_FEE_RECIPIENT` empty); checked by `verify:factory`. |
 | `D17LaunchFactory` | Creates token + launch (via deployer) + vault; refuses if the token/vault factory or deployer still has an owner; mints the `manual` allocation **into the vault**. |
 | `D17LaunchDeployer` | `create`s `D17Launch` from pre-encoded params (EIP-170 headroom). Pinned, then renounced. |
 | `D17TokenFactory`, `D17LiquidityVaultFactory`, `D17LockerFactory` | Unchanged apart from IDs. |
@@ -137,7 +141,8 @@ Other bugs fixed: deploy script nonce (`NonceManager` per key).
 1. `cp contracts/.env.example contracts/.env`; fill `RPC_URL` (Sepolia),
    `D17_FACTORY_PRIVATE_KEY`, `D17_LOCKER_FACTORY_PRIVATE_KEY` (a different key),
    `FEE_CONFIG_OWNER` (Safe), `PROTOCOL_FEE_RECIPIENT`, `PROTOCOL_FEE_BPS`,
-   `RENOUNCE_D17_FACTORY_OWNER=1`.
+   `RENOUNCE_D17_FACTORY_OWNER=1`. Optional fee split: `FEE_SPLIT_RECIPIENTS` (comma-separated)
+   and `FEE_SPLIT_BPS` (adding up to 10000), with `PROTOCOL_FEE_RECIPIENT` left empty.
 2. `npm run compile -w @d17/contracts && npm run deploy:factory -w @d17/contracts`
 3. `npm run verify:factory -w @d17/contracts` (every check must pass)
 4. `npm run publish:deployment -w @d17/contracts` (writes manifests + provenance)

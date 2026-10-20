@@ -67,6 +67,9 @@ const provenance = {
   contracts,
   protocolFee: verification.protocolFee,
   feeConfigOwner: deployment.feeConfigOwner,
+  feeSplitter: deployment.feeSplitter
+    ? { address: deployment.feeSplitter, recipients: deployment.feeSplitRecipients, sharesBps: deployment.feeSplitBps }
+    : null,
   transactions: Object.fromEntries(Object.entries(deployment).filter(([key]) => key.endsWith("Transaction"))),
   verification: {
     report: path.basename(verificationPath),

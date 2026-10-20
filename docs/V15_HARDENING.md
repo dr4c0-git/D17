@@ -54,6 +54,14 @@ redirect its tokens.
   cannot touch any existing launch or any participant's funds: the fee config holds
   nothing and is only read at launch creation.
 
+- **Split between several recipients (optional).** The fee recipient can be a
+  `D17FeeSplitter`, deployed with the suite when `FEE_SPLIT_RECIPIENTS` and
+  `FEE_SPLIT_BPS` are set. It has no owner and no setter: its recipients and their shares
+  (adding up to 100%) are fixed in its constructor and readable on-chain with
+  `recipients()`. Anyone can call `distribute(token)` to forward its whole balance of a
+  token (the fee arrives in WETH) to the recipients, the last one receiving the rounding
+  remainder; `distributeEth()` wraps plain ETH and splits it the same way.
+
 `D17FeeConfig` is the only contract in the suite that keeps an owner after deployment.
 
 ## What the creator receives

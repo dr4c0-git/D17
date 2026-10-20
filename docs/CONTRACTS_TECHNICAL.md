@@ -224,6 +224,24 @@ The fee config holds no funds and is never called by a launch: changing it canno
 any existing launch (§7). Events: `ProtocolFeeUpdated(feeRecipient idx, protocolFeeBps)`,
 `OwnershipTransferStarted`, `OwnershipTransferred` (:25-27).
 
+### 5.2b D17FeeSplitter (D17FeeSplitter.sol, 89 lines)
+
+Purpose: optional `feeRecipient` that splits the protocol fee between fixed recipients.
+No owner, no setter. Constants: `D17_FEE_SPLITTER_ID` (:19), `BPS = 10_000`,
+`MAX_RECIPIENTS = 5`. Storage: `weth` (immutable), recipients and shares (set once).
+
+| Signature | Semantics | AC | Reverts |
+|---|---|---|---|
+| `constructor(address weth_, address[] recipients_, uint16[] sharesBps_)` (:37) | 1 to 5 distinct non-zero recipients, non-zero shares adding up to 10 000 | — | `WETH_ZERO`, `RECIPIENT_COUNT`, `LENGTH_MISMATCH`, `RECIPIENT_ZERO`, `SHARE_ZERO`, `RECIPIENT_DUPLICATE`, `SHARES_NOT_100_PERCENT` |
+| `recipients() external view` (:56) | Recipients and shares | view | — |
+| `distribute(address token) public` (:62) | Sends the whole balance of `token`: `balance × share / 10 000` each, the last recipient gets the remainder | anyone, `nonReentrant` | `REENTRANT`, `BALANCE_READ`, `TransferFailed` |
+| `distributeEth() external` (:78) | Wraps the ETH balance into WETH, then `distribute(weth)` | anyone | as above |
+
+Fees arrive as plain WETH transfers (`D17Locker` pays the launch's `protocolFeeRecipient`),
+so a splitter never runs code on receipt and can never block a settlement. Event:
+`Distributed(token idx, recipient idx, amount)` (:28). Covered by
+`test/fee-splitter-e2e.mjs` (a real launch's 1% fee split 50/25/25).
+
 ### 5.3 D17LaunchFactory (D17LaunchFactory.sol, 177 lines) and D17LaunchDeployer (61 lines)
 
 D17LaunchFactory is the atomic deployer of the token/launch/vault trio (§3). Immutables:

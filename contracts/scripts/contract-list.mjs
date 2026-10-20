@@ -2,6 +2,7 @@
 export const EXPLORER_CONTRACTS = [
   "D17Factory",
   "D17FeeConfig",
+  "D17FeeSplitter",
   "D17TokenFactory",
   "D17LiquidityVaultFactory",
   "D17LaunchDeployer",

@@ -12,6 +12,7 @@ This is a plain-language explanation of the D17 V15 contracts for someone consid
 | `D17LaunchFactory` | Creates a launch, token, and liquidity vault as one matching set. It also performs the token's one-time initial mint and closes minting. |
 | `D17LaunchDeployer` | A narrow deployer that only the pinned launch factory can use to create launch contracts. |
 | `D17FeeConfig` | Holds the protocol fee (hard-capped at 2%) and its recipient for future launches. Each launch copies them into its immutable rules at creation. |
+| `D17FeeSplitter` | Optional fee recipient with no owner. It splits the protocol fee it receives between fixed addresses, in fixed shares set once at deployment. Anyone can trigger the split. |
 | `D17Launch` | Holds the launch rules and accounting. It controls rounds, refunds, finalization, settlement amounts, and the official-pool records. |
 | `D17Locker` | Your personal vault and claim agent. It holds your WETH and, after settlement, your purchased tokens. A locker can hold positions in more than one launch. |
 | `D17LiquidityVault` | Creates the official token/WETH pool, receives its LP tokens, and holds those LP tokens permanently. It also adds late settlers' liquidity and vests the creator allocation. |

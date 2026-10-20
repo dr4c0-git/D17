@@ -102,6 +102,21 @@ check("launch factory points to token factory", sameAddress(await launchFactory.
 check("launch factory points to liquidity vault factory", sameAddress(await launchFactory.liquidityVaultFactory(), deployment.liquidityVaultFactory));
 check("locker factory points to D17Factory", sameAddress(await lockerFactory.d17Factory(), deployment.factory));
 
+if (deployment.feeSplitter) {
+  const splitter = new ethers.Contract(deployment.feeSplitter, artifact("D17FeeSplitter.sol", "D17FeeSplitter").abi, provider);
+  await hasCode("D17FeeSplitter", deployment.feeSplitter);
+  check("D17FeeSplitter identity matches", await splitter.D17_FEE_SPLITTER_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_FEE_SPLITTER_V1")));
+  check("fee config pays the fee splitter", sameAddress(feeRecipientNow, deployment.feeSplitter), feeRecipientNow);
+  check("fee splitter WETH matches deployment", sameAddress(await splitter.weth(), deployment.weth));
+  const [splitRecipients, splitBps] = await splitter.recipients();
+  check(
+    "fee splitter recipients match deployment",
+    splitRecipients.length === deployment.feeSplitRecipients.length &&
+      splitRecipients.every((address, index) => sameAddress(address, deployment.feeSplitRecipients[index]))
+  );
+  check("fee splitter shares match deployment", splitBps.map(Number).join() === deployment.feeSplitBps.join(), splitBps.map(Number).join());
+}
+
 if (chainId === MAINNET_CHAIN_ID) {
   check("mainnet WETH is canonical", sameAddress(deployment.weth, MAINNET_WETH));
   check("mainnet Uniswap V2 router is canonical", sameAddress(deployment.router, MAINNET_UNISWAP_V2_ROUTER));

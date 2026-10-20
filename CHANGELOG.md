@@ -4,6 +4,21 @@ All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D
 newest first. V15 is not deployed yet: everything below runs locally and in the test
 suites, Sepolia comes next.
 
+## 2026-10-20 - Fee splitter
+
+### Added
+- **`D17FeeSplitter`**, an optional recipient for the protocol fee. It has no owner and
+  no setter: its recipients (1 to 5) and their shares (adding up to 100%) are fixed when
+  it is deployed and readable on-chain. Anyone can trigger the split; the fee arrives in
+  WETH, plain ETH is wrapped first, and the last recipient gets the rounding remainder so
+  nothing stays behind. The launch contracts are unchanged: the splitter is simply set as
+  the fee recipient.
+- `deploy:factory` deploys it when `FEE_SPLIT_RECIPIENTS` and `FEE_SPLIT_BPS` are set,
+  `verify:factory` checks it (identity, recipients, shares, fee config pointing to it).
+- New test suite `fee-splitter-e2e` (25 assertions): constructor rules, then a real
+  launch whose 1% fee lands in the splitter and is split 50/25/25, odd amounts, plain ETH
+  and other tokens. A full local deployment dry run passes all 45 verification checks.
+
 ## 2026-10-14 - Round changes shown on time, floor target in the chart
 
 ### Fixed

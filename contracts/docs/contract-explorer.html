@@ -122,18 +122,19 @@
     <p>Public Sepolia and Ethereum mainnet factory addresses are recorded in <code>deployments/</code>.</p>
     <div class="notice">Coverage is ABI-derived: every ABI entry in the listed source files is rendered below. Hand curation is deliberately avoided so functions, events, constructors, and errors are not silently missed.</div>
     <div class="grid">
-      <div class="stat"><strong>11</strong>contracts</div>
-      <div class="stat"><strong>364</strong>ABI entries</div>
-      <div class="stat"><strong>11</strong>constructor</div>
-      <div class="stat"><strong>5</strong>error</div>
-      <div class="stat"><strong>55</strong>event</div>
+      <div class="stat"><strong>12</strong>contracts</div>
+      <div class="stat"><strong>375</strong>ABI entries</div>
+      <div class="stat"><strong>12</strong>constructor</div>
+      <div class="stat"><strong>6</strong>error</div>
+      <div class="stat"><strong>56</strong>event</div>
       <div class="stat"><strong>3</strong>fallback</div>
-      <div class="stat"><strong>287</strong>function</div>
-      <div class="stat"><strong>3</strong>receive</div>
+      <div class="stat"><strong>294</strong>function</div>
+      <div class="stat"><strong>4</strong>receive</div>
     </div>
     <nav>
       <a href="#d17factory">D17Factory</a>
       <a href="#d17feeconfig">D17FeeConfig</a>
+      <a href="#d17feesplitter">D17FeeSplitter</a>
       <a href="#d17tokenfactory">D17TokenFactory</a>
       <a href="#d17liquidityvaultfactory">D17LiquidityVaultFactory</a>
       <a href="#d17launchdeployer">D17LaunchDeployer</a>
@@ -701,6 +702,113 @@
     <td>transferOwnership</td>
     <td class="sig">transferOwnership(address)</td>
     <td><div><span class="sig">address</span> newOwner</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+      </tbody>
+    </table>
+  </section>
+<section id="d17feesplitter">
+    <h2>D17FeeSplitter</h2>
+    <p>Source: <code>abi/D17FeeSplitter.abi.json</code></p>
+    <p><span class="pill">constructor: 1</span><span class="pill">error: 1</span><span class="pill">event: 1</span><span class="pill">function: 7</span><span class="pill">receive: 1</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 52px;">#</th>
+          <th style="width: 120px;">Type</th>
+          <th style="width: 190px;">Name</th>
+          <th>Signature</th>
+          <th>Inputs</th>
+          <th>Outputs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+    <td>0</td>
+    <td><span class="type-constructor">constructor</span><br><code>nonpayable</code></td>
+    <td>constructor</td>
+    <td class="sig">constructor(address,address[],uint16[])</td>
+    <td><div><span class="sig">address</span> weth_</div><div><span class="sig">address[]</span> recipients_</div><div><span class="sig">uint16[]</span> sharesBps_</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>1</td>
+    <td><span class="type-error">error</span></td>
+    <td>TransferFailed</td>
+    <td class="sig">TransferFailed()</td>
+    <td><span class="sig">none</span></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>2</td>
+    <td><span class="type-event">event</span></td>
+    <td>Distributed</td>
+    <td class="sig">Distributed(address,address,uint256)</td>
+    <td><div><span class="sig">address indexed</span> token</div><div><span class="sig">address indexed</span> recipient</div><div><span class="sig">uint256</span> amount</div></td>
+    <td><span class="sig">none</span></td>
+  </tr>
+        <tr>
+    <td>3</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>BPS</td>
+    <td class="sig">BPS()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint16</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>4</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>D17_FEE_SPLITTER_ID</td>
+    <td class="sig">D17_FEE_SPLITTER_ID()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">bytes32</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>5</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>MAX_RECIPIENTS</td>
+    <td class="sig">MAX_RECIPIENTS()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>6</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>distribute</td>
+    <td class="sig">distribute(address)</td>
+    <td><div><span class="sig">address</span> token</div></td>
+    <td><div><span class="sig">uint256</span> total</div></td>
+  </tr>
+        <tr>
+    <td>7</td>
+    <td><span class="type-function">function</span><br><code>nonpayable</code></td>
+    <td>distributeEth</td>
+    <td class="sig">distributeEth()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">uint256</span> total</div></td>
+  </tr>
+        <tr>
+    <td>8</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>recipients</td>
+    <td class="sig">recipients()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address[]</span> recipients_</div><div><span class="sig">uint16[]</span> sharesBps_</div></td>
+  </tr>
+        <tr>
+    <td>9</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>weth</td>
+    <td class="sig">weth()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>10</td>
+    <td><span class="type-receive">receive</span><br><code>payable</code></td>
+    <td>receive</td>
+    <td class="sig">receive</td>
+    <td><span class="sig">none</span></td>
     <td><span class="sig">none</span></td>
   </tr>
       </tbody>

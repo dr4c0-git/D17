@@ -12,6 +12,7 @@ const releaseRoot = path.join(root, "release");
 const productionSources = [
   "contracts/D17Factory.sol",
   "contracts/D17FeeConfig.sol",
+  "contracts/D17FeeSplitter.sol",
   "contracts/D17LaunchDeployer.sol",
   "contracts/D17Launch.sol",
   "contracts/D17LaunchFactory.sol",
