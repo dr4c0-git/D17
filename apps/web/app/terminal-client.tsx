@@ -6384,13 +6384,36 @@ function buildTimelineStages(phase: PhaseSnapshot | null, rounds: RoundTerm[], n
   return stages;
 }
 
+// Free RPC plans cap eth_getLogs ranges (Alchemy free: 10 blocks). When a range is refused,
+// shrink it and retry; the smaller size is kept for the rest of the session.
+const MIN_EVENT_CHUNK_SIZE = 10;
+let eventChunkSize = Math.max(MIN_EVENT_CHUNK_SIZE, EVENT_CHUNK_SIZE);
+
+async function getLogsAdaptive(provider: ethers.Provider, address: string, fromBlock: number, toBlock: number): Promise<ethers.Log[]> {
+  try {
+    return await provider.getLogs({ address, fromBlock, toBlock });
+  } catch (error) {
+    const span = toBlock - fromBlock + 1;
+    if (span <= MIN_EVENT_CHUNK_SIZE) throw error;
+    // Local step: nested retries may shrink the shared size again mid-loop.
+    const step = Math.max(MIN_EVENT_CHUNK_SIZE, Math.floor(span / 10));
+    eventChunkSize = Math.min(eventChunkSize, step);
+    const logs: ethers.Log[] = [];
+    for (let start = fromBlock; start <= toBlock; start += step) {
+      logs.push(...(await getLogsAdaptive(provider, address, start, Math.min(toBlock, start + step - 1))));
+    }
+    return logs;
+  }
+}
+
 async function queryContractLogs(provider: ethers.Provider, contract: ethers.Contract, eventNames: string[], fromBlock: number, toBlock: number) {
   const logs: any[] = [];
   const address = await contract.getAddress();
   const wanted = new Set(eventNames);
-  for (let start = fromBlock; start <= toBlock; start += EVENT_CHUNK_SIZE) {
-    const end = Math.min(toBlock, start + EVENT_CHUNK_SIZE - 1);
-    const chunk = await provider.getLogs({ address, fromBlock: start, toBlock: end });
+  for (let start = fromBlock; start <= toBlock; ) {
+    const end = Math.min(toBlock, start + eventChunkSize - 1);
+    const chunk = await getLogsAdaptive(provider, address, start, end);
+    start = end + 1;
     for (const log of chunk) {
       try {
         const parsed = contract.interface.parseLog(log);

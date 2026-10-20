@@ -20,3 +20,8 @@ apps/api/data/*
 *.tsbuildinfo
 .DS_Store
 
+
+# Files written by next dev in some environments; only the docs below belong here.
+apps/web/*.md
+!apps/web/README.md
+!apps/web/SECURITY.md
