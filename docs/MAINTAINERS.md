@@ -25,6 +25,24 @@ with a protocol fee. Repository: `dr4c0-git/D17`. Work directly on
 - **No em dash for the owner**: in everything written for the owner (documents, notes,
   messages, drafts to send), never use the em dash (U+2014); use a plain hyphen "-" instead.
 
+## Sepolia deployment progress (2026-10-20)
+
+Owner works on a Mac (Terminal, project clone in a `D17` folder), browser profile
+"D17 Test" with a separate MetaMask wallet (new secret phrase, never real funds).
+- Done: clone up to date (`git pull` + `npm install`), 5 test accounts created
+  (Test 1 Deploy, Test 2 Lockers, Test 3 Creator, Test 4 and 5 Buyers), Test 1 funded
+  with ~2.26 Sepolia ETH. Planned split from Test 1: 0.1 to Test 2, 0.2 to Test 3, 0.5
+  to Test 4 and Test 5.
+- Next: step 3 (Alchemy Sepolia RPC URL, Etherscan API key), step 4 (fill
+  `contracts/.env`: Test 1 key as `D17_FACTORY_PRIVATE_KEY`, Test 2 key as
+  `D17_LOCKER_FACTORY_PRIVATE_KEY`, Test 1 address as `FEE_CONFIG_OWNER` and
+  `PROTOCOL_FEE_RECIPIENT`), then deploy, verify, publish (see "Deployment").
+- The owner sends back `deployments/sepolia.json` (public addresses only); the
+  maintainer commits it and regenerates the release checksums. Never ask for a key or
+  the content of a `.env`.
+- First test launch: "Quick" preset, round-1 minimum around 0.2 ETH so two buyers can
+  reach it.
+
 ## Status (2026-10-06)
 
 - Step 1 (analysis) done. Step 2 (fee + fix for every risk) done and pushed: commits
