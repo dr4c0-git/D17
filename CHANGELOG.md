@@ -18,6 +18,9 @@ suites, Sepolia comes next.
 - New test suite `fee-splitter-e2e` (25 assertions): constructor rules, then a real
   launch whose 1% fee lands in the splitter and is split 50/25/25, odd amounts, plain ETH
   and other tokens. A full local deployment dry run passes all 45 verification checks.
+- `npm run check:env -w @d17/contracts` checks `contracts/.env` before a deployment
+  without printing any key or the RPC URL: network, address and balance behind each key,
+  fee settings and fee split, with a plain-English message for each problem found.
 
 ## 2026-10-14 - Round changes shown on time, floor target in the chart
 

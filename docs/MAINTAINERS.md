@@ -143,7 +143,9 @@ Other bugs fixed: deploy script nonce (`NonceManager` per key).
    `FEE_CONFIG_OWNER` (Safe), `PROTOCOL_FEE_RECIPIENT`, `PROTOCOL_FEE_BPS`,
    `RENOUNCE_D17_FACTORY_OWNER=1`. Optional fee split: `FEE_SPLIT_RECIPIENTS` (comma-separated)
    and `FEE_SPLIT_BPS` (adding up to 10000), with `PROTOCOL_FEE_RECIPIENT` left empty.
-2. `npm run compile -w @d17/contracts && npm run deploy:factory -w @d17/contracts`
+2. `npm run check:env -w @d17/contracts` (checks `.env` without printing any key: network,
+   addresses and balances behind the keys, fee settings, fee split), then
+   `npm run compile -w @d17/contracts && npm run deploy:factory -w @d17/contracts`
 3. `npm run verify:factory -w @d17/contracts` (every check must pass)
 4. `npm run publish:deployment -w @d17/contracts` (writes manifests + provenance)
 5. Full test launch (`create:launch` + terminal), then regenerate checksums/release and

@@ -136,6 +136,7 @@ ignores. Deploy to Sepolia first and run a full launch there before mainnet.
 
 ```bash
 cp contracts/.env.example contracts/.env   # fill RPC_URL, keys, FEE_CONFIG_OWNER, PROTOCOL_FEE_*
+npm run check:env -w @d17/contracts      # checks .env without printing any key
 npm run compile -w @d17/contracts
 npm run deploy:factory -w @d17/contracts    # deploys, pins and renounces the suite
 npm run verify:factory -w @d17/contracts    # every check must pass
