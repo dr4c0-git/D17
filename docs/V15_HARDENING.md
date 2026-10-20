@@ -5,9 +5,10 @@ contracts. Every launch created by the V15 factory follows the rules below; they
 enforced by the contracts, published in each launch's `rulesHash` and cannot be changed
 after the launch is created.
 
-> **Status:** V15 is **not deployed** on any network yet. The public manifests in
-> `deployments/` say `"status": "not-deployed"` until the suite is deployed, verified
-> and published (see "Deploying" below). The upstream V14 deployment is **not**
+> **Status:** V15 is **deployed on Sepolia** (2026-10-20, factory
+> `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, protocol fee 1% paid to a
+> `D17FeeSplitter`, 45/45 deployment checks). It is **not deployed on mainnet**:
+> `deployments/mainnet.json` says `"status": "not-deployed"`. The upstream V14 deployment is **not**
 > compatible with this source tree. V15 has **not** been professionally audited.
 
 ## What participants can rely on

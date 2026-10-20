@@ -1,8 +1,19 @@
 # Changelog
 
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
-newest first. V15 is not deployed yet: everything below runs locally and in the test
-suites, Sepolia comes next.
+newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
+
+## 2026-10-20 - Deployed on Sepolia
+
+- **The V15 suite is live on Sepolia** (block 11958083), deployed with `deploy:factory`
+  and checked by `verify:factory`: **45 checks out of 45 passed**, every factory owner
+  key renounced.
+- Factory `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, protocol fee 1%, paid to a
+  `D17FeeSplitter` (`0x6ad3FAF084f554aAd54A47134bf168c4FAe9Ab23`) that splits it
+  50 / 12.5 / 12.5 / 25 between four test addresses, the same layout planned for
+  mainnet. Every address and transaction is listed in `release/deployments/sepolia.json`.
+- Fixed before deploying: `hardhat compile` could fail with HHE905 on a machine without
+  a cached compiler (the undici override was too old for Hardhat 3.18).
 
 ## 2026-10-20 - Fee splitter
 

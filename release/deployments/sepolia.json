@@ -3,20 +3,62 @@
   "network": "sepolia",
   "chainId": 11155111,
   "protocolVersion": "V15_HARDENED",
-  "status": "not-deployed",
-  "startBlock": 0,
-  "deployedAt": null,
+  "status": "deployed",
+  "startBlock": 11958083,
+  "deployedAt": "2026-10-20T21:54:36.728Z",
   "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
   "router": "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3",
   "contracts": {
-    "d17Factory": "0x0000000000000000000000000000000000000000",
-    "feeConfig": "0x0000000000000000000000000000000000000000",
-    "tokenFactory": "0x0000000000000000000000000000000000000000",
-    "launchDeployer": "0x0000000000000000000000000000000000000000",
-    "launchFactory": "0x0000000000000000000000000000000000000000",
-    "liquidityVaultFactory": "0x0000000000000000000000000000000000000000",
-    "lockerFactory": "0x0000000000000000000000000000000000000000"
+    "d17Factory": "0xF02Ab7326c4212693a7a53Aa7BBa635213749C07",
+    "feeConfig": "0xd4dD5C6787C47E04525E2d39EC1652105CdACe4A",
+    "tokenFactory": "0xb34f23b0dE9331827177b1BCC6562DFD006E43d7",
+    "launchDeployer": "0x652d79bA88369122911493B4b9c0AfD100d08518",
+    "launchFactory": "0xAc1bD96Ead44D344DCb6A7b3b8B0BE4e626f62bc",
+    "liquidityVaultFactory": "0x1C29D022F70ece490CFFaD930E7F734958850918",
+    "lockerFactory": "0x5C00A92815dC63B0fff63F48D95493A33D363110"
   },
-  "transactions": {},
-  "note": "V15 is not deployed yet. Run deploy:factory, verify:factory, then publish:deployment (see contracts/README.md). The upstream V14 deployment is not compatible with this source tree."
+  "protocolFee": {
+    "recipient": "0x6ad3FAF084f554aAd54A47134bf168c4FAe9Ab23",
+    "bps": 100
+  },
+  "feeConfigOwner": "0xCF3AeEDD7D69e6CdBfd09de99B682c017aaE1c17",
+  "feeSplitter": {
+    "address": "0x6ad3FAF084f554aAd54A47134bf168c4FAe9Ab23",
+    "recipients": [
+      "0xA0DEBeb1c1AF803c5Db298Ccb6B86c7E898DBb15",
+      "0xE16dC9e446a8a2DaE3953b379146ffBdAbE0Db4a",
+      "0x4a210961950B4f703C5Afcd173Ad027E7E40B58c",
+      "0xDc88aba9c6FCeCc23A04820241CD539859c38819"
+    ],
+    "sharesBps": [
+      5000,
+      1250,
+      1250,
+      2500
+    ]
+  },
+  "transactions": {
+    "feeSplitterTransaction": "0x69ee48fc2430ade2cc8b4767c110d757cc68fa99d01e4085a8c8d50c64ff7109",
+    "feeConfigTransaction": "0x7b9d605fd86e86e115c84ff6687a9df33d603a3b98388abc15b1e1593576440f",
+    "factoryTransaction": "0xb39ab7bd33206c222f382040312187653b3aa138c5fe3ba27f215961f2d3bff3",
+    "tokenFactoryTransaction": "0xac594e40511ee51d9d757d94fb5c1b119f3891357fc5389c7c8d6e24bbd3bc9c",
+    "liquidityVaultFactoryTransaction": "0x2eb118f0c48cb53d60c461177206eb708444a7bba9bf09e3ce991a17c994675a",
+    "launchDeployerTransaction": "0x03eae434dca238a260a579766c71e69b70f650526c0e435c40b636b043727f2c",
+    "launchFactoryTransaction": "0xe88579000afcd77c26147607e74fd884f6e2ea7842ec2a40207c1022b64cb7ed",
+    "pinLaunchDeployerTransaction": "0xb96c2c21623d9dd54d07c8dba882e84e91293fdc849f8559b1ba2548aa36a22d",
+    "pinTokenFactoryTransaction": "0x79c51f1ae1bcf2ebfc206c86d9356e4d94b92f514c0bf8cc67f32dcd5ce60ed6",
+    "pinLiquidityVaultFactoryTransaction": "0x0e64962892ad99589fc827fd4df8397ca723390aff20f93a4202e8f91a0a817b",
+    "pinLaunchFactoryTransaction": "0x16881ef0ac4d572da79b0d54223431a8924e3d2316ea7821910b6cd04e18c2c3",
+    "lockerFactoryTransaction": "0xdd92ee667b392b8dbce770f8081cc6f4b2a7d6fddb5036bf765461cde41f358f",
+    "pinLockerFactoryTransaction": "0x9dec50a96e3f2878faf6f1ac11323eaf0909f1168c0ac3314eb26e5637238bc8",
+    "renounceTransaction": "0xa0e7f6d218b13399c66e25f45cc349b2e3ed74a13ffba1a36d2fe6a1f98963b6",
+    "tokenFactoryRenounceTransaction": "0xe63ca11a03f13cf37c38295a8aeb23a63d4c1e80b092c1f6f198d6254534950c",
+    "vaultFactoryRenounceTransaction": "0x4f16d0edee9da994691224bbcf0ccd66905f9a8f6a31797f62301b7bb6e74ed6",
+    "launchDeployerRenounceTransaction": "0xdf40da3f41995f089786cf3bd59e09a67f11f9c831b5ea9c80ddc6acafce629f"
+  },
+  "verification": {
+    "report": "factory-verification.json",
+    "checks": 45,
+    "ok": true
+  }
 }

@@ -27,34 +27,31 @@ with a protocol fee. Repository: `dr4c0-git/D17`. Work directly on
 
 ## Sepolia deployment progress (2026-10-20)
 
-Owner works on a Mac (Terminal, project clone in a `D17` folder), browser profile
-"D17 Test" with a separate MetaMask wallet (new secret phrase, never real funds).
-- Done: clone up to date (`git pull` + `npm install`), 5 test accounts created
-  (Test 1 Deploy, Test 2 Lockers, Test 3 Creator, Test 4 and 5 Buyers), Test 1 funded
-  with ~2.26 Sepolia ETH. Planned split from Test 1: 0.1 to Test 2, 0.2 to Test 3, 0.5
-  to Test 4 and Test 5.
-- Next: step 3 (Alchemy Sepolia RPC URL, Etherscan API key), step 4 (fill
-  `contracts/.env`: Test 1 key as `D17_FACTORY_PRIVATE_KEY`, Test 2 key as
-  `D17_LOCKER_FACTORY_PRIVATE_KEY`, Test 1 address as `FEE_CONFIG_OWNER`,
-  `PROTOCOL_FEE_RECIPIENT` empty, fee split to test addresses with
-  `FEE_SPLIT_RECIPIENTS` = Test 3, Test 4, Test 5 and `FEE_SPLIT_BPS=5000,2500,2500`),
-  then deploy, verify, publish (see "Deployment"). Mainnet split recipients are still to
-  be provided by the project lead.
-- The owner sends back `deployments/sepolia.json` (public addresses only); the
-  maintainer commits it and regenerates the release checksums. Never ask for a key or
-  the content of a `.env`.
-- First test launch: "Quick" preset, round-1 minimum around 0.2 ETH so two buyers can
-  reach it.
+Owner works on a Mac (Terminal, project clone in a `D17/D17` folder), browser profile
+"D17 Test" with a separate MetaMask wallet (new secret phrase, never real funds): Test 1
+Deploy (factory key, fee config owner), Test 2 Lockers (locker factory key), Test 3
+Creator, Test 4 and 5 Buyers.
+- Done: suite deployed and verified (45/45), manifests published and committed. Fee
+  split on Sepolia: Test 2, Test 3, Test 4, Test 5 at 5000/1250/1250/2500 bps (the
+  mainnet layout: D17 buybacks, 2027 buybacks, XBT buybacks, development fund).
+- Next: run the web app on Sepolia (`apps/web/.env.local` with the owner's Sepolia RPC
+  URL), one test launch ("Quick" preset, round-1 minimum around 0.2 ETH) with Test 3 as
+  creator and Test 4/5 as buyers, through trading open; then `distribute(WETH)` on the
+  splitter and check the four test balances. Then Etherscan source verification.
+- Mainnet split recipients were provided by the project lead and are kept off the repo
+  until the mainnet deployment. Never ask for a key or the content of a `.env`.
 
 ## Status (2026-10-06)
 
 - Step 1 (analysis) done. Step 2 (fee + fix for every risk) done and pushed: commits
   `f3442cb` (deployer), `fd9e635` (contracts), `4a3d92e` (tooling), `b8ecb7e` (apps),
   then docs/release, creator-vesting UI (`f5aee23`), V15 docs rewrite (`f944f69`).
-- **V15 is not deployed anywhere.** Manifests `deployments/*.json` (4 copies +
-  `release/deployments/`) say `"status": "not-deployed"` with zero addresses. The
-  upstream V14 addresses are incompatible (different ABIs/IDs).
-- Next step on the owner's side: deploy to Sepolia (see "Deployment").
+- **V15 is deployed on Sepolia** (2026-10-20, start block 11958083, factory
+  `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, fee splitter
+  `0x6ad3FAF084f554aAd54A47134bf168c4FAe9Ab23` paying Test 2 to Test 5 50/12.5/12.5/25,
+  verify 45/45). Provenance in `release/deployments/sepolia.json`. **Not on mainnet**:
+  `deployments/mainnet.json` still says `"not-deployed"`. The upstream V14 addresses are
+  incompatible (different ABIs/IDs).
 
 ## Commands
 

@@ -3,9 +3,10 @@
 > **Fork notice - D17 V15.** This repository is a fork of
 > [0xlocker/D17](https://github.com/0xlocker/D17) (MIT, original copyright kept in
 > `LICENSE`). It ships hardened V15 contracts with a published protocol fee (at most
-> 2%, charged only on successful settlement). V15 is **not deployed** yet: the
-> manifests in `deployments/` read `"not-deployed"` until the suite is deployed on
-> Sepolia (then mainnet), verified and published. The upstream V14 addresses are not
+> 2%, charged only on successful settlement). V15 is **deployed on Sepolia**
+> (testnet, factory `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, all 45 deployment
+> checks passed) and **not on mainnet** yet: `deployments/mainnet.json` reads
+> `"not-deployed"` until an audit is done. The upstream V14 addresses are not
 > compatible with this tree. Every rule change is listed in
 > [docs/V15_HARDENING.md](./docs/V15_HARDENING.md); the history of the fork is in
 > [CHANGELOG.md](./CHANGELOG.md).
