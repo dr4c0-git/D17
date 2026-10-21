@@ -9,7 +9,7 @@ import { artifact, providerFromEnv } from "./lib.mjs";
 const PHASES = ["not started", "round open", "take-back window", "ready to close", "collect tokens", "ready to open trading", "trading open", "cancelled"];
 const ERC20 = ["function balanceOf(address) view returns (uint256)", "function symbol() view returns (string)"];
 
-const address = process.argv[2];
+let address = process.argv[2];
 if (!address || !ethers.isAddress(address)) {
   console.error("Usage: npm run inspect:launch -w @d17/contracts -- 0xLaunchAddress");
   process.exit(1);
@@ -17,12 +17,17 @@ if (!address || !ethers.isAddress(address)) {
 const provider = providerFromEnv();
 const code = await provider.getCode(address);
 if (code === "0x") throw new Error(`${address} has no contract on this network.`);
-const launch = new ethers.Contract(address, artifact("D17Launch.sol", "D17Launch").abi, provider);
-let phase;
-try {
+let launch = new ethers.Contract(address, artifact("D17Launch.sol", "D17Launch").abi, provider);
+let phase = await launch.launchPhase().catch(() => null);
+if (!phase) {
+  // Given the launch's token or liquidity vault instead: both point back to their launch.
+  const pointer = new ethers.Contract(address, ["function launch() view returns (address)"], provider);
+  const resolved = await pointer.launch().catch(() => null);
+  if (!resolved || resolved === ethers.ZeroAddress) throw new Error(`${address} is not a D17 launch, token or liquidity vault.`);
+  console.log(`${address} is the launch's token or vault; its launch is ${resolved}.\n`);
+  address = resolved;
+  launch = new ethers.Contract(address, artifact("D17Launch.sol", "D17Launch").abi, provider);
   phase = await launch.launchPhase();
-} catch {
-  throw new Error(`${address} is not a D17 launch contract (it may be the token or the liquidity vault).`);
 }
 const read = (name, ...args) => launch[name](...args).catch(() => null);
 const [token, weth, feeRecipient, feeBps, feePaid, finalized, total, finalCommitted, settledCommitted, poolCreated] = await Promise.all([
