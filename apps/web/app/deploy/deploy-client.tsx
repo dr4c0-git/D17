@@ -23,6 +23,7 @@ import {
 import { LOCAL_DEPLOYER_SCHEMA, PROTOCOL_DEPLOYED, PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
 import { d17Href } from "@/lib/d17Network";
 import { ensureWalletChain } from "@/lib/walletChain";
+import { createReadProvider } from "@/lib/readProvider";
 
 declare global {
   interface Window {
@@ -228,7 +229,7 @@ function DeployForm() {
   useEffect(() => {
     if (!PROTOCOL_DEPLOYED || !READ_RPC_URL) return;
     let cancelled = false;
-    const provider = new ethers.JsonRpcProvider(READ_RPC_URL, CHAIN_ID, { batchMaxCount: 1 });
+    const provider = createReadProvider(READ_RPC_URL, CHAIN_ID);
     const feeConfig = new ethers.Contract(PUBLIC_DEPLOYMENT.contracts.feeConfig, FEE_CONFIG_ABI, provider);
     (feeConfig.currentFee() as Promise<[string, bigint]>)
       .then(([, bps]) => {
@@ -484,7 +485,7 @@ function DeployForm() {
       // signature prompt. `from` matters because the factory sends the manual
       // allocation to msg.sender.
       if (!READ_RPC_URL) throw new Error(`Configure an HTTP RPC endpoint for ${CHAIN_NAME} before deploying.`);
-      const simulationProvider = new ethers.JsonRpcProvider(READ_RPC_URL, CHAIN_ID, { batchMaxCount: 1 });
+      const simulationProvider = createReadProvider(READ_RPC_URL, CHAIN_ID);
       try {
         const simulationNetwork = await simulationProvider.getNetwork();
         if (simulationNetwork.chainId !== CHAIN_ID_BIG) {

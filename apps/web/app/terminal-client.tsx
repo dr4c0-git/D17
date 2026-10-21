@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SimpleView, type SimpleModel, type SimplePhase } from "./simple-view";
 import { ensureWalletChain } from "@/lib/walletChain";
+import { createReadProvider } from "@/lib/readProvider";
 import {
   apiBase,
   CHAIN_ID,
@@ -6103,7 +6104,7 @@ async function loadAbi(name: string) {
 }
 
 function readProvider() {
-  return new ethers.JsonRpcProvider(READ_RPC_URL, CHAIN_ID, { batchMaxCount: 1 });
+  return createReadProvider(READ_RPC_URL, CHAIN_ID);
 }
 
 async function assertChain(provider: ethers.BrowserProvider) {
