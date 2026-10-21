@@ -2276,7 +2276,11 @@ function ParticipantsTerminal() {
       } else {
         const provider = readProvider();
         const latestBlock = await provider.getBlockNumber();
-        const baseFromBlock = EVENT_FROM_BLOCK > 0 ? EVENT_FROM_BLOCK : Math.max(0, latestBlock - EVENT_LOOKBACK_BLOCKS);
+        // Start at the launch's own creation block when known: nothing about it exists earlier,
+        // and free RPC plans make every extra block range cost a request.
+        const createdBlock = knownLaunchesRef.current.find((item) => item.launch.toLowerCase() === launchAddress.toLowerCase())?.createdBlock ?? 0;
+        const suiteFromBlock = EVENT_FROM_BLOCK > 0 ? EVENT_FROM_BLOCK : Math.max(0, latestBlock - EVENT_LOOKBACK_BLOCKS);
+        const baseFromBlock = Math.max(suiteFromBlock, createdBlock);
         // Incremental scan: cache decoded events per launch+vault and only
         // re-query the recent block window (12-block re-org cushion) — the
         // 12s safety poll must not rescan the whole range on a public RPC.
@@ -6389,10 +6393,32 @@ function buildTimelineStages(phase: PhaseSnapshot | null, rounds: RoundTerm[], n
 const MIN_EVENT_CHUNK_SIZE = 10;
 let eventChunkSize = Math.max(MIN_EVENT_CHUNK_SIZE, EVENT_CHUNK_SIZE);
 
-async function getLogsAdaptive(provider: ethers.Provider, address: string, fromBlock: number, toBlock: number): Promise<ethers.Log[]> {
+function isRateLimited(error: unknown) {
+  const text = `${(error as { code?: unknown })?.code ?? ""} ${errorText(error)}`;
+  return /429|rate.?limit|too many requests|compute units|throughput|capacity/i.test(text);
+}
+
+function errorText(error: unknown): string {
+  if (!error) return "";
+  const issue = error as { message?: string; shortMessage?: string; info?: unknown; error?: unknown };
+  let extra = "";
+  try {
+    extra = JSON.stringify(issue.info ?? issue.error ?? "");
+  } catch {
+    extra = "";
+  }
+  return `${issue.shortMessage ?? ""} ${issue.message ?? ""} ${extra}`;
+}
+
+async function getLogsAdaptive(provider: ethers.Provider, address: string, fromBlock: number, toBlock: number, attempt = 0): Promise<ethers.Log[]> {
   try {
     return await provider.getLogs({ address, fromBlock, toBlock });
   } catch (error) {
+    // "Too fast": wait and retry the same range (0.5 s, 1 s, 2 s ... up to 6 tries).
+    if (isRateLimited(error) && attempt < 6) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
+      return getLogsAdaptive(provider, address, fromBlock, toBlock, attempt + 1);
+    }
     const span = toBlock - fromBlock + 1;
     if (span <= MIN_EVENT_CHUNK_SIZE) throw error;
     // Local step: nested retries may shrink the shared size again mid-loop.
