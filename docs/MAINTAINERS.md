@@ -34,10 +34,22 @@ Creator, Test 4 and 5 Buyers.
 - Done: suite deployed and verified (45/45), manifests published and committed. Fee
   split on Sepolia: Test 2, Test 3, Test 4, Test 5 at 5000/1250/1250/2500 bps (the
   mainnet layout: D17 buybacks, 2027 buybacks, XBT buybacks, development fund).
-- Next: run the web app on Sepolia (`apps/web/.env.local` with the owner's Sepolia RPC
-  URL), one test launch ("Quick" preset, round-1 minimum around 0.2 ETH) with Test 3 as
-  creator and Test 4/5 as buyers, through trading open; then `distribute(WETH)` on the
-  splitter and check the four test balances. Then Etherscan source verification.
+- Done (2026-10-21): first full test launch STEST, launch
+  `0x3cACdD55749BA777bd0806156F4596746B6df4b6` (token `0xfb87...74BD`): 0.25 ETH in round 1
+  (Test 1 0.15, Test 5 0.1), closed, collected (Test 1 late, after trading opened),
+  official pool created, tokens sent to wallets; protocol fee 0.0025 WETH split twice by
+  `distribute:fees`, exactly 50/12.5/12.5/25 to Test 2..5.
+- Lessons: free Alchemy caps `eth_getLogs` at 10 blocks and throttles bursts (429 without
+  CORS headers, seen as opaque network errors). The web app now shrinks log ranges,
+  retries rate-limited reads and queues RPC calls (`apps/web/lib/readProvider.ts`), but the
+  UI should use an RPC that accepts wide log ranges: PublicNode
+  (`https://ethereum-sepolia-rpc.publicnode.com`, `wss://...` for WS) works. Alchemy
+  stays fine for the deploy scripts. Don't confuse a launch with its token: the token
+  page is what MetaMask/Etherscan show; `inspect:launch` resolves either.
+- Tools for the owner: `check:env`, `inspect:launch -- <launch|token> [wallet]`,
+  `distribute:fees`.
+- Next: put the web app online (Vercel) for the project lead, Etherscan source
+  verification, then the external audit.
 - Mainnet split confirmed by the project lead (2026-10-21): D17 buybacks 50%, 2027
   buybacks 12.5%, XBT buybacks 12.5%, development fund 25%, i.e. `FEE_SPLIT_BPS=
   5000,1250,1250,2500` with `FEE_SPLIT_RECIPIENTS` in that exact order. The four

@@ -3,6 +3,27 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-10-21 - First full launch on Sepolia
+
+- **A complete launch ran on Sepolia**, from creation to trading: round 1 reached its
+  minimum (0.25 ETH), the sale was closed, buyers collected their tokens (one of them
+  after trading opened), the official pool was created and tokens were sent to wallets.
+- **The protocol fee reached the fee splitter and was split exactly 50 / 12.5 / 12.5 /
+  25** between four test addresses, twice, with `distribute:fees`.
+
+### Fixed on the way
+- Free RPC plans cap `eth_getLogs` ranges and request bursts. The web app now shrinks
+  log ranges when refused, retries rate-limited reads, queues its RPC calls (4 at a time)
+  and reads a launch's history from its own creation block.
+- A wallet with several vaults saw "You did not take part": the app now picks the vault
+  holding a position in the launch, and forgets the previous account's vault when the
+  wallet switches accounts.
+
+### Added
+- `npm run inspect:launch -w @d17/contracts -- <launch or token> [wallet]` prints a
+  launch's phase, raise and protocol fee, and optionally a wallet's vaults and positions.
+- `apps/web/.env.example` recommends an RPC that accepts wide log ranges (PublicNode).
+
 ## 2026-10-21 - Fee distribution command
 
 - `npm run distribute:fees -w @d17/contracts` splits the fees held by the published
