@@ -38,8 +38,12 @@ Creator, Test 4 and 5 Buyers.
   URL), one test launch ("Quick" preset, round-1 minimum around 0.2 ETH) with Test 3 as
   creator and Test 4/5 as buyers, through trading open; then `distribute(WETH)` on the
   splitter and check the four test balances. Then Etherscan source verification.
-- Mainnet split recipients were provided by the project lead and are kept off the repo
-  until the mainnet deployment. Never ask for a key or the content of a `.env`.
+- Mainnet split confirmed by the project lead (2026-10-21): D17 buybacks 50%, 2027
+  buybacks 12.5%, XBT buybacks 12.5%, development fund 25%, i.e. `FEE_SPLIT_BPS=
+  5000,1250,1250,2500` with `FEE_SPLIT_RECIPIENTS` in that exact order. The four
+  addresses were provided by the project lead and are kept off the repo until the
+  mainnet deployment (the owner has them). The project lead is creating a dedicated
+  GitHub account to be added as a collaborator. Never ask for a key or the content of a `.env`.
 
 ## Status (2026-10-06)
 
