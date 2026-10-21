@@ -19,6 +19,7 @@
     "deploy:factory": "node scripts/deploy-factory.mjs",
     "verify:factory": "node scripts/verify-factory-deployment.mjs",
     "check:env": "node scripts/check-env.mjs",
+    "distribute:fees": "node scripts/distribute-fees.mjs",
     "publish:deployment": "node scripts/publish-deployment.mjs",
     "create:launch": "node scripts/create-launch.mjs"
   },

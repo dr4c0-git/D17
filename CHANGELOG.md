@@ -3,6 +3,12 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-10-21 - Fee distribution command
+
+- `npm run distribute:fees -w @d17/contracts` splits the fees held by the published
+  `D17FeeSplitter` between its recipients and prints what each one received. Anyone can
+  run it, it only pays gas.
+
 ## 2026-10-20 - Deployed on Sepolia
 
 - **The V15 suite is live on Sepolia** (block 11958083), deployed with `deploy:factory`

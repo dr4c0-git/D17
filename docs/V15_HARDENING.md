@@ -62,6 +62,8 @@ redirect its tokens.
   `recipients()`. Anyone can call `distribute(token)` to forward its whole balance of a
   token (the fee arrives in WETH) to the recipients, the last one receiving the rounding
   remainder; `distributeEth()` wraps plain ETH and splits it the same way.
+  `npm run distribute:fees -w @d17/contracts` triggers the split of the published
+  splitter and prints what each recipient received.
 
 `D17FeeConfig` is the only contract in the suite that keeps an owner after deployment.
 
