@@ -1006,8 +1006,22 @@ function ParticipantsTerminal() {
         }
         if (cancelled) return;
         setOwnerLockers(normalized);
+        // A wallet can own several vaults: prefer the one holding a position in this launch.
+        let preferred = normalized[0];
+        if (!apiMode && normalized.length > 1 && ethers.isAddress(launchAddress)) {
+          const provider = readProvider();
+          const known = await Promise.all(
+            normalized.map(async (locker) => {
+              const contract = await contractWithProvider("D17Locker", locker, provider);
+              const position = await contract.positions(launchAddress).catch(() => null);
+              return Boolean(position?.known);
+            })
+          );
+          if (cancelled) return;
+          preferred = normalized[known.indexOf(true)] ?? normalized[normalized.length - 1];
+        }
         // Only auto-fill an EMPTY field — never clobber a partial manual entry.
-        setLockerAddress((current) => (current.trim() === "" ? normalized[0] ?? current : current));
+        setLockerAddress((current) => (current.trim() === "" ? preferred ?? current : current));
       } catch {
         /* lookup is best-effort; the full state refresh covers it */
       } finally {
@@ -2613,6 +2627,8 @@ function ParticipantsTerminal() {
           const next = accounts[0] && ethers.isAddress(accounts[0]) ? ethers.getAddress(accounts[0]) : "";
           setWalletAddress(next);
           setOwnerLockers([]);
+          // Another account owns other vaults: forget the previous account's one.
+          setLockerAddress("");
         });
       }
       await injected.request({ method: "eth_requestAccounts" });
