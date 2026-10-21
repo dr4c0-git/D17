@@ -1,6 +1,6 @@
 // Prints the on-chain state of a launch: phase, raise, protocol fee and where it goes.
 //
-//   npm run inspect:launch -w @d17/contracts -- 0xLaunchAddress
+//   npm run inspect:launch -w @d17/contracts -- 0xLaunchAddress [0xWallet]
 //
 // Read-only: no key needed, uses RPC_URL from contracts/.env.
 import { ethers } from "ethers";
@@ -51,5 +51,22 @@ show("Protocol fee paid so far", eth(feePaid));
 if (feeRecipient && weth) {
   const held = await new ethers.Contract(weth, ERC20, provider).balanceOf(feeRecipient);
   show("WETH held by the recipient", eth(held));
+}
+
+// Optional second argument: a wallet. Lists its vaults and what each holds in this launch.
+const wallet = process.argv[3];
+if (wallet && ethers.isAddress(wallet)) {
+  const factoryAddress = await launch.factory();
+  const factory = new ethers.Contract(factoryAddress, artifact("D17Factory.sol", "D17Factory").abi, provider);
+  const vaults = await factory.lockersOfOwner(wallet);
+  console.log(`\nWallet ${wallet}: ${vaults.length} vault(s)`);
+  for (const vault of vaults) {
+    const locker = new ethers.Contract(vault, artifact("D17Locker.sol", "D17Locker").abi, provider);
+    const position = await locker.positions(address);
+    const rounds = await Promise.all([0, 1, 2, 3, 4].map((round) => launch.previewRoundTokens(vault, round).catch(() => 0n)));
+    console.log(`- ${vault}`);
+    console.log(`    in this launch: ${position.known ? "yes" : "no"}, put in ${ethers.formatEther(position.wethCommitted)} ETH, taken back ${ethers.formatEther(position.wethRefunded)} ETH`);
+    console.log(`    collected: ${position.liquiditySettled ? "yes" : "no"}, tokens waiting in the vault: ${ethers.formatEther(position.withdrawableTokens)}, tokens to collect: ${ethers.formatEther(rounds.reduce((a, b) => a + b, 0n))}`);
+  }
 }
 provider.destroy?.();
