@@ -506,11 +506,11 @@ function DeployForm() {
           );
         try {
           await simulate(simFactory);
-        } catch (error) {
-          // No revert reason at all usually means the RPC refused the call (gas cap,
-          // limits), not that the launch is invalid: ask the wallet's own node instead.
-          const issue = error as { code?: string; data?: string | null };
-          if (issue.code !== "CALL_EXCEPTION" || (issue.data && issue.data !== "0x")) throw error;
+        } catch {
+          // Public RPCs cap the gas of simulated calls (PublicNode: around 8-10M, while a
+          // launch with a logo needs about 17M), which makes the creation fail inside the
+          // simulation with or without a reason. Ask the wallet's own node; its answer is
+          // the one that counts.
           await simulate(new ethers.Contract(canonicalFactoryAddress, abi, provider));
         }
       } finally {
