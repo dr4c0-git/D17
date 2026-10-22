@@ -41,6 +41,9 @@ const MAX_START_DELAY_SECONDS = 365 * 24 * 60 * 60;
 const MAX_REFUND_SECONDS = 30 * 24 * 60 * 60;
 const MAX_SETTLEMENT_SECONDS = 30 * 24 * 60 * 60;
 const MIN_COMMIT_WEI = 1_000_000_000_000_000n;
+// The start must still be in the future when the transaction is mined, after the wallet
+// prompts and the block wait: keep at least this much lead time.
+const MIN_START_LEAD_SECONDS = 5 * 60;
 // createLaunch uses about 8.2M gas, and about 17M with a maximum-size (8 KB) logo stored
 // on-chain; simulations get a budget well above that, still under a block's gas limit.
 const SIMULATION_GAS_LIMIT = 30_000_000n;
@@ -297,13 +300,15 @@ function DeployForm() {
   const overAllocated = salePct + lpPct + (supportsManualDistribution ? depPct : 0) > 100;
 
   const earlyRefundPct = (LOCAL_DEPLOYER_SCHEMA.validation.earlyRefundPenaltyBps ?? 100) / 100;
-  const startTime = useMemo(() => {
+  // Recomputed on every render: a relative start ("in 15 minutes") must never go stale while
+  // the page stays open, and a chosen date is checked against the current time.
+  const startTime = (() => {
     if (customStart) {
       const at = new Date(customStart).getTime();
       return Number.isFinite(at) ? Math.floor(at / 1000) : 0;
     }
     return Math.floor(Date.now() / 1000) + Number(opensIn) * 60;
-  }, [customStart, opensIn]);
+  })();
 
   const sharesSum = sharesPct.reduce((total, pct) => total + pct, 0);
 
@@ -414,6 +419,7 @@ function DeployForm() {
   if (!PROTOCOL_DEPLOYED) problems.push(`protocol not deployed on ${CHAIN_NAME} yet`);
   if (protocolFeeBps === null && PROTOCOL_DEPLOYED) problems.push("protocol fee not loaded");
   if (startTime <= Math.floor(Date.now() / 1000)) problems.push("start time is in the past");
+  else if (startTime < Math.floor(Date.now() / 1000) + MIN_START_LEAD_SECONDS) problems.push("start time too close");
   else if (startTime < Math.floor(Date.now() / 1000) + startDelayMin)
     problems.push(`start must be announced at least ${Math.round(startDelayMin / 3600)}h ahead`);
   if (startTime > Math.floor(Date.now() / 1000) + MAX_START_DELAY_SECONDS) problems.push("start time is over 365 days away");
@@ -501,6 +507,9 @@ function DeployForm() {
       const resolvedStartTime = customStart
         ? startTime
         : Math.floor(Date.now() / 1000) + Math.max(1, Number(opensIn) || 1) * 60;
+      if (resolvedStartTime < Math.floor(Date.now() / 1000) + MIN_START_LEAD_SECONDS) {
+        throw new Error("Round 1 must open at least 5 minutes from now, so the transaction has time to confirm. Pick a later time (step 4).");
+      }
       const config = buildConfig(treasuryResolved, JSON.stringify(abi).includes('"manualDistributionTokens"'), resolvedStartTime);
 
       // Simulate through the configured read RPC before opening the wallet
@@ -638,6 +647,8 @@ function DeployForm() {
     if (problem.startsWith("refund cost outside")) return "The take-back fee for rounds 3 and 4 must be between 1% and 25% (step 4).";
     if (problem.startsWith("start must be announced")) return "On mainnet a launch must be announced at least 24 hours ahead (step 4).";
     if (problem === "start time is in the past") return "The start time is in the past (step 4).";
+    if (problem === "start time too close")
+      return "Round 1 must open at least 5 minutes from now, so the transaction has time to confirm (step 4).";
     if (problem.startsWith("round length outside") || problem.startsWith("refund and claim windows"))
       return IS_MAINNET ? "On mainnet every round and window must last at least 1 hour (step 4)." : "Round lengths are out of range (step 4).";
     if (problem === "min commit below 0.001 ETH") return "The smallest amount must be at least 0.001 ETH (step 5).";
