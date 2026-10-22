@@ -41,6 +41,8 @@ const MAX_START_DELAY_SECONDS = 365 * 24 * 60 * 60;
 const MAX_REFUND_SECONDS = 30 * 24 * 60 * 60;
 const MAX_SETTLEMENT_SECONDS = 30 * 24 * 60 * 60;
 const MIN_COMMIT_WEI = 1_000_000_000_000_000n;
+// createLaunch uses about 8.2M gas (more with a logo); simulations get this budget.
+const SIMULATION_GAS_LIMIT = 16_000_000n;
 const MIN_LP_TOKENS = 1n;
 const MIN_ROUND_ALLOCATION_TOKENS = 1n;
 const MIN_ANCHOR_PRICE_WAD = 1_000_000n;
@@ -493,11 +495,23 @@ function DeployForm() {
         }
         const simFactory = new ethers.Contract(canonicalFactoryAddress, abi, simulationProvider);
         await assertDeployFactorySuite(simFactory);
-        await withTimeout(
-          simFactory.createLaunch.staticCall(config, { from: signerAddress }),
-          30_000,
-          "Simulation timed out — the RPC is slow right now. Nothing was sent; try again."
-        );
+        // createLaunch deploys three contracts: give the simulation an explicit gas budget,
+        // since public RPCs cap calls that do not set one well below what it needs.
+        const simulate = (factory: ethers.Contract) =>
+          withTimeout(
+            factory.createLaunch.staticCall(config, { from: signerAddress, gasLimit: SIMULATION_GAS_LIMIT }),
+            30_000,
+            "Simulation timed out — the RPC is slow right now. Nothing was sent; try again."
+          );
+        try {
+          await simulate(simFactory);
+        } catch (error) {
+          // No revert reason at all usually means the RPC refused the call (gas cap,
+          // limits), not that the launch is invalid: ask the wallet's own node instead.
+          const issue = error as { code?: string; data?: string | null };
+          if (issue.code !== "CALL_EXCEPTION" || (issue.data && issue.data !== "0x")) throw error;
+          await simulate(new ethers.Contract(canonicalFactoryAddress, abi, provider));
+        }
       } finally {
         simulationProvider.destroy();
       }
