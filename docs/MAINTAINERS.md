@@ -42,15 +42,17 @@ Creator, Test 4 and 5 Buyers.
 - Lessons: free Alchemy caps `eth_getLogs` at 10 blocks and throttles bursts (429 without
   CORS headers, seen as opaque network errors). The web app now shrinks log ranges,
   retries rate-limited reads and queues RPC calls (`apps/web/lib/readProvider.ts`), but the
-  UI should use an RPC that accepts wide log ranges: PublicNode
-  (`https://ethereum-sepolia-rpc.publicnode.com`, `wss://...` for WS) works. Alchemy
+  UI needs an RPC that keeps the full log history and accepts wide ranges: Tenderly's
+  public gateway (`https://sepolia.gateway.tenderly.co`) does. PublicNode and 1rpc prune
+  old logs ("pruned history unavailable"), so a fresh visitor saw an empty launch list
+  two days after the deployment; dRPC free accepts ranges up to 10,000 blocks. Alchemy
   stays fine for the deploy scripts. Don't confuse a launch with its token: the token
   page is what MetaMask/Etherscan show; `inspect:launch` resolves either.
 - Tools for the owner: `check:env`, `inspect:launch -- <launch|token> [wallet]`,
   `distribute:fees`.
 - Done (2026-10-22): web app online on Vercel (Hobby plan, project imported from this
-  repo, root directory `apps/web`, PublicNode RPCs in the `NEXT_PUBLIC_*` variables, no
-  key). Every push to `main` redeploys it. The link was sent to the project lead only and
+  repo, root directory `apps/web`, Tenderly gateway RPCs in the `NEXT_PUBLIC_*` variables,
+  no key; PublicNode was replaced because it prunes old logs). Every push to `main` redeploys it. The link was sent to the project lead only and
   is kept out of the repo until the launch is announced.
 - Next: add the project lead on GitHub (waiting for the username), Etherscan source
   verification, then the external audit.
