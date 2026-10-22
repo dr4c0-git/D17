@@ -44,6 +44,25 @@ const MIN_COMMIT_WEI = 1_000_000_000_000_000n;
 // createLaunch uses about 8.2M gas, and about 17M with a maximum-size (8 KB) logo stored
 // on-chain; simulations get a budget well above that, still under a block's gas limit.
 const SIMULATION_GAS_LIMIT = 30_000_000n;
+
+/** Gas for a real createLaunch when no node could simulate it: measured 8.2M for a launch
+ *  without logo and 16.9M with an 8 KB logo (about 1,070 gas per stored metadata byte),
+ *  plus a safety margin. Only the gas actually used is paid. */
+function creationGasLimit(config: { description: string; logoSvgUri: string; links: { linkType: string; url: string }[] }) {
+  const metadataBytes =
+    new TextEncoder().encode(config.description).length +
+    new TextEncoder().encode(config.logoSvgUri).length +
+    config.links.reduce((total, link) => total + link.linkType.length + link.url.length, 0);
+  return 9_500_000n + 1_400n * BigInt(metadataBytes);
+}
+
+/** A launch contract that fails to deploy inside a simulation, or a revert with no reason,
+ *  is what a node's gas cap on simulated calls looks like; real rule violations have names. */
+function isSimulationGasCap(error: unknown) {
+  const issue = error as { code?: string; reason?: string | null; data?: string | null; message?: string };
+  if (issue.reason === "LAUNCH_DEPLOY_FAILED" || /LAUNCH_DEPLOY_FAILED/.test(issue.message ?? "")) return true;
+  return issue.code === "CALL_EXCEPTION" && (!issue.data || issue.data === "0x");
+}
 const MIN_LP_TOKENS = 1n;
 const MIN_ROUND_ALLOCATION_TOKENS = 1n;
 const MIN_ANCHOR_PRICE_WAD = 1_000_000n;
@@ -489,6 +508,7 @@ function DeployForm() {
       // allocation to msg.sender.
       if (!READ_RPC_URL) throw new Error(`Configure an HTTP RPC endpoint for ${CHAIN_NAME} before deploying.`);
       const simulationProvider = createReadProvider(READ_RPC_URL, CHAIN_ID);
+      let simulationGasCapped = false;
       try {
         const simulationNetwork = await simulationProvider.getNetwork();
         if (simulationNetwork.chainId !== CHAIN_ID_BIG) {
@@ -511,7 +531,15 @@ function DeployForm() {
           // launch with a logo needs about 17M), which makes the creation fail inside the
           // simulation with or without a reason. Ask the wallet's own node; its answer is
           // the one that counts.
-          await simulate(new ethers.Contract(canonicalFactoryAddress, abi, provider));
+          try {
+            await simulate(new ethers.Contract(canonicalFactoryAddress, abi, provider));
+          } catch (walletError) {
+            // Every rule of the factory is checked before the launch contract is deployed and
+            // fails with its own reason; only a gas cap is left here. Send the real
+            // transaction with an explicit gas limit (blocks allow far more than needed).
+            if (!isSimulationGasCap(walletError)) throw walletError;
+            simulationGasCapped = true;
+          }
         }
       } finally {
         simulationProvider.destroy();
@@ -525,7 +553,10 @@ function DeployForm() {
       const walletFactory = new ethers.Contract(canonicalFactoryAddress, abi, finalSigner);
       await assertDeployFactorySuite(walletFactory);
       setBusy("Waiting for your signature…");
-      const tx = (await walletFactory.createLaunch(config)) as ethers.ContractTransactionResponse;
+      const tx = (await walletFactory.createLaunch(
+        config,
+        simulationGasCapped ? { gasLimit: creationGasLimit(config) } : {}
+      )) as ethers.ContractTransactionResponse;
       setBusy("Deploying — waiting for the block…");
       const confirmed = await waitForDeployment(tx);
       const receipt = confirmed.receipt;
