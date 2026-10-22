@@ -908,6 +908,7 @@ function ParticipantsTerminal() {
   // discovery WS honestly even before any launch is selected.
   const [discoveryWsLive, setDiscoveryWsLive] = useState(false);
   const [knownLaunches, setKnownLaunches] = useState<KnownLaunch[]>([]);
+  const [launchesLoaded, setLaunchesLoaded] = useState(false);
   const [newLaunchCount, setNewLaunchCount] = useState(0);
   const [railTab, setRailTab] = useState<"rounds" | "launches">("rounds");
   // Simple view (plain language, one action at a time) is the default; the full
@@ -1501,7 +1502,10 @@ function ParticipantsTerminal() {
   // caches the result locally, then only reconciles the recent block window.
   useEffect(() => {
     const apiMode = dataMode() === "api";
-    if (!apiMode && (!READ_RPC_URL || !PUBLIC_DEPLOYMENT?.contracts.d17Factory)) return;
+    if (!apiMode && (!READ_RPC_URL || !PUBLIC_DEPLOYMENT?.contracts.d17Factory)) {
+      setLaunchesLoaded(true); // nothing to discover from: the list stays empty
+      return;
+    }
     let cancelled = false;
     let rpcWsProvider: ethers.WebSocketProvider | null = null;
     let rpcWsFilter: ethers.Filter | null = null;
@@ -1525,6 +1529,7 @@ function ParticipantsTerminal() {
           // then newest" flash), and a late enrichment could also race a newer
           // WS/30s refresh and overwrite the list with an older snapshot.
           setKnownLaunches(base);
+          setLaunchesLoaded(true);
           list = base;
         } else {
           // Direct-RPC discovery: factory LaunchCreated logs (cached in
@@ -1532,6 +1537,7 @@ function ParticipantsTerminal() {
           list = await discoverRpcLaunches();
           if (cancelled) return;
           setKnownLaunches(list);
+          setLaunchesLoaded(true);
         }
 
         // Load the seen set on first use; note whether it was ever persisted
@@ -2829,13 +2835,15 @@ function ParticipantsTerminal() {
   // site should open on the latest launch). Runs once; after that the user's
   // selection stands.
   useEffect(() => {
+    // The simple view opens on the list of launches: a visitor picks one, nothing is chosen for them.
+    if (viewMode === "simple") return;
     if (autoSelectedLaunchRef.current || knownLaunches.length === 0) return;
     autoSelectedLaunchRef.current = true;
     const newest = [...knownLaunches].sort((a, b) => (b.createdBlock ?? 0) - (a.createdBlock ?? 0))[0];
     if (newest && (!ethers.isAddress(launchAddress) || newest.launch.toLowerCase() !== launchAddress.toLowerCase())) {
       applyLaunch(newest.launch);
     }
-  }, [knownLaunches, launchAddress]);
+  }, [knownLaunches, launchAddress, viewMode]);
 
   const joinLaunch = () => {
     if (!ethers.isAddress(joinLaunchAddress)) {
@@ -3398,12 +3406,14 @@ function ParticipantsTerminal() {
           };
         })()
       : null,
-    otherLaunches: knownLaunches.map((item) => ({
+    otherLaunches: [...knownLaunches].sort((a, b) => (b.createdBlock ?? 0) - (a.createdBlock ?? 0)).map((item) => ({
       address: item.launch,
       label: item.symbol || shortAddress(item.launch),
       status: item.phaseLabel,
       current: hasLaunch && item.launch.toLowerCase() === launchAddress.toLowerCase(),
     })),
+    launchesLoaded,
+    createLaunchHref: d17Href("/deploy"),
     actions: {
       connect: () => void connectWallet(),
       createVault: () => void createLocker(),
@@ -3418,6 +3428,18 @@ function ParticipantsTerminal() {
       releaseCreator: () => void releaseCreatorTokens(),
       addToken: () => void addTokenToWallet(),
       selectLaunch,
+      allLaunches: () => {
+        if (!hasLaunch) return;
+        applyLaunch("");
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete("launch");
+          url.searchParams.delete("rulesHash");
+          window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+        } catch {
+          /* the list shows anyway; only the address bar keeps the old link */
+        }
+      },
       expertView: () => changeViewMode("expert"),
     },
   };

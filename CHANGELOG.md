@@ -3,6 +3,17 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-10-22 - Simple view opens on the list of launches
+
+- **The simple view now opens on the list of launches**, newest first, instead of
+  picking a launch for the visitor. Click a launch to see its rounds and take part;
+  **"← All launches"** at the top of a launch goes back to the list. A link to a
+  launch (`?launch=0x...`) still opens that launch directly. The expert view keeps
+  opening on the newest launch.
+- The list rows are highlighted on hover and show "Opening…" right after a click.
+- While the list is read from the chain the page says "Looking for launches…"; with
+  no launch yet it links to "Create a launch".
+
 ## 2026-10-21 - First full launch on Sepolia
 
 - **A complete launch ran on Sepolia**, from creation to trading: round 1 reached its

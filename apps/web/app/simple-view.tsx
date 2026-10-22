@@ -94,6 +94,8 @@ export type SimpleModel = {
   tokenAddress: string;
   creatorVesting: { total: number; unlocked: number; sent: number; fullyUnlockedAt: number; canSend: boolean } | null;
   otherLaunches: { address: string; label: string; status: string; current: boolean }[];
+  launchesLoaded: boolean; // false until the list of launches has been read once
+  createLaunchHref: string;
   actions: {
     connect: () => void;
     createVault: () => void;
@@ -108,6 +110,7 @@ export type SimpleModel = {
     releaseCreator: () => void;
     addToken: () => void; // asks the wallet to list the sale token
     selectLaunch: (address: string) => void;
+    allLaunches: () => void; // back to the list of launches
     expertView: () => void;
   };
 };
@@ -118,6 +121,15 @@ const bigButton = "mt-4 h-12 w-full font-sans text-[15px] font-semibold normal-c
 export function SimpleView({ m }: { m: SimpleModel }) {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-6 sm:px-6">
+      {m.hasLaunch && (
+        <button
+          type="button"
+          onClick={m.actions.allLaunches}
+          className="self-start text-[14px] text-dim underline-offset-2 transition-colors hover:text-ink hover:underline"
+        >
+          ← All launches
+        </button>
+      )}
       {m.launch && <LaunchHeader m={m} />}
       {m.rulesMismatch && (
         <p className="border border-alert px-5 py-4 text-[15px] leading-relaxed text-alert" role="alert">
@@ -126,10 +138,7 @@ export function SimpleView({ m }: { m: SimpleModel }) {
         </p>
       )}
       {!m.hasLaunch ? (
-        <section className={card}>
-          <h2 className="text-[20px] font-semibold text-ink">Pick a launch</h2>
-          <p className="mt-2 text-[15px] leading-relaxed text-dim">Choose one of the launches below to see it here.</p>
-        </section>
+        <LaunchList m={m} />
       ) : !m.loaded ? (
         <section className={card} aria-busy="true">
           <p className="text-[15px] text-dim">
@@ -157,7 +166,6 @@ export function SimpleView({ m }: { m: SimpleModel }) {
           {m.rules && <HowItWorks m={m} />}
         </>
       )}
-      {m.otherLaunches.length > 1 && <OtherLaunches m={m} />}
       <p className="pt-2 text-center text-[14px] text-dim">
         Want every detail: charts, every transaction, contract addresses?{" "}
         <button type="button" onClick={m.actions.expertView} className="text-electric underline underline-offset-2 hover:text-ink">
@@ -951,14 +959,38 @@ function HowItWorks({ m }: { m: SimpleModel }) {
   );
 }
 
-function OtherLaunches({ m }: { m: SimpleModel }) {
-  // The launch clicked last, until its page has loaded: gives immediate feedback on a click.
+/** The simple view's landing page: every launch of the network, newest first. */
+function LaunchList({ m }: { m: SimpleModel }) {
+  // The launch clicked last, until its page opens: gives immediate feedback on a click.
   const [opening, setOpening] = useState<string | null>(null);
-  const openingAddress = opening && !(m.loaded && m.otherLaunches.some((launch) => launch.current && launch.address === opening)) ? opening : null;
+  const openingAddress = opening && !m.otherLaunches.some((launch) => launch.current && launch.address === opening) ? opening : null;
+  if (!m.launchesLoaded && m.otherLaunches.length === 0) {
+    return (
+      <section className={card} aria-busy="true">
+        <h2 className="text-[20px] font-semibold text-ink">Launches</h2>
+        <p className="mt-2 text-[15px] text-dim">Looking for launches…</p>
+        <div className="mt-4 flex flex-col gap-2" aria-hidden>
+          <div className="h-10 w-full animate-pulse bg-faint" />
+          <div className="h-10 w-full animate-pulse bg-faint" />
+        </div>
+      </section>
+    );
+  }
+  if (m.otherLaunches.length === 0) {
+    return (
+      <section className={card}>
+        <h2 className="text-[20px] font-semibold text-ink">Launches</h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-dim">No launch yet on this network.</p>
+        <a href={m.createLaunchHref} className="mt-3 inline-block text-[15px] text-electric underline underline-offset-2 hover:text-ink">
+          Create a launch
+        </a>
+      </section>
+    );
+  }
   return (
     <section className={card}>
-      <h2 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-quiet">Launches</h2>
-      <p className="mt-1 text-[13px] text-quiet">Click a launch to open it.</p>
+      <h2 className="text-[20px] font-semibold text-ink">Launches</h2>
+      <p className="mt-1 text-[15px] text-dim">Click a launch to see its rounds and take part.</p>
       <ul className="mt-2 flex flex-col gap-1">
         {m.otherLaunches.map((launch) => {
           const isOpening = openingAddress === launch.address;
