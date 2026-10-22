@@ -48,7 +48,11 @@ Creator, Test 4 and 5 Buyers.
   page is what MetaMask/Etherscan show; `inspect:launch` resolves either.
 - Tools for the owner: `check:env`, `inspect:launch -- <launch|token> [wallet]`,
   `distribute:fees`.
-- Next: put the web app online (Vercel) for the project lead, Etherscan source
+- Done (2026-10-22): web app online on Vercel (Hobby plan, project imported from this
+  repo, root directory `apps/web`, PublicNode RPCs in the `NEXT_PUBLIC_*` variables, no
+  key). Every push to `main` redeploys it. The link was sent to the project lead only and
+  is kept out of the repo until the launch is announced.
+- Next: add the project lead on GitHub (waiting for the username), Etherscan source
   verification, then the external audit.
 - Mainnet split confirmed by the project lead (2026-10-21): D17 buybacks 50%, 2027
   buybacks 12.5%, XBT buybacks 12.5%, development fund 25%, i.e. `FEE_SPLIT_BPS=
