@@ -41,8 +41,9 @@ const MAX_START_DELAY_SECONDS = 365 * 24 * 60 * 60;
 const MAX_REFUND_SECONDS = 30 * 24 * 60 * 60;
 const MAX_SETTLEMENT_SECONDS = 30 * 24 * 60 * 60;
 const MIN_COMMIT_WEI = 1_000_000_000_000_000n;
-// createLaunch uses about 8.2M gas (more with a logo); simulations get this budget.
-const SIMULATION_GAS_LIMIT = 16_000_000n;
+// createLaunch uses about 8.2M gas, and about 17M with a maximum-size (8 KB) logo stored
+// on-chain; simulations get a budget well above that, still under a block's gas limit.
+const SIMULATION_GAS_LIMIT = 30_000_000n;
 const MIN_LP_TOKENS = 1n;
 const MIN_ROUND_ALLOCATION_TOKENS = 1n;
 const MIN_ANCHOR_PRICE_WAD = 1_000_000n;
