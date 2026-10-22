@@ -2,9 +2,9 @@ import { ethers } from "ethers";
 
 // Free RPC plans cap requests per second, and their "too many requests" answers often
 // reach the browser as an opaque network error. Every read provider of the app shares
-// this queue: a few requests in flight at a time, and a failed transport is retried
+// this queue: a few requests (6) in flight at a time, and a failed transport is retried
 // with a growing delay before the error is surfaced.
-const MAX_IN_FLIGHT = 4;
+const MAX_IN_FLIGHT = 6;
 const MAX_ATTEMPTS = 6;
 
 let inFlight = 0;

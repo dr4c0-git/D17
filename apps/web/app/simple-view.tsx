@@ -131,8 +131,19 @@ export function SimpleView({ m }: { m: SimpleModel }) {
           <p className="mt-2 text-[15px] leading-relaxed text-dim">Choose one of the launches below to see it here.</p>
         </section>
       ) : !m.loaded ? (
-        <section className={card}>
-          <p className="text-[15px] text-dim">Loading the launch from {m.chainName}…</p>
+        <section className={card} aria-busy="true">
+          <p className="text-[15px] text-dim">
+            Opening{" "}
+            <span className="font-semibold text-ink">
+              {m.otherLaunches.find((launch) => launch.current)?.label ?? "the launch"}
+            </span>
+            …
+          </p>
+          <div className="mt-4 flex flex-col gap-2" aria-hidden>
+            <div className="h-5 w-2/3 animate-pulse bg-faint" />
+            <div className="h-4 w-full animate-pulse bg-faint" />
+            <div className="h-4 w-5/6 animate-pulse bg-faint" />
+          </div>
         </section>
       ) : (
         <>
@@ -941,25 +952,53 @@ function HowItWorks({ m }: { m: SimpleModel }) {
 }
 
 function OtherLaunches({ m }: { m: SimpleModel }) {
+  // The launch clicked last, until its page has loaded: gives immediate feedback on a click.
+  const [opening, setOpening] = useState<string | null>(null);
+  const openingAddress = opening && !(m.loaded && m.otherLaunches.some((launch) => launch.current && launch.address === opening)) ? opening : null;
   return (
     <section className={card}>
       <h2 className="text-[13px] font-semibold uppercase tracking-[0.04em] text-quiet">Launches</h2>
-      <ul className="mt-2 flex flex-col">
-        {m.otherLaunches.map((launch) => (
-          <li key={launch.address} className="border-b border-faint last:border-b-0">
-            <button
-              type="button"
-              onClick={() => m.actions.selectLaunch(launch.address)}
-              aria-current={launch.current ? "page" : undefined}
-              className={`flex w-full items-center justify-between gap-4 py-2.5 text-left text-[15px] hover:text-ink ${
-                launch.current ? "font-semibold text-ink" : "text-dim"
-              }`}
-            >
-              <span>{launch.label}</span>
-              <span className="text-[13px] text-quiet">{plainStatus(launch.status)}</span>
-            </button>
-          </li>
-        ))}
+      <p className="mt-1 text-[13px] text-quiet">Click a launch to open it.</p>
+      <ul className="mt-2 flex flex-col gap-1">
+        {m.otherLaunches.map((launch) => {
+          const isOpening = openingAddress === launch.address;
+          return (
+            <li key={launch.address}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (launch.current) return;
+                  setOpening(launch.address);
+                  m.actions.selectLaunch(launch.address);
+                }}
+                aria-current={launch.current ? "page" : undefined}
+                className={`group flex w-full cursor-pointer items-center justify-between gap-4 border px-3 py-2.5 text-left text-[15px] transition-colors ${
+                  launch.current
+                    ? "border-ink bg-panel font-semibold text-ink"
+                    : isOpening
+                      ? "border-hairline bg-panel text-ink"
+                      : "border-transparent text-dim hover:border-hairline hover:bg-panel hover:text-ink"
+                }`}
+              >
+                <span>{launch.label}</span>
+                <span className="flex items-center gap-3 text-[13px] text-quiet">
+                  {launch.current ? (
+                    <span className="text-ink">{m.loaded ? "Viewing" : "Opening…"}</span>
+                  ) : isOpening ? (
+                    <span className="text-ink">Opening…</span>
+                  ) : (
+                    plainStatus(launch.status)
+                  )}
+                  {!launch.current && (
+                    <span aria-hidden className="text-quiet transition-transform group-hover:translate-x-0.5 group-hover:text-ink">
+                      →
+                    </span>
+                  )}
+                </span>
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
