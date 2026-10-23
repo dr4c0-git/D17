@@ -206,7 +206,7 @@ An unavailable website or API does not change the on-chain rules. A participant 
 | **Locker** | An owner-controlled contract that holds your WETH positions and purchased tokens. |
 | **Round** | One of five timed commitment periods in a D17 launch. |
 | **Anchor price** | The round-1 WETH raise divided by round 1's token allocation, provided the published minimums are met. |
-| **Deflection** | The refund penalty: a fixed 1% in rounds 1 and 2, the launch's published rate in rounds 3 and 4. It is paid into the official pool, never to the creator. |
+| **Defection** | The refund penalty: a fixed 1% in rounds 1 and 2, the launch's published rate in rounds 3 and 4. It is paid into the official pool, never to the creator. |
 | **Finalize** | Fix the successful sale totals and process unsold sale tokens after round 5. |
 | **Settle** | Apply the final sale accounting to a locker and route its WETH between liquidity, the treasury fee and the protocol fee. |
 | **Claim** | Credit the locker with the purchased tokens calculated at settlement. Withdrawal to the wallet is a separate step. |

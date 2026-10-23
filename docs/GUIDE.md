@@ -28,7 +28,7 @@
 
 D17 is a **launch mechanism** and a **terminal to watch and take part in it**.
 
-A launch raises **WETH** across a fixed sequence of **timed rounds**. Between rounds there are **refund windows** — you can pull your commitment back out. Early refunds cost a fixed 1%; later refunds use the published **deflection** fee. Every refund penalty goes into the official pool, never to the creator. The token supply is minted once when the launch is created. Finalization later locks the sale accounting and burns unsold sale tokens. Settlement then funds the official pool and credits participants' tokens.
+A launch raises **WETH** across a fixed sequence of **timed rounds**. Between rounds there are **refund windows** — you can pull your commitment back out. Early refunds cost a fixed 1%; later refunds use the published **defection** fee. Every refund penalty goes into the official pool, never to the creator. The token supply is minted once when the launch is created. Finalization later locks the sale accounting and burns unsold sale tokens. Settlement then funds the official pool and credits participants' tokens.
 
 The whole thing is **on-chain and rule-bound**. The creator publishes the exact rules up front and the launch records their hash. The terminal checks token metadata consistency separately, while the locker's **Check rules** action verifies the canonical launch and exact rules hash before commitment. Nothing about the schedule, split, or refund policy is discretionary once it is live.
 
@@ -41,7 +41,7 @@ The terminal is **read-mostly**. It shows you every launch, its live phase, the 
 1. **Find a launch.** Open the terminal; it opens on the newest launch. Switch between launches from the top bar or the **LAUNCHES** list.
 2. **Read the rules.** The masthead shows the token, the supply split (sale / LP / deployer / dead address), the treasury cut, the protocol fee, and the round schedule. **RULES · DETAILS** expands the full terms.
 3. **Connect & commit.** Connect a Sepolia wallet, create your **locker**, and commit WETH while a round is **OPEN**. You must meet the round's floor.
-4. **Change your mind?** During a **refund window** you can withdraw. Rounds 1–2 cost 1%; rounds 3–4 charge the published deflection %; round 5 has no window.
+4. **Change your mind?** During a **refund window** you can withdraw. Rounds 1–2 cost 1%; rounds 3–4 charge the published defection %; round 5 has no window.
 5. **Settle & claim.** When the rounds end the launch **finalizes** and **settles**. You **claim** your tokens; your share of the raise seeds the pool.
 6. **Trade.** Once **POOL READY → TRADING OPEN**, the token is live on a pool. Your leftover balances are always withdrawable from your locker.
 
@@ -56,7 +56,7 @@ The terminal is **read-mostly**. It shows you every launch, its live phase, the 
 | **Commit** | Deposit WETH toward the launch during an open round. |
 | **Locker** | *Your* personal contract that holds committed WETH and, later, claimable tokens. A locker can hold positions across multiple launches. The app never holds funds — your locker does. |
 | **Refund window** | The window after a round where you can withdraw what you committed. |
-| **Deflection** | The refund fee: a fixed 1% on rounds 1–2, the launch's published percentage on rounds 3–4. It is paid into the official pool, never to the creator. |
+| **Defection** | The refund fee: a fixed 1% on rounds 1–2, the launch's published percentage on rounds 3–4. It is paid into the official pool, never to the creator. |
 | **Floor** | The published minimum commitment and round-1 anchor requirements. If round 1 does not establish its required anchor, the launch fails. |
 | **Finalize** | End-of-rounds step that locks the sale accounting and processes unsold sale tokens. |
 | **Settlement / Claim** | The window where committers claim their tokens and the pool is prepared. |
@@ -91,14 +91,14 @@ FINALIZE ──▶ SETTLEMENT · CLAIM WINDOW ──▶ POOL READY ──▶ TRA
 |---|---|---|
 | **NOT STARTED** | Launch is published; round 1 hasn't opened. | Read the rules; get your wallet ready. |
 | **ROUND N · OPEN** | Commit window is live for round N. | Commit WETH (≥ the round floor). |
-| **ROUND N · REFUND WINDOW** | The window to leave round N. | Withdraw — 1% early, deflection % later. |
+| **ROUND N · REFUND WINDOW** | The window to leave round N. | Withdraw — 1% early, defection % later. |
 | **FINALIZE** | Rounds are done and the sale outcome can be locked. | Anyone may submit the one-time finalize transaction. |
 | **SETTLEMENT · CLAIM WINDOW** | Tokens are claimable; the pool is being prepared. | **Claim** your tokens; withdraw any leftover WETH. |
 | **POOL READY** | The settlement grace boundary has passed and the official pool is eligible for creation. | Create/observe the pool; prepare to trade. |
 | **TRADING OPEN** | The token is live on its pool. | Trade; claim/withdraw anything remaining. |
 | **FAILED** | The launch never met its floor. | Withdraw your commitment in full. |
 
-> **Why refund windows exist.** They make the sale honest. If a launch stalls or you change your mind, you're not trapped — you leave. The escalating deflection fee simply discourages last-minute churn once real momentum has built.
+> **Why refund windows exist.** They make the sale honest. If a launch stalls or you change your mind, you're not trapped — you leave. The escalating defection fee simply discourages last-minute churn once real momentum has built.
 
 ---
 
@@ -147,7 +147,7 @@ The screen is three columns under a top bar. Nothing is hidden behind menus — 
 3. **Create your locker.** On the launch page, create your locker. This is your personal contract; it can hold positions for more than one launch. Your committed WETH lives here.
 4. **Commit.** While a round is **OPEN**, enter an amount at or above the round floor and confirm. The flow walks a short ladder — *wallet ✓ → locker ✓ → commit* — and the feed shows your commit when it lands.
 5. **Track your position.** **YOUR LOCKER** shows committed amount, your share %, and balances. Locker WETH figures come from the indexer; your wallet ETH/WETH come from the wallet.
-6. **Refund (optional).** In a refund window, the CTA tells you the cost **before** you sign — *1%* in rounds 1–2, the launch's published deflection in rounds 3–4 (**17%** on the default preset; each launch sets its own, between 1% and 25%), and round 5 has no window. The returned WETH becomes withdrawable in your locker; an owner-only withdrawal moves it to your wallet.
+6. **Refund (optional).** In a refund window, the CTA tells you the cost **before** you sign — *1%* in rounds 1–2, the launch's published defection in rounds 3–4 (**17%** on the default preset; each launch sets its own, between 1% and 25%), and round 5 has no window. The returned WETH becomes withdrawable in your locker; an owner-only withdrawal moves it to your wallet.
 7. **Claim.** In **SETTLEMENT · CLAIM WINDOW**, claim your tokens. Anything not converted stays withdrawable.
 8. **Trade.** Once **TRADING OPEN**, the pool is live. Disconnecting clears your view; reconnecting restores it.
 
@@ -187,7 +187,7 @@ A one-line strip up top restates the lifecycle: **ROUNDS raise ETH → REFUNDS l
 
 ## Hosted vs. self-hosted
 
-- **Hosted showcase.** The temporary demonstration reads indexed data from a hosted API. It is a viewer and test surface, not a permanent launchpad service.
+- **Hosted showcase.** The temporary demonstration reads indexed data from a hosted API. It is a viewer and test surface, not a permanent service.
 - **Local RPC.** Clone this repository, bring your own RPC, and choose testnet or mainnet from the top navigation. Participant reads and wallet actions work without a D17 server. The deploy page always signs directly through the wallet.
 
 The app has two data modes under the hood: **API mode** (reads the hosted indexer — the public experience) and **RPC mode** (reads the chain directly — for local/self-hosted use). ETH/USD and other hosted conveniences degrade gracefully when self-hosting.

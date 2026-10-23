@@ -432,7 +432,7 @@ function apiLockerToRoundPositions(locker: ApiLockerSummary): RoundSnapshot[] {
 type RoundTerm = {
   id: number;
   allocationPct: number;
-  deflectionCostPct: number;
+  defectionCostPct: number;
   startAt: number;
   endAt: number;
   refundStartAt: number;
@@ -461,7 +461,7 @@ type ApiRound = {
 };
 
 /** Backend rounds[] → the app's RoundTerm[]. The refund window and per-round
- *  deflection cost come straight from rounds[].refundPolicy. */
+ *  defection cost come straight from rounds[].refundPolicy. */
 function apiRoundsToTerms(rounds: ApiRound[]): RoundTerm[] {
   return rounds.map((entry, index) => {
     const policy = entry.refundPolicy || {};
@@ -470,7 +470,7 @@ function apiRoundsToTerms(rounds: ApiRound[]): RoundTerm[] {
     return {
       id: typeof entry.displayRound === "number" ? entry.displayRound : index + 1,
       allocationPct: Number(entry.shareBps ?? 0) / 100,
-      deflectionCostPct: refundable ? Number(policy.deflectionCostBps ?? 0) / 100 : 0,
+      defectionCostPct: refundable ? Number(policy.deflectionCostBps ?? 0) / 100 : 0,
       startAt: Number(entry.start ?? 0),
       endAt,
       refundStartAt: refundable ? Number(policy.refundWindowStart ?? endAt) : endAt,
@@ -701,7 +701,7 @@ type ActivityMode = "activity" | "lockers" | "locker";
 const defaultRounds: RoundTerm[] = Array.from({ length: ROUND_COUNT }, (_, index) => ({
   id: index + 1,
   allocationPct: index === 0 ? 40 : 15,
-  deflectionCostPct: index < EARLY_REFUND_ROUNDS ? EARLY_REFUND_PENALTY_PCT : index < REFUND_STAGE_COUNT ? 17 : 0,
+  defectionCostPct: index < EARLY_REFUND_ROUNDS ? EARLY_REFUND_PENALTY_PCT : index < REFUND_STAGE_COUNT ? 17 : 0,
   startAt: 0,
   endAt: 0,
   refundStartAt: 0,
@@ -1335,7 +1335,7 @@ function ParticipantsTerminal() {
   }, [stagePrice?.value, contribution]);
   const refundableRound = refundRound !== null ? roundPositions[refundRound] : undefined;
   const refundableWeth = refundableRound && !refundableRound.refunded ? Number(refundableRound.committedWeth) : 0;
-  const refundCostPct = refundRound !== null ? rounds[refundRound]?.deflectionCostPct ?? 0 : 0;
+  const refundCostPct = refundRound !== null ? rounds[refundRound]?.defectionCostPct ?? 0 : 0;
   const txElapsed = pendingAction && txStartedAt > 0 ? Math.max(0, nowSeconds - txStartedAt) : 0;
   const positionRows = roundPositions.filter(
     (item) => Number(item.committedWeth) > 0 || item.refunded || Number(item.claimedTokens) > 0
@@ -1810,7 +1810,7 @@ function ParticipantsTerminal() {
         if (typeof detail.weth === "string" && ethers.isAddress(detail.weth)) setWethAddress(ethers.getAddress(detail.weth));
 
         // Round terms — dates, allocation, refund window and per-round
-        // deflection cost — straight from rounds[].refundPolicy.
+        // defection cost — straight from rounds[].refundPolicy.
         const config = (detail.config || {}) as Record<string, unknown>;
         const tokenomics = (detail.tokenomics || {}) as Record<string, unknown>;
         const apiRounds = (Array.isArray(detail.rounds) ? detail.rounds : []) as ApiRound[];
@@ -2043,7 +2043,7 @@ function ParticipantsTerminal() {
         loadedRounds.push({
           id: round + 1,
           allocationPct: Number(shareBps) / 100,
-          deflectionCostPct:
+          defectionCostPct:
             round < EARLY_REFUND_ROUNDS
               ? EARLY_REFUND_PENALTY_PCT
               : round < REFUND_STAGE_COUNT
@@ -3317,7 +3317,7 @@ function ParticipantsTerminal() {
       startAt: round.startAt,
       endAt: round.endAt,
       refundEndAt: round.refundEndAt,
-      takeBackFeePct: round.deflectionCostPct,
+      takeBackFeePct: round.defectionCostPct,
       hasTakeBack: roundHasRefundWindow(round, index),
     })),
     nowSeconds,
@@ -3459,7 +3459,7 @@ function ParticipantsTerminal() {
         <div className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
           <p className="flex items-baseline gap-3 font-mono text-[10px] uppercase tracking-[0.02em]">
             <span className="text-ink">D17</span>
-            <span className="hidden text-dim sm:inline">{simpleView ? "Launchpad" : "Launch terminal"}</span>
+            {!simpleView && <span className="hidden text-dim sm:inline">Launch terminal</span>}
             <span className="hidden text-quiet sm:inline">{NETWORK_LABEL}</span>
           </p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -3949,8 +3949,8 @@ function ParticipantsTerminal() {
                     {stageCta(`Commit to round ${phase.index + 1}`, () => void commitToRound(), Boolean(pendingAction) || !canCommit)}
                     <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">
                       {roundHasRefundWindow(rounds[phase.index], phase.index)
-                        ? (rounds[phase.index]?.deflectionCostPct ?? 0) > 0
-                          ? `Wrapped to WETH in your locker · Refundable after this round at ${rounds[phase.index]?.deflectionCostPct}% cost`
+                        ? (rounds[phase.index]?.defectionCostPct ?? 0) > 0
+                          ? `Wrapped to WETH in your locker · Refundable after this round at a ${rounds[phase.index]?.defectionCostPct}% defection cost`
                           : "Wrapped to WETH in your locker · Refundable free after this round"
                         : "Wrapped to WETH in your locker · Final round · Rolls to settlement"}
                     </p>
@@ -3971,7 +3971,7 @@ function ParticipantsTerminal() {
                       </p>
                     )}
                     {stageCta(
-                      `Refund round ${phase.index + 1}${refundCostPct > 0 ? ` (${refundCostPct}% deflection cost)` : ""}`,
+                      `Refund round ${phase.index + 1}${refundCostPct > 0 ? ` (${refundCostPct}% defection cost)` : ""}`,
                       () => void refundCurrentRound(),
                       Boolean(pendingAction) || !canRefund || refundableWeth <= 0
                     )}
@@ -4700,7 +4700,7 @@ function LaunchMasthead({
   const name = metadata.tokenName?.trim();
   const symbol = metadata.tokenSymbol?.trim();
   // Tokenomics chips from the real launch config (token split + the treasury
-  // WETH cut). Total supply = sale + LP + deployer + dead-address allocation. Deflection is
+  // WETH cut). Total supply = sale + LP + deployer + dead-address allocation. Defection is
   // NOT shown here — it's per-round (early rounds are free), so it lives on
   // the round rows, not as one misleading launch-level number.
   const tokenomics: { label: string; value: string }[] = [];
@@ -4922,7 +4922,7 @@ function RoundTable({
             <th className="py-2 pr-3 text-left font-normal">Round</th>
             <th className="py-2 pr-3 text-right font-normal">Allocation</th>
             <th className="py-2 pr-3 text-right font-normal">{sameDay ? `Time (${formatDay(scheduled[0].startAt)})` : "Time"}</th>
-            <th className="py-2 pr-3 text-right font-normal">Refund</th>
+            <th className="py-2 pr-3 text-right font-normal">Defection cost</th>
             <th className="py-2 text-right font-normal">Price ({currency.usd ? "USD" : "ETH"})</th>
           </tr>
         </thead>
@@ -4949,7 +4949,7 @@ function RoundTable({
                     {round.endAt > 0 ? `${clock(round.startAt)} → ${clock(round.endAt)}` : clock(round.startAt)}
                   </td>
                   <td className="py-2 pr-3 text-right tabular-nums whitespace-nowrap">
-                    {hasRefundWindow ? (round.deflectionCostPct > 0 ? `${round.deflectionCostPct}%` : "Free") : "None"}
+                    {hasRefundWindow ? (round.defectionCostPct > 0 ? `${round.defectionCostPct}%` : "Free") : "None"}
                   </td>
                   <td className="py-2 text-right tabular-nums whitespace-nowrap">
                     {detail?.price
@@ -6357,7 +6357,7 @@ function buildTimelineStages(phase: PhaseSnapshot | null, rounds: RoundTerm[], n
       stages.push({
         id: `refund-${round.id}`,
         title: `Round ${round.id} refund`,
-        subtitle: round.deflectionCostPct > 0 ? `${round.deflectionCostPct}% refund cost` : "Free refund",
+        subtitle: round.defectionCostPct > 0 ? `${round.defectionCostPct}% defection cost` : "Free refund",
         startsAt: round.refundStartAt,
         endsAt: round.refundEndAt,
         active: phase?.phaseKind === PHASE.REFUND_OPEN && phase.index === roundIndex,

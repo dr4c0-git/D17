@@ -980,7 +980,7 @@ function DeployForm() {
           <a href={d17Href("/")} className="font-semibold text-ink hover:underline">
             D17
           </a>{" "}
-          <span className="text-dim">{advanced ? "Launch terminal" : "Launchpad"}</span>{" "}
+          {advanced && <span className="text-dim">Launch terminal</span>}{" "}
           <span className="text-live">· {advanced ? "Deploy" : "Create a launch"}</span> <span className="text-quiet">{NETWORK_LABEL}</span>
         </p>
         <div className="flex items-center gap-3">

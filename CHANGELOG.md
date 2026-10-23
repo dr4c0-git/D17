@@ -3,6 +3,15 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-10-23 - Wording: defection cost, no "Launchpad"
+
+- The fee for taking ETH back after round 3 or 4 is now called the **defection cost**
+  everywhere (expert view, guide, contract docs, blog), instead of "deflection".
+  The round table's column reads "Defection cost". The simple view keeps its plain
+  "take-back fee".
+- The word **"Launchpad"** is gone from the header of the simple view and the
+  create-a-launch page: D17 is a protocol. The expert view keeps "Launch terminal".
+
 ## 2026-10-22 - Simple view opens on the list of launches
 
 - **The simple view now opens on the list of launches**, newest first, instead of
