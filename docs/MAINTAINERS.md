@@ -54,9 +54,10 @@ Creator, Test 4 and 5 Buyers.
   repo, root directory `apps/web`, Tenderly gateway RPCs in the `NEXT_PUBLIC_*` variables,
   no key; PublicNode was replaced because it prunes old logs). Every push to `main` redeploys it. The link was sent to the project lead only and
   is kept out of the repo until the launch is announced.
-- Next: add the project lead on GitHub (waiting for the username), Etherscan source
-  verification (`verify:etherscan`, needs `ETHERSCAN_API_KEY` in `contracts/.env`; run `-- --dry-run` first), then the
-  external audit.
+- Next: add the project lead on GitHub (waiting for the username), then the external audit.
+- Etherscan: the 8 suite contracts are verified on Sepolia (2026-10-26, `verify:etherscan`,
+  needs `ETHERSCAN_API_KEY` in `contracts/.env`; `-- --dry-run` checks without sending).
+  Redo it on mainnet with `-- --network mainnet` right after the mainnet deployment.
 - Site content: `/docs`, `/blog` and `/progress` render `docs/` and `CHANGELOG.md` from
   `apps/web/content/site-content.json`. After editing any of them, run
   `npm run content:sync` before `release:checksums` (`check:release` fails otherwise).

@@ -5,6 +5,11 @@ newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
 ## 2026-10-26 - Etherscan source verification command
 
+- **Done on Sepolia: the 8 contracts of the suite are verified on Etherscan** (fee
+  splitter, fee config, factory, token factory, liquidity vault factory, launch deployer,
+  launch factory, locker factory). Their source code is readable on each address's
+  "Contract" tab.
+
 - `npm run verify:etherscan -w @d17/contracts` publishes the source code of the
   deployed suite on Etherscan (Sepolia by default, `-- --network mainnet` later), so
   anyone can read the code behind each address. Addresses come from
