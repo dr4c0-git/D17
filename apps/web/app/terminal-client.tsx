@@ -3482,6 +3482,12 @@ function ParticipantsTerminal() {
             >
               {simpleView ? "Create a launch" : "Deploy"}
             </a>
+            <a
+              href="/docs"
+              className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink max-xl:min-h-11 max-xl:inline-flex max-xl:items-center"
+            >
+              Docs
+            </a>
             {!simpleView && <Dialog>
               <DialogTrigger asChild>
                 <Button size="sm" variant="ghost">

@@ -2,7 +2,7 @@
 
 > A fair-launch terminal for tokens. Commit over timed rounds, leave during refund windows, and — if the sale clears its floor — watch the launch finalize into a live pool you can trade. No accounts, no custody, no private keys held by the app.
 
-**Live testnet:** [d17testnet.vercel.app](https://d17testnet.vercel.app) · Runs on Ethereum **Sepolia** — use a testnet wallet only.
+**Status:** D17 V15 runs on Ethereum **Sepolia** (testnet) — use a testnet wallet only.
 
 ---
 

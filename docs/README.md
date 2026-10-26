@@ -9,6 +9,7 @@ Documentation for the D17 open-source experiment.
 - [Technical contract reference](./CONTRACTS_TECHNICAL.md)
 - [V15 changes and protocol fee](./V15_HARDENING.md)
 - [Self-hosting](./SELF_HOSTING.md)
+- [Progress](./PROGRESS.md)
 - [Short essays](./blog/README.md)
 
 ## Repository map

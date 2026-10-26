@@ -20,4 +20,4 @@ They stand alone, but they build: **01** (where your money lives) → **02–03*
 
 ---
 
-*All posts describe the V15 contracts included in `contracts/` and were checked against that source. V15 passes two local end-to-end suites but is not deployed publicly yet and has no formal professional third-party audit. Nothing here is investment advice — these essays explain a mechanism, not a token's value.*
+*All posts describe the V15 contracts included in `contracts/` and were checked against that source. V15 is deployed on Sepolia (testnet), not on mainnet yet, and has no formal professional third-party audit. Nothing here is investment advice — these essays explain a mechanism, not a token's value.*

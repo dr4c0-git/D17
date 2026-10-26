@@ -313,3 +313,137 @@ body::after {
     background: none;
   }
 }
+
+/* Documentation pages (/docs, /blog, /progress): markdown rendered by lib/site-content.ts. */
+.d17-prose {
+  max-width: 46rem;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--dim);
+  overflow-wrap: anywhere;
+}
+.d17-prose > * + * {
+  margin-top: 1em;
+}
+.d17-prose h1,
+.d17-prose h2,
+.d17-prose h3,
+.d17-prose h4 {
+  position: relative;
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.3;
+  scroll-margin-top: 1.5rem;
+}
+.d17-prose h1 {
+  font-size: 30px;
+}
+.d17-prose h2 {
+  margin-top: 2.2em;
+  padding-top: 0.6em;
+  border-top: 1px solid var(--hairline);
+  font-size: 22px;
+}
+.d17-prose hr + h2,
+.d17-prose > h2:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.d17-prose h3 {
+  margin-top: 1.8em;
+  font-size: 18px;
+}
+.d17-prose h4 {
+  margin-top: 1.5em;
+  font-size: 16px;
+}
+.d17-prose .anchor {
+  position: absolute;
+  left: -1.1em;
+  color: var(--quiet);
+  text-decoration: none;
+  opacity: 0;
+}
+.d17-prose :is(h1, h2, h3, h4):hover .anchor {
+  opacity: 1;
+}
+.d17-prose a {
+  color: var(--electric);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.d17-prose a:hover {
+  color: var(--ink);
+}
+.d17-prose strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.d17-prose ul,
+.d17-prose ol {
+  padding-left: 1.4em;
+}
+.d17-prose ul {
+  list-style: disc;
+}
+.d17-prose ol {
+  list-style: decimal;
+}
+.d17-prose li + li,
+.d17-prose li > ul,
+.d17-prose li > ol {
+  margin-top: 0.35em;
+}
+.d17-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  padding: 0.1em 0.3em;
+  background: var(--faint);
+  color: var(--ink);
+}
+.d17-prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 1em;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  line-height: 1.5;
+}
+.d17-prose pre code {
+  padding: 0;
+  background: none;
+  font-size: 13px;
+}
+.d17-prose blockquote {
+  border-left: 2px solid var(--hairline);
+  padding-left: 1em;
+  color: var(--dim);
+}
+.d17-prose hr {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: 2em 0;
+}
+.d17-prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.d17-prose th,
+.d17-prose td {
+  border: 1px solid var(--hairline);
+  padding: 0.45em 0.7em;
+  text-align: left;
+  vertical-align: top;
+}
+.d17-prose th {
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--panel);
+}
+.d17-prose img {
+  max-width: 100%;
+}

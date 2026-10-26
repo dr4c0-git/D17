@@ -3,6 +3,20 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-10-26 - Docs, blog and progress on the site
+
+- **The documentation is now part of the web app**, on the same domain as the launches:
+  **/docs** (user guide, contracts explained, technical reference, V15 changes,
+  self-hosting), **/blog** (the nine essays) and **/progress** (where the project
+  stands, what comes next, and this changelog). A "Docs" link sits in the app's header.
+- The pages are built from the markdown in `docs/` and `CHANGELOG.md`: links between
+  documents open the matching page, links to other repository files open them on GitHub.
+  `npm run content:sync` refreshes the copy the web app reads, and `check:release` fails
+  if it is out of date.
+- New `docs/PROGRESS.md`: done, next, status.
+- The guide no longer points to the upstream testnet site, and the blog's footer says V15
+  is deployed on Sepolia.
+
 ## 2026-10-23 - Wording: defection cost, no "Launchpad"
 
 - The fee for taking ETH back after round 3 or 4 is now called the **defection cost**

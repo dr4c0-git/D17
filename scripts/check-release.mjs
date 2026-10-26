@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { collectReleaseFiles, RELEASE_MANIFEST_NAME } from "./release-files.mjs";
 import { EXPLORER_CONTRACTS as contractNames } from "../contracts/scripts/contract-list.mjs";
+import { buildSiteContent, SITE_CONTENT_PATH } from "./sync-site-content.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -34,6 +35,8 @@ for (const network of ["sepolia", "mainnet"]) {
     );
   }
 }
+
+check(`${SITE_CONTENT_PATH} matches the docs (npm run content:sync)`, existsSync(path.join(root, SITE_CONTENT_PATH)) && read(SITE_CONTENT_PATH) === buildSiteContent());
 
 for (const name of contractNames) {
   const canonical = read(`contracts/abi/${name}.abi.json`);
