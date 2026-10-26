@@ -3,6 +3,16 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-10-26 - Etherscan source verification command
+
+- `npm run verify:etherscan -w @d17/contracts` publishes the source code of the
+  deployed suite on Etherscan (Sepolia by default, `-- --network mainnet` later), so
+  anyone can read the code behind each address. Addresses come from
+  `release/deployments/<network>.json`; each contract's constructor arguments are read
+  back from its own deployment transaction, after checking that the local build
+  produces exactly the deployed bytecode. `-- --dry-run` runs every check and sends
+  nothing. Needs a free `ETHERSCAN_API_KEY` in `contracts/.env`, no private key.
+
 ## 2026-10-26 - Docs, blog and progress on the site
 
 - **The documentation is now part of the web app**, on the same domain as the launches:

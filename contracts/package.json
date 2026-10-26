@@ -18,6 +18,7 @@
     "check:explorer": "node scripts/check-explorer.mjs",
     "deploy:factory": "node scripts/deploy-factory.mjs",
     "verify:factory": "node scripts/verify-factory-deployment.mjs",
+    "verify:etherscan": "node scripts/verify-etherscan.mjs",
     "check:env": "node scripts/check-env.mjs",
     "distribute:fees": "node scripts/distribute-fees.mjs",
     "inspect:launch": "node scripts/inspect-launch.mjs",

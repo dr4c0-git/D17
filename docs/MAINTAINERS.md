@@ -55,7 +55,11 @@ Creator, Test 4 and 5 Buyers.
   no key; PublicNode was replaced because it prunes old logs). Every push to `main` redeploys it. The link was sent to the project lead only and
   is kept out of the repo until the launch is announced.
 - Next: add the project lead on GitHub (waiting for the username), Etherscan source
-  verification, then the external audit.
+  verification (`verify:etherscan`, needs `ETHERSCAN_API_KEY` in `contracts/.env`; run `-- --dry-run` first), then the
+  external audit.
+- Site content: `/docs`, `/blog` and `/progress` render `docs/` and `CHANGELOG.md` from
+  `apps/web/content/site-content.json`. After editing any of them, run
+  `npm run content:sync` before `release:checksums` (`check:release` fails otherwise).
 - Mainnet split confirmed by the project lead (2026-10-21): D17 buybacks 50%, 2027
   buybacks 12.5%, XBT buybacks 12.5%, development fund 25%, i.e. `FEE_SPLIT_BPS=
   5000,1250,1250,2500` with `FEE_SPLIT_RECIPIENTS` in that exact order. The four
