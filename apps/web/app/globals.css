@@ -5,7 +5,7 @@
 
 :root {
   /*
-   * Economy of Words system — see DESIGN_DIRECTION.md.
+   * Economy of Words system - see DESIGN_DIRECTION.md.
    * Paper is black, ink is white; hierarchy is alpha, not weight.
    * dim/quiet are lifted slightly above the EoW originals so small
    * mono text clears WCAG AA on pure black (quiet 0.46 ≈ 4.6:1).
@@ -126,7 +126,7 @@
   --color-electric: var(--electric);
 }
 
-/* Light mode — warm newsprint cream, never literal white. Same system:
+/* Light mode - warm newsprint cream, never literal white. Same system:
    hierarchy stays alpha-on-ink, accents darken just enough to keep AA
    contrast on cream. Toggled via data-theme; dark stays the default. */
 html[data-theme='light'] {
@@ -156,7 +156,7 @@ html[data-theme='light'] {
   --holder-9: #a19a86;
   --holder-10: #b3ac97;
 }
-/* Grain reads fainter on cream — lift it a touch. */
+/* Grain reads fainter on cream - lift it a touch. */
 html[data-theme='light'] body::after {
   opacity: 0.035;
 }
@@ -191,7 +191,7 @@ html[data-theme='light'] body::after {
   }
 }
 
-/* Film grain over everything — the texture that keeps pure black alive. */
+/* Film grain over everything - the texture that keeps pure black alive. */
 body::after {
   content: '';
   position: fixed;
@@ -212,7 +212,7 @@ body::after {
   100% { transform: translate(0, 0); }
 }
 
-/* Motion vocabulary — fires on events, never decorates. */
+/* Motion vocabulary - fires on events, never decorates. */
 @keyframes rise-in {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }

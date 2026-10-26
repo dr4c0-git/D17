@@ -10,7 +10,7 @@ suite are summarised in [V15_HARDENING.md](./V15_HARDENING.md).
 
 ## 1. Overview & scope
 
-**Status:** local E2E green — **567/567** assertions in `test/local-e2e.mjs` and **52/52**
+**Status:** local E2E green - **567/567** assertions in `test/local-e2e.mjs` and **52/52**
 in `test/hardening-e2e.mjs`, **33/33** in `test/mainnet-floors-e2e.mjs`; stateful fuzz `test/fuzz-invariants.mjs` green (4 seeds × 8 campaigns, 82,030 invariant checks, 381 adversarial probes, 0 failures). Slither 0.11.6 reports no exploitable finding. V15 is **not
 deployed** on any network yet and has **not** received a formal professional third-party
 audit.
@@ -19,7 +19,7 @@ D17 is a five-round fair-launch protocol on a Uniswap-V2-style AMM. Users commit
 (wrapped to WETH) through personal escrow contracts ("lockers"); round 0 discovers an
 anchor price and every later round sells at or above it; refund windows follow rounds
 0–3 and every refund pays a penalty into the official pool; after finalization each
-locker settles — sale tokens to the buyer, a treasury fee, a protocol fee, and the
+locker settles - sale tokens to the buyer, a treasury fee, a protocol fee, and the
 remainder into a permanently locked official liquidity pool. Pool creation is
 permissionless and never blocked by unsettled users: the initial pool pairs settled WETH
 plus all refund penalties with a *proportional* share of the (sale-scaled) LP token
@@ -62,7 +62,7 @@ Authority edges (all others are permissionless or view):
 
 | Caller → callee | Functions | Guard | Cite |
 |---|---|---|---|
-| D17Factory → D17FeeConfig | `currentFee` (view) | — | D17Factory.sol:166 |
+| D17Factory → D17FeeConfig | `currentFee` (view) | - | D17Factory.sol:166 |
 | D17Factory → D17LaunchFactory | `deployLaunch` | `onlyD17Factory` | D17LaunchFactory.sol:63-66,83-91 |
 | D17LaunchFactory → D17LaunchDeployer | `deployLaunch(bytes)` | pinned `launchFactory` only; encoded `vaultConfigurator == msg.sender` | D17LaunchDeployer.sol:51-61 |
 | D17LaunchFactory → D17TokenFactory / D17LiquidityVaultFactory | `deployToken` / `deployVault` | pinned `launchFactory` only | D17TokenFactory.sol:43-50, D17LiquidityVaultFactory.sol:43-50 |
@@ -117,7 +117,7 @@ feeRecipient, feeBps)`:
 | 9 | Mint `saleTokens + lpTokens` → launch | D17LaunchFactory.sol:155 |
 | 10 | Mint `manualDistributionTokens` → **liquidity vault** (vested to the creator, §6.8) | D17LaunchFactory.sol:156-160 |
 | 11 | Mint `deadTokens` → `0x…dEaD` (if > 0) | D17LaunchFactory.sol:161 |
-| 12 | `closeMinting()`; `renounceOwnership()` — **no mint authority survives** | D17LaunchFactory.sol:162-163 |
+| 12 | `closeMinting()`; `renounceOwnership()` - **no mint authority survives** | D17LaunchFactory.sol:162-163 |
 | 13 | Factory records canonical entry, emits `LaunchCreated`, `ManualDistributionConfigured`, `LaunchMetadataPublished` | D17Factory.sol:170-190 |
 
 `rulesHash()` is read *after* vault configuration (it includes `liquidityVault`), so the
@@ -139,7 +139,7 @@ tradingOpenAt` (D17Launch.sol:415-419). `tradingOpen() == liquidityPoolCreated`
 
 | Phase (const, D17Launch.sol:22-29) | Predicate | State-changing calls allowed (launch-side) |
 |---|---|---|
-| 0 `PHASE_NOT_STARTED` | `now < startTime` | — |
+| 0 `PHASE_NOT_STARTED` | `now < startTime` | - |
 | 1 `PHASE_ROUND_OPEN` (idx = round) | `activeRound() != NO_ROUND` (rounds 1+ additionally require `anchorReady()`, :303) | `recordRoundCommitment(round,…)` |
 | 2 `PHASE_REFUND_OPEN` (idx = round) | `activeRefundWindow() != NO_ROUND` (windows follow rounds 0–3 only, :310-316) | `releaseRoundRefund()` |
 | 7 `PHASE_FAILED` | `launchFailed()`: not finalized ∧ `now ≥ roundEnd(0)+refundSeconds` ∧ `!anchorReady()` (:361-363) | `releaseFailedRefund()` (forever); vault `burnFailedLaunchPenalties()` |
@@ -181,8 +181,8 @@ Key storage: `owner`, immutable `weth`/`router`/`feeConfig` (:49-51),
 | `registerLockerFor(address lockerOwner, address locker) external` (:110) | Registers a locker | pinned lockerFactory only | `NOT_LOCKER_FACTORY`, zero/no-code/duplicate |
 | `pinLaunchFactory(address) / pinLockerFactory(address) external` (:130/:121) | One-shot wiring | `onlyOwner` | `*_PINNED`, zero, no code |
 | `transferOwnership(address) / renounceOwnership() external` (:139/:145) | Ownership; renounce requires both pins | `onlyOwner` | `OWNER_ZERO`; `*_UNLOCKED` |
-| `isCanonicalLaunch(address launch, bytes32 rulesHash) external view returns (bool)` (:193) | Registry check: address **and** hash | view | — |
-| `lockersOfOwner(address) external view returns (address[] memory)` (:152) | Locker enumeration per owner | view | — |
+| `isCanonicalLaunch(address launch, bytes32 rulesHash) external view returns (bool)` (:193) | Registry check: address **and** hash | view | - |
+| `lockersOfOwner(address) external view returns (address[] memory)` (:152) | Locker enumeration per owner | view | - |
 
 `_validateConfig` (:198-251) enforces: name/symbol length + JSON-safety; metadata bounds
 (description ≤ 512B, ≤ 8 links, link type `[a-z0-9-]` ≤ 32B, link URL https + ≤ 128B +
@@ -196,7 +196,7 @@ refund/settlement seconds in [1 (1h on mainnet), 30d] (:225-229); `minCommitWeth
 `minPhase1Weth ≥ minCommitWeth`; `minAnchorPriceWad ≥ 1e6`; **`treasuryBps ≤ 1000`**
 (:233); **`100 ≤ refundPenaltyBps ≤ 2500`** (:234-237); 5 rounds, each 60s (1h on
 mainnet)–90d, each share > 0 with allocation ≥ 1e18 tokens, shares summing to exactly
-10 000 bps (:239-250). The manual-allocation **recipient is not a config field** — it is
+10 000 bps (:239-250). The manual-allocation **recipient is not a config field** - it is
 always `msg.sender` of `createLaunch` (:169). The config field `maxProtocolFeeBps` is the
 creator's consent bound (ID17LaunchFactory.sol).
 
@@ -215,9 +215,9 @@ Purpose: protocol fee settings for **future** launches. Constants: `D17_FEE_CONF
 
 | Signature | Semantics | AC | Reverts |
 |---|---|---|---|
-| `constructor(address owner_, address feeRecipient_, uint16 protocolFeeBps_)` (:34) | Initial settings through `_setFee` | — | `OWNER_ZERO`, `FEE_ABOVE_CAP`, `FEE_RECIPIENT_ZERO` |
+| `constructor(address owner_, address feeRecipient_, uint16 protocolFeeBps_)` (:34) | Initial settings through `_setFee` | - | `OWNER_ZERO`, `FEE_ABOVE_CAP`, `FEE_RECIPIENT_ZERO` |
 | `setProtocolFee(address feeRecipient_, uint16 protocolFeeBps_) external` (:41) | Replace settings; `bps ≤ 200`, recipient required when `bps > 0` (:67-73) | `onlyOwner` | `NOT_OWNER`, `FEE_ABOVE_CAP`, `FEE_RECIPIENT_ZERO` |
-| `currentFee() external view returns (address recipient, uint16 bps)` (:45) | Read by `createLaunch` | view | — |
+| `currentFee() external view returns (address recipient, uint16 bps)` (:45) | Read by `createLaunch` | view | - |
 | `transferOwnership(address) / acceptOwnership() / renounceOwnership()` (:49/:54/:61) | Two-step handover; renouncing freezes the settings forever | owner / pending owner | `NOT_OWNER`, `NOT_PENDING_OWNER` |
 
 The fee config holds no funds and is never called by a launch: changing it cannot affect
@@ -232,8 +232,8 @@ No owner, no setter. Constants: `D17_FEE_SPLITTER_ID` (:19), `BPS = 10_000`,
 
 | Signature | Semantics | AC | Reverts |
 |---|---|---|---|
-| `constructor(address weth_, address[] recipients_, uint16[] sharesBps_)` (:37) | 1 to 5 distinct non-zero recipients, non-zero shares adding up to 10 000 | — | `WETH_ZERO`, `RECIPIENT_COUNT`, `LENGTH_MISMATCH`, `RECIPIENT_ZERO`, `SHARE_ZERO`, `RECIPIENT_DUPLICATE`, `SHARES_NOT_100_PERCENT` |
-| `recipients() external view` (:56) | Recipients and shares | view | — |
+| `constructor(address weth_, address[] recipients_, uint16[] sharesBps_)` (:37) | 1 to 5 distinct non-zero recipients, non-zero shares adding up to 10 000 | - | `WETH_ZERO`, `RECIPIENT_COUNT`, `LENGTH_MISMATCH`, `RECIPIENT_ZERO`, `SHARE_ZERO`, `RECIPIENT_DUPLICATE`, `SHARES_NOT_100_PERCENT` |
+| `recipients() external view` (:56) | Recipients and shares | view | - |
 | `distribute(address token) public` (:62) | Sends the whole balance of `token`: `balance × share / 10 000` each, the last recipient gets the remainder | anyone, `nonReentrant` | `REENTRANT`, `BALANCE_READ`, `TransferFailed` |
 | `distributeEth() external` (:78) | Wraps the ETH balance into WETH, then `distribute(weth)` | anyone | as above |
 
@@ -264,7 +264,7 @@ the other factories (:32-45). **Code size:** D17LaunchDeployer 22,759 bytes (lim
 24,576), so `D17Launch` creation code can grow by ~1.8 KB at most; D17LaunchFactory
 5,129 bytes.
 
-### 5.4 D17Launch (D17Launch.sol, 853 lines) — the engine
+### 5.4 D17Launch (D17Launch.sol, 853 lines) - the engine
 
 Constants: `D17_LAUNCH_ID` (:10), `ROUND_COUNT = 5`/`FINAL_ROUND = 4`/
 `REFUND_STAGE_COUNT = 4` (:11-13), `EARLY_REFUND_ROUNDS = 2` (:16),
@@ -317,21 +317,21 @@ flags **before** transfers (:668-669); updates `settledCommittedWeth`,
 `lateLpTokens = effectiveLpTokens * wethForVault / totalLiquidityWeth()` **capped at the
 remaining reserve** (:678-680), late counters, transfers `lateLpTokens` to the vault,
 emits `LateVaultSettlementClaimed` (:681-693); finally transfers sale tokens to the calling
-locker (:701). The **WETH itself never passes through the launch** — the locker
+locker (:701). The **WETH itself never passes through the launch** - the locker
 transfers it (see §5.5).
 
-View ABI (selected; full signatures at cited lines): `rulesHash() → bytes32` (:268 —
+View ABI (selected; full signatures at cited lines): `rulesHash() → bytes32` (:268 -
 abi.encode of the 26 fields at :270-295, first field `D17_LAUNCH_ID`, includes
 `protocolFeeRecipient` and `protocolFeeBps`); `activeRound() → uint8` (:299);
 `activeRefundWindow() → uint8` (:310); `roundStart/roundEnd/roundClaimTime(uint8)`
 (:318/:328/:345); `roundBaseTokenAllocation/roundTokenAllocation/roundSoldTokens(uint8)`
 (:332/:337/:380); `anchorPriceWad()` (:351); `anchorReady()` (:357); `launchFailed()`
-(:361); `roundAnchorTargetWeth/roundAnchorUnderfillRemainingWeth(uint8)` (:368/:374 — now
+(:361); `roundAnchorTargetWeth/roundAnchorUnderfillRemainingWeth(uint8)` (:368/:374 - now
 defined for the final round too); `rolloverToFinalRound()` (:393);
 `roundDiscoveredPriceWad(uint8)` (:401); `isRoundClaimable(uint8)` (:407);
 `settlementStartsAt()` (:411); `poolCreationOpensAt()` (:415); `tradingOpen()` (:421);
 `totalCommittedWeth()` (:425); **`liquidityBps()`** (:430); `totalLiquidityWeth()` (:436);
-**`poolTokenAllocation()`** (:444); `allFinalCommitmentsSettled()` (:450 — gates only
+**`poolTokenAllocation()`** (:444); `allFinalCommitmentsSettled()` (:450 - gates only
 `burnResidualTokens`, never the lifecycle); `contributedBy(address,uint8)` (:454);
 `lockerPositionState(address)` (:459); `previewRoundTokens(address,uint8)` (:480);
 `previewFinalSaleTokens(address)` (:489); `previewVaultSettlement(address) → (saleTokens,
@@ -350,14 +350,14 @@ protocolFeeWeth, lateLpTokens, grossCommittedWeth)`, `Finalized(finalizedAt)`,
 `ResidualTokensBurned(amount)`, `UnexpectedEthSwept(recipient idx, amount)`. V14's
 `UnsoldSaleTokensPaid` no longer exists.
 
-### 5.5 D17Locker (D17Locker.sol, 332 lines) — per-user escrow
+### 5.5 D17Locker (D17Locker.sol, 332 lines) - per-user escrow
 
 One locker per (user, deployment); registered in D17Factory; holds the user's WETH until
 refund/settlement and claimed sale tokens until withdrawal. `EXPECTED_LAUNCH_ID` (:10)
 pins the accepted launch version (`D17_LAUNCH_V15_HARDENED`). Immutables: `owner`,
 `factory`, `weth` (:13-15). Global ledgers: `withdrawableWeth`, `accountedWeth` (:17-18).
 Per-launch `LockerPosition` struct (:21-44); V15 inserted **`protocolFeeWeth` after
-`treasuryWeth`** (:34-35), shifting every later field of the public `positions` getter —
+`treasuryWeth`** (:34-35), shifting every later field of the public `positions` getter -
 decode it by field name.
 
 | Signature | Semantics | AC | Key reverts |
@@ -371,7 +371,7 @@ decode it by field name.
 | `withdrawUnlockedWeth(address launch, uint256 amount) public` (:177) | Withdraws refund residuals to owner | `onlyOwner` | ledger guards |
 | `withdrawUnlockedTokens(address launch, uint256 amount) public` (:302) | Withdraws claimed sale tokens; **gated on `launch.tradingOpen()`** (:306) | `onlyOwner` | `TOKEN_MISSING`, `TOKEN_WITHDRAW_LOCKED`, `TOKEN_BALANCE` |
 | `recoverNativeEth(address, uint256) external` (:313) / `recoverExcessWeth(address, uint256) public` (:322) | Force-sent ETH / WETH above `accountedWeth` | `onlyOwner` | balance guards |
-| `lockedWeth(address)` (:106); `roundPosition(address,uint8)` (:110); `positions(address)` (:45) | Views | view | — |
+| `lockedWeth(address)` (:106); `roundPosition(address,uint8)` (:110); `positions(address)` (:45) | Views | view | - |
 
 `_settleVaultPosition` (:230-300): recomputes per-round previews locally and requires the
 launch-returned sale tokens to equal their sum (`FINAL_CLAIM_MISMATCH`, :259); branches
@@ -379,7 +379,7 @@ on `launch.liquidityPoolCreated()` (:248-258); requires `wethCommitted ≥ wethF
 treasuryWeth + protocolFeeWeth` (:260-261); transfers `wethForVault` to the vault,
 `treasuryWeth` to the treasury and `protocolFeeWeth` to `launch.protocolFeeRecipient()`
 **from the locker** (:275-277); in the late branch then calls
-`mintLateLiquidity(lateLpTokens, wethForVault)` (:280-282) — settlement, WETH delivery
+`mintLateLiquidity(lateLpTokens, wethForVault)` (:280-282) - settlement, WETH delivery
 and pair top-up are **atomic**; leftover `wethCommitted` becomes withdrawable residual
 (:284-286). Emits `VaultSettlementCompleted` for both paths (:288-299).
 
@@ -391,7 +391,7 @@ vests the creator allocation. Constants: `D17_LIQUIDITY_VAULT_ID` (:13),
 `launch`, `token`, `weth`, `router`, `routerFactory`, `treasury` (:19-24). Storage
 (:26-41) adds `poolCreatedAt`, `lateTokensBurned`, `lateWethBurned`,
 `failedLaunchPenaltyWethBurned`, `creatorTokensReleased` to the V14 records. **No function
-transfers or burns vault-held LP — LP is locked forever** (recovery excludes it, :276).
+transfers or burns vault-held LP - LP is locked forever** (recovery excludes it, :276).
 
 | Signature | Semantics | AC | Key reverts |
 |---|---|---|---|
@@ -402,7 +402,7 @@ transfers or burns vault-held LP — LP is locked forever** (recovery excludes i
 | `sweepExcessWethToTreasury() external returns (uint256)` (:263) | Post-pool WETH donation sweep (every legitimate WETH flow is atomic) | permissionless | `POOL_NOT_CREATED`, `NO_EXCESS_WETH` |
 | `recoverUnsupportedTokenToTreasury(address, uint256) external` (:271) | Foreign-token recovery; excludes `token`, `weth`, `officialPair` (:274-276) | permissionless | `AMOUNT_ZERO`, `TOKEN_ZERO`, `*_PROTECTED` |
 | `sweepUnexpectedEthToTreasury() external returns (uint256)` (:282) | Force-sent ETH wrapped and sent as WETH (:285-286) | permissionless | `NO_ETH_BALANCE` |
-| `lockedCreatorTokens()` (:105) / `vestedCreatorTokens()` (:109) | Vesting views | view | — |
+| `lockedCreatorTokens()` (:105) / `vestedCreatorTokens()` (:109) | Vesting views | view | - |
 
 Events (:43-64): `OfficialPoolCreated(pair idx, tokenUsed, wethUsed, lpMinted,
 preseededTokenReserve, preseededWethReserve)`, `LateLiquidityAdded(locker idx, pair idx,
@@ -419,7 +419,7 @@ factory only during deployment; renounced in the same transaction (§3 step 12).
 | Signature | Semantics | AC | Key reverts |
 |---|---|---|---|
 | `transfer / transferFrom` (:159/:170) | ERC-20 with pre-open gate via `_transfer` (:216-229) | any | `TRADING_CLOSED`, `BALANCE`, `ALLOWANCE`, `TO_ZERO` |
-| `approve(address,uint256)` (:164) | Standard; infinite-allowance shortcut in transferFrom (:172) | any | — |
+| `approve(address,uint256)` (:164) | Standard; infinite-allowance shortcut in transferFrom (:172) | any | - |
 | `burn(uint256 amount)` (:182) | **Pre-open: launch only** (`BURN_BEFORE_OPEN`, :187); post-open: any holder (the vault burns late-liquidity leftovers this way) | gated | `BURN_BEFORE_OPEN`, `BALANCE` |
 | `mint(address,uint256)` (:196) | Capped mint; deployment window only | `onlyOwner` | `MINTING_CLOSED`, `CAP`, `TO_ZERO` |
 | `closeMinting() / renounceOwnership()` (:205/:211) | One-shot close; owner destruction | `onlyOwner` | `MINTING_CLOSED` |
@@ -428,7 +428,7 @@ factory only during deployment; renounced in the same transaction (§3 step 12).
 
 Gate logic `_transferAllowedBeforeOpen(from, to)` (:231-241): before configuration →
 false; `from == launch` → true; `from == liquidityVault && to == canonicalPair()` → true;
-otherwise requires `_launchTradingOpen()` — a try/catch read of `launch.tradingOpen()`
+otherwise requires `_launchTradingOpen()` - a try/catch read of `launch.tradingOpen()`
 that **fails closed** (:243-249). The creator allocation sits in the vault, so it can only
 leave through vesting once the pool exists. `unchecked` arithmetic in
 `transferFrom`/`burn`/`_transfer` is guarded by preceding requires (:174-177, :189-192,
@@ -452,7 +452,7 @@ per owner are allowed.
 
 `safeTransfer` (:10), `safeTransferFrom` (:15), `safeApprove` (:20), `safeBurn` (:25):
 raw-call wrappers tolerating missing return values, reverting with typed errors (:4-8).
-**Not** fee-on-transfer-safe — acceptable because the only tokens touched are D17Token,
+**Not** fee-on-transfer-safe - acceptable because the only tokens touched are D17Token,
 canonical WETH, and the V2 pair.
 
 ## 6. The math
@@ -502,14 +502,14 @@ burned in one `safeBurn` (:798-800). No unsold token is ever transferred to anyo
 `protocolFeeWeth = gross * protocolFeeBps / BPS`;
 `wethForVault = gross − treasuryWeth − protocolFeeWeth` (both fees floor; the pool takes
 the remainder). Sale tokens = `previewFinalSaleTokens` (§6.2). **Late equivalence:**
-`claimLateSettlement` uses the identical amounts — same tokens, same gross, same fees;
+`claimLateSettlement` uses the identical amounts - same tokens, same gross, same fees;
 only the destination of `wethForVault` differs (§6.6).
 
 **6.6 Pool funding and late top-up.** Let `L = effectiveLpTokens`,
 `P = retainedPenaltyWeth`, `T = totalLiquidityWeth() = finalCommittedWeth *
 liquidityBps / BPS + P` (:430-439; `liquidityBps = BPS − treasuryBps − protocolFeeBps`),
 all fixed after finalization. Initial pool: `weth = settledLiquidityWeth + P`,
-`tokens = L * weth / T` (:723-724) — reserve ratio `≈ L/T`, the **canonical launch
+`tokens = L * weth / T` (:723-724) - reserve ratio `≈ L/T`, the **canonical launch
 ratio**. Because `L` scales with the share sold and `T` with what was paid, the opening
 price is `T / L = avgSalePrice × (liquidityBps / BPS) × (saleTokens / lpTokens)` plus the
 penalty contribution: it tracks the average sale price whatever the fill, and equals it
@@ -523,8 +523,8 @@ a few wei, and without it the last late settler could revert forever (V14's
 `r = wethReserve / tokenReserve` (D17LiquidityVault.sol:197-204):
 `wethUsed = tokenAmount * r`; if that exceeds `wethAmount`, it uses all the WETH and
 `tokenUsed = wethAmount / r`. The deposit is balanced, so Uniswap V2 `mint` donates
-nothing one-sided; the unpairable remainder — tokens if the price rose since launch, WETH
-if it fell — is burned (:225-234). Nobody, including the late settler, profits from
+nothing one-sided; the unpairable remainder - tokens if the price rose since launch, WETH
+if it fell - is burned (:225-234). Nobody, including the late settler, profits from
 settling late or from moving the price.
 
 **6.7 Dust & recovery paths.** Launch: per-position token dust →
@@ -551,7 +551,7 @@ Compatibility constants (all `keccak256` values fixed in deployed bytecode, all 
 `D17_TOKEN_FACTORY_ID` (D17TokenFactory.sol:7), `D17_LIQUIDITY_VAULT_ID`
 (D17LiquidityVault.sol:13), `D17_LIQUIDITY_VAULT_FACTORY_ID`
 (D17LiquidityVaultFactory.sol:7), and `D17Locker.EXPECTED_LAUNCH_ID` (D17Locker.sol:10),
-which **must equal** the launch ID — lockers reject V14 and other incompatible launches
+which **must equal** the launch ID - lockers reject V14 and other incompatible launches
 with `BAD_LAUNCH_ID` in `verifyLaunch`. `rulesHash()` covers every economic parameter,
 including the protocol fee rate and recipient, with the launch ID as its first field
 (D17Launch.sol:268-297); lockers pin the hash at first commit (D17Locker.sol:142) and
@@ -564,7 +564,7 @@ the fee config again; the fee owner has no path to an existing launch or to any 
 
 Self-registration: `createLockerFor` requires `msg.sender == lockerOwner`
 (D17LockerFactory.sol:24); registration is restricted to the pinned locker factory
-(D17Factory.sol:110-119) — `isLocker` contains only canonical locker bytecode, which is
+(D17Factory.sol:110-119) - `isLocker` contains only canonical locker bytecode, which is
 the basis for `onlyLocker` on the launch and the `mintLateLiquidity` auth on the vault.
 A registered locker can only call `mintLateLiquidity` from its fixed settlement code with
 launch-computed amounts.
@@ -617,7 +617,7 @@ Deliberately permissionless entry points and why they are safe:
 | Late settlement | `LateVaultSettlementClaimed(…, protocolFeeWeth, lateLpTokens, gross)`; `LateLiquidityAdded(locker idx, pair idx, tokenUsed, wethUsed, lpMinted, tokensBurned, wethBurned)`; locker `VaultSettlementCompleted` | launch / vault / locker |
 | After trading opens | `CreatorTokensReleased(recipient idx, amount)`; `ResidualTokensBurned(amount)`; `ClaimedTokensWithdrawn`; sweep/recovery events | vault / launch / locker |
 
-Indexing rule (product-level): D17 pipelines ingest only the events above — never ERC-20
+Indexing rule (product-level): D17 pipelines ingest only the events above - never ERC-20
 `Transfer`/`Approval` or pair `Swap`/`Sync`.
 
 ## 10. Testing
@@ -674,7 +674,7 @@ Indexing rule (product-level): D17 pipelines ingest only the events above — ne
 3. **AMM assumption**: honest Uniswap-V2 semantics. Late deposits are balanced at the
    live ratio, so a price manipulator around a late settlement pays swap fees on both legs
    and can at most extract the impermanent loss of that late position.
-4. **WETH assumption**: canonical WETH9 — no fee-on-transfer, no hooks.
+4. **WETH assumption**: canonical WETH9 - no fee-on-transfer, no hooks.
 5. **`unchecked` blocks**: only in D17Token (:174-177, :189-192, :224-227), each guarded.
 6. **Config economics**: the factory validates hard caps (treasury ≤ 10%, protocol fee
    ≤ 2%, rounds 3–4 penalty 1–25%), not whether a launch is attractive.

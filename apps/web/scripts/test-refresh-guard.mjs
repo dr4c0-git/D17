@@ -4,7 +4,7 @@
  *
  * Scenario: a slow activity refresh for launch A is still in flight when the
  * user selects launch B. When A's reads finally resolve, none of A's results
- * — pool address, pool composition, activity, caches, or status — may be
+ * - pool address, pool composition, activity, caches, or status - may be
  * committed, and A must not clear the loading flags or surface errors that
  * belong to B's in-flight request. Deterministic: promise resolution order
  * is fully controlled, no network, no timers.
@@ -88,7 +88,7 @@ state.cache = null;
 state.indexStatus = "";
 const refreshB = makeRefresh("B", B);
 
-// 3. A's reads resolve LATE — after the switch.
+// 3. A's reads resolve LATE - after the switch.
 refreshA.resolveReads();
 const aCommitted = await refreshA.done;
 
@@ -102,7 +102,7 @@ assert.equal(state.indexStatus, "", "A's status must not appear on B");
 assert.equal(state.isIndexing, true, "stale A must not clear B's loading flag");
 assert.deepEqual(state.errorsShown, [], "stale A must stay silent");
 
-// 5. B resolves and commits normally — including B's has-no-pool emptiness.
+// 5. B resolves and commits normally - including B's has-no-pool emptiness.
 refreshB.resolveReads();
 const bCommitted = await refreshB.done;
 assert.equal(bCommitted, true, "current B refresh must commit");

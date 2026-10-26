@@ -68,16 +68,16 @@ const CHAIN_ID_BIG = BigInt(CHAIN_ID);
 const API_URL = process.env.NEXT_PUBLIC_D17_API_URL || "";
 const READ_WS_URL = process.env.NEXT_PUBLIC_SEPOLIA_WS_URL || "";
 // Scans anchor to the bundled deployment's start block (per-network override
-// wins) — a fresh visitor must find launches older than any lookback window.
+// wins) - a fresh visitor must find launches older than any lookback window.
 const EVENT_FROM_BLOCK = Number(ACTIVE_NETWORK.fromBlockOverride || PUBLIC_DEPLOYMENT?.startBlock || "0");
 const EVENT_LOOKBACK_BLOCKS = Number(process.env.NEXT_PUBLIC_D17_LOOKBACK_BLOCKS || "25000");
 const EVENT_CHUNK_SIZE = Number(process.env.NEXT_PUBLIC_D17_EVENT_CHUNK_SIZE || "5000");
 const EVENT_POLL_SECONDS = Number(process.env.NEXT_PUBLIC_D17_EVENT_POLL_SECONDS || "12");
 const STATE_POLL_SECONDS = Number(process.env.NEXT_PUBLIC_D17_STATE_POLL_SECONDS || "15");
-// Optional ETH/USD display. Hosted (api) only — the local/rpc build has no
+// Optional ETH/USD display. Hosted (api) only - the local/rpc build has no
 // backend price collector. Env kill-switch, default on.
 const USD_ENABLED = process.env.NEXT_PUBLIC_ENABLE_USD !== "false";
-// Canonical WETH per chain — display fallback only; api mode adopts the
+// Canonical WETH per chain - display fallback only; api mode adopts the
 // launch detail's `weth`, and rpc mode reads it from the contract.
 const DEFAULT_WETH = IS_MAINNET
   ? "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
@@ -85,7 +85,7 @@ const DEFAULT_WETH = IS_MAINNET
 const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
 const TOKEN_SYMBOL = process.env.NEXT_PUBLIC_D17_TOKEN_SYMBOL || "D17";
 // Testing aids (stage replay and launch-switcher dropdown)
-// render only when explicitly enabled — the public site ships without them.
+// render only when explicitly enabled - the public site ships without them.
 const TEST_CONTROLS_ENABLED = process.env.NEXT_PUBLIC_ENABLE_TEST_CONTROLS === "true";
 const DEFAULT_LAUNCH = ACTIVE_NETWORK.launchAddressOverride || process.env.NEXT_PUBLIC_D17_LAUNCH_ADDRESS || "";
 const SEEN_LAUNCHES_KEY = `d17-seen-launches:${dataMode()}:${CHAIN_ID}`;
@@ -145,7 +145,7 @@ function toKnownLaunch(item: Record<string, unknown>): KnownLaunch | null {
   const launch = ethers.getAddress(address);
   // Confirmed shape: the list item nests token metadata under `metadata`
   // (tokenSymbol/tokenName/verified/links) and carries createdBlock AND phase
-  // (kind/label) inline — no detail fetch needed to render the switcher row.
+  // (kind/label) inline - no detail fetch needed to render the switcher row.
   const meta = (item.metadata as Record<string, unknown>) || {};
   const symbol = (
     ((item.tokenSymbol as string) ||
@@ -318,13 +318,13 @@ async function loadRpcLaunchMetadata(launchAddress: string): Promise<LaunchMetad
     }
     const computedHash = metadataHashForLaunch(launchId, { tokenName, tokenSymbol, description, logoSvgUri, links });
 
-    // The factory's publish event, filtered by the indexed launch topic —
+    // The factory's publish event, filtered by the indexed launch topic -
     // one narrow eth_getLogs from the bundled deployment's start block.
     let eventHash: string | null = null;
     if (PUBLIC_DEPLOYMENT?.contracts.d17Factory) {
       const factory = await contractWithProvider("D17Factory", PUBLIC_DEPLOYMENT.contracts.d17Factory, provider);
       const fromBlock = Math.max(EVENT_FROM_BLOCK, PUBLIC_DEPLOYMENT.startBlock || 0);
-      // Chunked scan — free-tier RPCs reject wide eth_getLogs ranges, and
+      // Chunked scan - free-tier RPCs reject wide eth_getLogs ranges, and
       // queryContractLogs already paces them the way discovery does.
       const latestBlock = await provider.getBlockNumber();
       const logs = await queryContractLogs(provider, factory, ["LaunchMetadataPublished"], fromBlock, latestBlock).catch(() => [] as any[]);
@@ -519,7 +519,7 @@ type LaunchConfig = {
   refundPenaltyPct: number; // e.g. 17
   treasuryPct: number; // WETH % to treasury, e.g. 1
   protocolFeePct: number; // WETH % protocol fee, fixed at launch creation (V15)
-  settlementSeconds: number; // claim-window length — settlement countdown fallback
+  settlementSeconds: number; // claim-window length - settlement countdown fallback
   saleTokens: bigint;
   lpTokens: bigint;
   deadTokens: bigint;
@@ -544,7 +544,7 @@ type PoolCompositionLine = {
   reservedTokens: bigint;
 };
 
-/** Only non-zero parts render — and never the lpTokens allocation, which is
+/** Only non-zero parts render - and never the lpTokens allocation, which is
  *  not the same thing as pool contents (the pool can be seeded partially and
  *  topped up by late settlements). */
 function poolCompositionParts(comp: PoolCompositionLine, symbol: string, ctx: CurrencyCtx): string[] {
@@ -709,7 +709,7 @@ const defaultRounds: RoundTerm[] = Array.from({ length: ROUND_COUNT }, (_, index
 }));
 
 /** Display-currency context. `usd` is only ever true when the user picked USD
- *  AND a live rate exists — so deep components can read one flag. ETH stays
+ *  AND a live rate exists - so deep components can read one flag. ETH stays
  *  canonical for inputs/transactions; this is display-only. */
 type CurrencyCtx = { usd: boolean; rate: number | null };
 const CurrencyContext = createContext<CurrencyCtx>({ usd: false, rate: null });
@@ -747,7 +747,7 @@ function useEthUsd(): number | null {
         const { data, meta } = await getEthUsd();
         if (cancelled) return;
         const price = Number(data?.price);
-        // Hide on stale/malformed/unavailable — never show a bad USD number.
+        // Hide on stale/malformed/unavailable - never show a bad USD number.
         if (data?.stale || meta.stale || !Number.isFinite(price) || price <= 0) {
           setUsd(null);
           return;
@@ -800,7 +800,7 @@ function ParticipantsTerminal() {
       : `$${formatCryptoPrice(ethPerToken * usdPerEth)}${suffix}`;
   };
 
-  // Deployed factory suite from the schema — so Contracts shows the full set
+  // Deployed factory suite from the schema - so Contracts shows the full set
   // (factory / token / launch / vault / locker factories) even before any
   // launch exists. api mode only; indexed API, never wallet/RPC.
   useEffect(() => {
@@ -818,7 +818,7 @@ function ParticipantsTerminal() {
           setFactoryAddress((current) => (ethers.isAddress(current) ? current : ethers.getAddress(contracts.d17Factory)));
         }
       } catch {
-        /* schema unreachable — Contracts falls back to env/launch values */
+        /* schema unreachable - Contracts falls back to env/launch values */
       }
     })();
     return () => {
@@ -828,7 +828,7 @@ function ParticipantsTerminal() {
   const [walletAddress, setWalletAddress] = useState("");
   const [lockerFactoryAddress, setLockerFactoryAddress] = useState(DEFAULT_LOCKER_FACTORY);
   // api mode selects the newest indexed launch on load (see auto-select
-  // effect), so we start blank to avoid loading the stale env launch first —
+  // effect), so we start blank to avoid loading the stale env launch first -
   // that pre-load was the "oldest, then newest" double-load. rpc/local mode
   // has no indexer to discover from, so it keeps the env default.
   const [launchAddress, setLaunchAddress] = useState(() => (dataMode() === "api" ? "" : DEFAULT_LAUNCH));
@@ -856,7 +856,7 @@ function ParticipantsTerminal() {
   const [wethAddress, setWethAddress] = useState(DEFAULT_WETH);
   const [liquidityVaultAddress, setLiquidityVaultAddress] = useState("");
   const [factoryAddress, setFactoryAddress] = useState("");
-  // The deployed factory suite from the schema — shown in Contracts even
+  // The deployed factory suite from the schema - shown in Contracts even
   // before any launch exists (e.g. a fresh mainnet with 0 launches).
   // Contracts panel factory set. Direct-RPC mode starts from the bundled
   // deployment manifest; api mode replaces it with the served schema, which
@@ -904,7 +904,7 @@ function ParticipantsTerminal() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [lightMode, setLightMode] = useState(true);
   const [sseLive, setSseLive] = useState(false);
-  // Global discovery socket state — lets empty-index/mainnet pages report the
+  // Global discovery socket state - lets empty-index/mainnet pages report the
   // discovery WS honestly even before any launch is selected.
   const [discoveryWsLive, setDiscoveryWsLive] = useState(false);
   const [knownLaunches, setKnownLaunches] = useState<KnownLaunch[]>([]);
@@ -940,7 +940,7 @@ function ParticipantsTerminal() {
   const launchesSeededRef = useRef(false);
   const autoSelectedLaunchRef = useRef(false);
   const [launchMetadata, setLaunchMetadata] = useState<LaunchMetadata | null>(null);
-  // The selected launch's symbol beats the env default — the env value is a
+  // The selected launch's symbol beats the env default - the env value is a
   // deploy-wide fallback, but each indexed launch carries its own symbol.
   const tokenSymbol = launchMetadata?.tokenSymbol?.trim() || TOKEN_SYMBOL;
   const soundEnabledRef = useRef(false);
@@ -980,7 +980,7 @@ function ParticipantsTerminal() {
   // Fast path: the instant a wallet connects (or switches), look up its
   // lockers instead of waiting for the full state refresh, and auto-select
   // the first one if no locker is set yet. Hosted/api mode reads the indexed
-  // locker list (owner rides on each row) — never the public RPC; the
+  // locker list (owner rides on each row) - never the public RPC; the
   // lockersOfOwner contract read survives only for local/rpc mode.
   useEffect(() => {
     if (!walletAddress || !ethers.isAddress(walletAddress)) return;
@@ -1021,7 +1021,7 @@ function ParticipantsTerminal() {
           if (cancelled) return;
           preferred = normalized[known.indexOf(true)] ?? normalized[normalized.length - 1];
         }
-        // Only auto-fill an EMPTY field — never clobber a partial manual entry.
+        // Only auto-fill an EMPTY field - never clobber a partial manual entry.
         setLockerAddress((current) => (current.trim() === "" ? preferred ?? current : current));
       } catch {
         /* lookup is best-effort; the full state refresh covers it */
@@ -1076,7 +1076,7 @@ function ParticipantsTerminal() {
   // ── Replay ─────────────────────────────────────────────────────────
   // Re-render the whole launch as of a past moment, from the real indexed
   // events only: phase, clock, feed, charts, chips and leaderboard all
-  // derive from these views. Pure presentation — the live state keeps
+  // derive from these views. Pure presentation - the live state keeps
   // refreshing underneath, and transactions are guarded off while active.
   const [replayCutoff, setReplayCutoff] = useState<number | null>(null);
   const isReplay = replayCutoff !== null;
@@ -1084,7 +1084,7 @@ function ParticipantsTerminal() {
   const replayCheckpoints = useMemo(() => {
     if (!indexLoaded) return [] as { label: string; cutoff: number }[];
     if (!liveActivityItems.some((item) => (item.timestamp ?? 0) > 0)) return [];
-    // The launch can finalize before later scheduled rounds — never offer
+    // The launch can finalize before later scheduled rounds - never offer
     // a checkpoint for a round that never ran.
     const settlementAt = liveActivityItems
       .filter(
@@ -1119,7 +1119,7 @@ function ParticipantsTerminal() {
   const rawPhase = isReplay && replayPhase ? replayPhase : livePhase;
   // Settlement snapshots sometimes arrive without an end time (the replay
   // fallback is open-ended; sparse API snapshots were observed on the
-  // 25-wallet run) — derive it from settlementSeconds so the claim-window
+  // 25-wallet run) - derive it from settlementSeconds so the claim-window
   // countdown and green progress treatment can never silently vanish.
   const phase = useMemo<PhaseSnapshot | null>(() => {
     if (
@@ -1270,7 +1270,7 @@ function ParticipantsTerminal() {
   );
   const settledLockerCount = lockerSummaries.filter((item) => item.settled).length;
 
-  // Facts for the lifecycle stage expandables — event-derived, so replay
+  // Facts for the lifecycle stage expandables - event-derived, so replay
   // mode shows period-correct history too.
   const lifecycleFacts = useMemo<LifecycleFacts>(() => {
     const find = (...names: string[]) => displayActivityItems.find((item) => names.includes(item.event));
@@ -1309,7 +1309,7 @@ function ParticipantsTerminal() {
     }
     return -1;
   }, [roundMarket]);
-  // Round 1 discovers the price as it fills — showing "discovering" there is
+  // Round 1 discovers the price as it fills - showing "discovering" there is
   // correct. Every later round has a concrete price: the round's own if
   // published, otherwise the anchor established by round 1.
   const pastFirstRound = (stageRoundIndex ?? 0) > 0;
@@ -1356,7 +1356,7 @@ function ParticipantsTerminal() {
     let total = 0;
     return events.map((item) => {
       // Refunds remove the refunded amount AND the retained penalty from the
-      // net raise — matching the contract's roundRaised accounting.
+      // net raise - matching the contract's roundRaised accounting.
       const outflow = Number(item.amountWeth || 0) + Number(item.penaltyWeth || 0);
       total += item.event === "RoundCommitted" ? Number(item.amountWeth || 0) : -outflow;
       return { t: item.timestamp as number, v: Math.max(0, total) };
@@ -1457,7 +1457,7 @@ function ParticipantsTerminal() {
           if (!cancelled) setLaunchMetadata(data);
         }
       } catch {
-        // Not indexed yet / no metadata — masthead hides until it appears.
+        // Not indexed yet / no metadata - masthead hides until it appears.
         if (!cancelled) setLaunchMetadata(null);
       }
     })();
@@ -1491,7 +1491,7 @@ function ParticipantsTerminal() {
       try {
         localStorage.setItem(SEEN_LAUNCHES_KEY, JSON.stringify([...seen]));
       } catch {
-        /* private mode — in-memory only */
+        /* private mode - in-memory only */
       }
     }
     setNewLaunchCount(0);
@@ -1571,7 +1571,7 @@ function ParticipantsTerminal() {
         }
         launchesSeededRef.current = true;
       } catch {
-        /* backend offline — switcher/list simply shows the empty state */
+        /* backend offline - switcher/list simply shows the empty state */
       }
     };
 
@@ -1579,7 +1579,7 @@ function ParticipantsTerminal() {
     // Hosted mode is WebSocket-PRIMARY: a GLOBAL ws refetches the launch list
     // immediately on any lifecycle activity, with one reconciliation on
     // open/reconnect. The 30s API safety poll ALSO stays (indexed-API, never
-    // Ethereum RPC) — it catches gaps if the socket sleeps/misses events.
+    // Ethereum RPC) - it catches gaps if the socket sleeps/misses events.
     const interval = window.setInterval(fetchLaunches, 30_000);
     if (apiMode) {
       const unsubscribe = subscribeWs(null, {
@@ -1649,7 +1649,7 @@ function ParticipantsTerminal() {
   }, []);
 
   // Phase-change notifications when the tab is hidden. Reads the LIVE
-  // phase on purpose — replay must never fire real-world notifications.
+  // phase on purpose - replay must never fire real-world notifications.
   useEffect(() => {
     if (!stateLoaded || !livePhase) return;
     const key = `${livePhase.phaseKind}:${livePhase.index}`;
@@ -1672,7 +1672,7 @@ function ParticipantsTerminal() {
     }
   }, [stateLoaded, livePhase, notifyEnabled, tokenSymbol]);
 
-  // Tab title is an ambient channel for the REAL launch — never replayed.
+  // Tab title is an ambient channel for the REAL launch - never replayed.
   useEffect(() => {
     if (
       stateLoaded &&
@@ -1776,8 +1776,8 @@ function ParticipantsTerminal() {
     // ── api mode: read state from the backend, not ~90 RPC calls ──────────
     // Two API calls (launch detail + all lockers) give phase, config, round
     // terms + refund policy, tokenomics, discovered prices, addresses,
-    // total/per-round raised, and — by finding the wallet's locker in the
-    // list — the user's per-round position and locker WETH balances. RPC is
+    // total/per-round raised, and - by finding the wallet's locker in the
+    // list - the user's per-round position and locker WETH balances. RPC is
     // reserved for the wallet (signing).
     if (dataMode() === "api") {
       if (!ethers.isAddress(launchAddress)) return;
@@ -1809,8 +1809,8 @@ function ParticipantsTerminal() {
         if (typeof detail.factory === "string" && ethers.isAddress(detail.factory)) setFactoryAddress(ethers.getAddress(detail.factory));
         if (typeof detail.weth === "string" && ethers.isAddress(detail.weth)) setWethAddress(ethers.getAddress(detail.weth));
 
-        // Round terms — dates, allocation, refund window and per-round
-        // defection cost — straight from rounds[].refundPolicy.
+        // Round terms - dates, allocation, refund window and per-round
+        // defection cost - straight from rounds[].refundPolicy.
         const config = (detail.config || {}) as Record<string, unknown>;
         const tokenomics = (detail.tokenomics || {}) as Record<string, unknown>;
         const apiRounds = (Array.isArray(detail.rounds) ? detail.rounds : []) as ApiRound[];
@@ -1910,7 +1910,7 @@ function ParticipantsTerminal() {
           }
         }
 
-        // The wallet's per-round position — enough to gate commit/refund —
+        // The wallet's per-round position - enough to gate commit/refund -
         // plus locker WETH balances (backend cached contract reads). Wallet
         // ETH/WETH stays on the connected wallet's provider.
         if (ethers.isAddress(lockerAddress)) {
@@ -1949,7 +1949,7 @@ function ParticipantsTerminal() {
       requireAddress(launchAddress, "Launch contract");
       const launch = await contractWithProvider("D17Launch", launchAddress, provider);
       // The free RPC rejects JSON-RPC batches, but concurrent single requests
-      // are fine — waves of Promise.all cut a ~45-round-trip refresh to ~5.
+      // are fine - waves of Promise.all cut a ~45-round-trip refresh to ~5.
       const [
         loadedRulesHash,
         loadedToken,
@@ -1994,7 +1994,7 @@ function ParticipantsTerminal() {
       ]);
       if (isStale()) return;
 
-      // Same masthead/tokenomics surface as api mode — straight contract
+      // Same masthead/tokenomics surface as api mode - straight contract
       // reads instead of the detail's tokenomics object.
       setLaunchConfig({
         refundPenaltyPct: Number(loadedRefundPenaltyBps) / 100,
@@ -2164,7 +2164,7 @@ function ParticipantsTerminal() {
 
   // api mode: phase transitions are time-driven (a round can end with no
   // event to push), so poll the backend-derived phase between full refreshes.
-  // This is the cheap JSON /phase endpoint — the old launchPhase() contract
+  // This is the cheap JSON /phase endpoint - the old launchPhase() contract
   // poll is gone now that the backend keeps the indexed phase fresh.
   useEffect(() => {
     if (dataMode() !== "api" || !ethers.isAddress(launchAddress)) return;
@@ -2181,7 +2181,7 @@ function ParticipantsTerminal() {
         }
         setStateLoaded(true);
       } catch {
-        /* phase read failed — keep the last-known phase */
+        /* phase read failed - keep the last-known phase */
       }
     };
     void readPhase();
@@ -2195,7 +2195,7 @@ function ParticipantsTerminal() {
   // On top of the 8s safety poll: an IMMEDIATE one-shot reconcile the moment
   // the current time-bounded phase is due to end (round→refund, refund→next,
   // settlement→pool have no chain event at the exact boundary). A single
-  // scheduled read per boundary — not a new interval; self-terminating when
+  // scheduled read per boundary - not a new interval; self-terminating when
   // the phase has no finite end.
   useEffect(() => {
     if (dataMode() !== "api" || !ethers.isAddress(launchAddress)) return;
@@ -2217,7 +2217,7 @@ function ParticipantsTerminal() {
           setSelectedRound(snapshot.index);
         }
       } catch {
-        /* phase read failed — the 8s poll and next boundary will retry */
+        /* phase read failed - the 8s poll and next boundary will retry */
       }
     }, delayMs);
     return () => {
@@ -2264,7 +2264,7 @@ function ParticipantsTerminal() {
         // broad getLogs scan entirely and read decoded activity + owners.
         try {
           // Noisy pair/ERC20 events (Swap/Sync/Transfer/Approval) are excluded
-          // at backend ingestion — nothing to filter client-side.
+          // at backend ingestion - nothing to filter client-side.
           const normalizedLaunch = ethers.getAddress(launchAddress);
           const cached = apiActivityCacheRef.current?.key === normalizedLaunch ? apiActivityCacheRef.current.items : [];
           const loaded = await loadApiActivityHistory(normalizedLaunch, cached);
@@ -2283,7 +2283,7 @@ function ParticipantsTerminal() {
           };
         } catch {
           // A launch the indexer hasn't picked up yet (the frontend opens
-          // before the launch deploys) 404s — that's a normal empty state,
+          // before the launch deploys) 404s - that's a normal empty state,
           // not an error to toast about every poll.
           const cached = apiActivityCacheRef.current?.key === ethers.getAddress(launchAddress)
             ? apiActivityCacheRef.current.items
@@ -2303,7 +2303,7 @@ function ParticipantsTerminal() {
         const suiteFromBlock = EVENT_FROM_BLOCK > 0 ? EVENT_FROM_BLOCK : Math.max(0, latestBlock - EVENT_LOOKBACK_BLOCKS);
         const baseFromBlock = Math.max(suiteFromBlock, createdBlock);
         // Incremental scan: cache decoded events per launch+vault and only
-        // re-query the recent block window (12-block re-org cushion) — the
+        // re-query the recent block window (12-block re-org cushion) - the
         // 12s safety poll must not rescan the whole range on a public RPC.
         const cacheKey = `${ethers.getAddress(launchAddress)}:${ethers.isAddress(liquidityVaultAddress) ? ethers.getAddress(liquidityVaultAddress) : ""}`;
         const cached = rpcActivityCacheRef.current?.key === cacheKey ? rpcActivityCacheRef.current : null;
@@ -2360,7 +2360,7 @@ function ParticipantsTerminal() {
         summaries = await buildLockerSummaries(activity, provider);
         statusLabel = `${dedupeActivityForDisplay(activity).length} events · blocks ${baseFromBlock.toLocaleString()}–${latestBlock.toLocaleString()}`;
 
-        // The official pool address + composition ride on the vault events —
+        // The official pool address + composition ride on the vault events -
         // no indexer needed. The reserved remainder is the LP allocation not
         // yet released to the pool: lpTokens minus vault liquidity claims
         // minus tokens released through late top-ups, floored at zero.
@@ -2439,7 +2439,7 @@ function ParticipantsTerminal() {
       }
     } catch (error) {
       // A stale request's failure belongs to a launch that is no longer
-      // selected — surface nothing.
+      // selected - surface nothing.
       if (isCurrentGeneration(generation, launchGenRef.current)) {
         showError("Activity refresh failed", error);
         setIndexStatus("Index refresh failed");
@@ -2483,14 +2483,14 @@ function ParticipantsTerminal() {
         },
         onClose: () => setSseLive(false),
         onActivity: () => {
-          // Only human-scale lifecycle events arrive here — noisy pair/ERC20
+          // Only human-scale lifecycle events arrive here - noisy pair/ERC20
           // traffic is excluded at backend ingestion.
           scheduleActivityRefresh();
           scheduleStateRefresh();
         },
       });
       // Background tabs get their JS/socket throttled or suspended and the WS
-      // has no replay — so on resume, reconcile current state+activity once
+      // has no replay - so on resume, reconcile current state+activity once
       // (coalesced through the same debounced schedulers; no new interval).
       const onVisible = () => {
         if (document.visibilityState === "visible") {
@@ -2536,7 +2536,7 @@ function ParticipantsTerminal() {
     if (launch && ethers.isAddress(launch)) {
       setLaunchAddress(ethers.getAddress(launch));
       setJoinLaunchAddress(ethers.getAddress(launch));
-      // A shared ?launch= link is an explicit choice — claim the one-shot
+      // A shared ?launch= link is an explicit choice - claim the one-shot
       // auto-select so the newest-launch jump doesn't stomp the deep link.
       autoSelectedLaunchRef.current = true;
     }
@@ -2558,7 +2558,7 @@ function ParticipantsTerminal() {
     void refreshState({ announce: false });
     // WS is primary, but this low-frequency indexed-API safety refresh stays
     // in every mode: it catches gaps if the socket sleeps or misses events.
-    // (Indexed-API reads only — never a browser Ethereum RPC.)
+    // (Indexed-API reads only - never a browser Ethereum RPC.)
     const interval = window.setInterval(() => {
       void refreshState({ announce: false });
     }, STATE_POLL_SECONDS * 1000);
@@ -2671,8 +2671,8 @@ function ParticipantsTerminal() {
       await connectWith(window.ethereum, "Browser wallet");
       return;
     }
-    // No injected provider. On touch devices that's the normal state —
-    // extensions don't exist there — so guide to a wallet browser
+    // No injected provider. On touch devices that's the normal state -
+    // extensions don't exist there - so guide to a wallet browser
     // instead of erroring.
     if (navigator.maxTouchPoints > 0 || /android|iphone|ipad|mobile/i.test(navigator.userAgent)) {
       setMobileWalletHelpOpen(true);
@@ -2682,7 +2682,7 @@ function ParticipantsTerminal() {
   };
 
   const disconnectWallet = async () => {
-    // EIP-1193 wallets have no true "disconnect" — a dApp just forgets the
+    // EIP-1193 wallets have no true "disconnect" - a dApp just forgets the
     // account. Best-effort revoke (EIP-2255) so the wallet re-prompts next
     // time; wallets that don't support it simply ignore this.
     const injected = activeWalletRef.current as
@@ -2694,7 +2694,7 @@ function ParticipantsTerminal() {
       try {
         await injected.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] });
       } catch {
-        /* wallet doesn't support revoke — forgetting locally is enough */
+        /* wallet doesn't support revoke - forgetting locally is enough */
       }
     }
     activeWalletRef.current = null;
@@ -2730,7 +2730,7 @@ function ParticipantsTerminal() {
     setSoundEnabled(next);
     localStorage.setItem("d17-sound", next ? "1" : "0");
     if (next) {
-      // Create/unlock the AudioContext inside this user gesture — autoplay
+      // Create/unlock the AudioContext inside this user gesture - autoplay
       // policy would otherwise leave ticks permanently silent.
       try {
         const ctx = audioCtxRef.current ?? new AudioContext();
@@ -2970,7 +2970,7 @@ function ParticipantsTerminal() {
     });
   };
 
-  /** Simple view: refunded ETH waiting in the locker goes back to the wallet as ETH —
+  /** Simple view: refunded ETH waiting in the locker goes back to the wallet as ETH -
    *  the locker releases WETH, then the wallet unwraps it (two confirmations). */
   const withdrawEthToWallet = async () => {
     await sendTx("send ETH back to wallet", async (signer) => {
@@ -3051,7 +3051,7 @@ function ParticipantsTerminal() {
   // Section nav (top, sticky): phase chip + underlined jump links with a
   // scrollspy, so the 5-screen page never needs manual travel. Action bar
   // (bottom, fixed) appears when an action exists but its real CTA is
-  // off-screen. Both are xl:hidden — desktop never sees them.
+  // off-screen. Both are xl:hidden - desktop never sees them.
   const stageSectionRef = useRef<HTMLElement | null>(null);
   const stageCtaRef = useRef<HTMLDivElement | null>(null);
   const [ctaInView, setCtaInView] = useState(true);
@@ -3072,7 +3072,7 @@ function ParticipantsTerminal() {
       let active = "stage";
       let best = -Infinity;
       // At the very bottom the last section may never reach the nav line
-      // (scroll clamps) — count anything on screen as reachable there.
+      // (scroll clamps) - count anything on screen as reachable there.
       const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 2;
       const threshold = atBottom ? viewport : 56;
       for (const { id } of NAV_SECTIONS) {
@@ -3150,7 +3150,7 @@ function ParticipantsTerminal() {
   };
 
   // Topbar controls render twice: inline on md+ (unchanged desktop layout),
-  // and in a thumb-scrollable strip row on mobile — so the launch switcher
+  // and in a thumb-scrollable strip row on mobile - so the launch switcher
   // and replay stay reachable on phones without a three-row header.
   const topbarControls = (
     <>
@@ -3172,10 +3172,10 @@ function ParticipantsTerminal() {
           )}
         </button>
       {/* Testing aids live in their own labelled cluster, visually fenced
-          off from the real menu — and only when the flag says so. */}
+          off from the real menu - and only when the flag says so. */}
       {TEST_CONTROLS_ENABLED && (knownLaunches.length > 1 || replayCheckpoints.length > 0) && (
         <span className="inline-flex items-center gap-2 border-r border-hairline pr-3">
-          <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-quiet" title="Testing aids — hidden on the public site">
+          <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-quiet" title="Testing aids - hidden on the public site">
             Test
           </span>
           {knownLaunches.length > 1 && (
@@ -3207,7 +3207,7 @@ function ParticipantsTerminal() {
               value={replayCutoff === null ? "" : String(replayCutoff)}
               onChange={(event) => selectReplay(event.target.value === "" ? null : Number(event.target.value))}
               aria-label="Replay this launch at an earlier stage"
-              title="Re-render the page as of a past moment, from the real indexed events. View only — transactions stay off."
+              title="Re-render the page as of a past moment, from the real indexed events. View only - transactions stay off."
               className={`border bg-paper px-2 py-1 font-mono text-[10px] uppercase tracking-[0.02em] outline-none focus-visible:border-dim ${
                 isReplay ? "border-electric text-electric" : "border-hairline text-dim"
               }`}
@@ -3452,7 +3452,7 @@ function ParticipantsTerminal() {
         <p className="shrink-0 border-b border-hairline px-4 py-2 font-mono text-[10px] uppercase tracking-[0.02em] text-alert sm:px-6" role="status">
           {simpleView
             ? `D17 is not open on ${CHAIN_NAME} yet: no launch can be created or joined here.`
-            : `The D17 V15 contracts are not deployed on ${CHAIN_NAME} yet — no launch can be created or joined on this network.`}
+            : `The D17 V15 contracts are not deployed on ${CHAIN_NAME} yet - no launch can be created or joined on this network.`}
         </p>
       )}
       <header className="shrink-0 border-b border-hairline">
@@ -3500,7 +3500,7 @@ function ParticipantsTerminal() {
                     How to connect on {CHAIN_NAME}
                   </DialogTitle>
                   <DialogDescription className="max-w-2xl text-[15px] leading-relaxed text-dim">
-                    {IS_MAINNET ? "You need ETH for gas." : `Testnet wallet only — you need ${CHAIN_NAME} ETH for gas.`}
+                    {IS_MAINNET ? "You need ETH for gas." : `Testnet wallet only - you need ${CHAIN_NAME} ETH for gas.`}
                   </DialogDescription>
                 </DialogHeader>
                 <div>
@@ -3522,7 +3522,7 @@ function ParticipantsTerminal() {
                   variant="outline"
                   className="border-ink normal-case text-ink"
                   onClick={connectWallet}
-                  title={activeWalletName ? `${activeWalletName} — click to switch account` : "Click to switch account"}
+                  title={activeWalletName ? `${activeWalletName} - click to switch account` : "Click to switch account"}
                 >
                   {shortAddress(walletAddress)}
                 </Button>
@@ -3580,7 +3580,7 @@ function ParticipantsTerminal() {
                   </DialogTitle>
                   <DialogDescription className="max-w-2xl text-[15px] leading-relaxed text-dim">
                     Mobile browsers can&apos;t run wallet extensions. Open this page inside your wallet app&apos;s
-                    built-in browser and connect there — everything else works the same.
+                    built-in browser and connect there - everything else works the same.
                   </DialogDescription>
                 </DialogHeader>
                 <div>
@@ -3610,7 +3610,7 @@ function ParticipantsTerminal() {
           </div>
         </div>
         {/* Mobile control strip: one thumb-scrollable row (launch switcher,
-            replay, toggles) with 44px hit areas — type stays 10px. */}
+            replay, toggles) with 44px hit areas - type stays 10px. */}
         {!simpleView && (
         <div className="flex items-center gap-x-4 overflow-x-auto border-t border-faint px-4 whitespace-nowrap sm:px-6 md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0 [&_button]:min-h-11 [&_select]:min-h-11">
           {topbarControls}
@@ -3625,7 +3625,7 @@ function ParticipantsTerminal() {
       ) : (
       <>
       {/* Mobile section nav: the phase chip + underlined jump links with a
-          scrollspy — the 5-screen page never needs manual travel. Sticky,
+          scrollspy - the 5-screen page never needs manual travel. Sticky,
           horizontally scrollable, xl:hidden. */}
       <nav
         aria-label="Page sections"
@@ -3679,7 +3679,7 @@ function ParticipantsTerminal() {
         ))}
       </nav>
 
-      {/* App frame at xl: each column scrolls independently — scrolling the
+      {/* App frame at xl: each column scrolls independently - scrolling the
           center never moves the rails (EoW terminal model). */}
       <div className={`grid w-full flex-1 grid-cols-1 xl:min-h-0 xl:grid-cols-[300px_minmax(0,1fr)_380px] xl:grid-rows-[100%] ${actionBarVisible ? "max-xl:pb-24" : ""}`}>
         <aside id="timeline" className="order-2 max-sm:order-5 scroll-mt-12 border-t border-hairline xl:order-1 xl:flex xl:min-h-0 xl:flex-col xl:overflow-y-auto xl:border-t-0 xl:border-r xl:border-hairline">
@@ -3783,7 +3783,7 @@ function ParticipantsTerminal() {
           {launchMetadata && (
             <LaunchMasthead metadata={launchMetadata} config={launchConfig} tokenAddress={tokenAddress} poolAddress={poolAddress} />
           )}
-          {/* Mobile/tablet discovery surface — the same LaunchList as the
+          {/* Mobile/tablet discovery surface - the same LaunchList as the
               desktop rail tab. xl:hidden: desktop discovery is the rail tab. */}
           <section id="launches" className="max-sm:order-2 scroll-mt-12 border-b border-hairline xl:hidden">
               <div className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-3 sm:px-6">
@@ -3849,7 +3849,7 @@ function ParticipantsTerminal() {
                   />
                   <Metric
                     label="Final price"
-                    value={stagePrice ? fmtPrice(Number(stagePrice.value), currency, tokenSymbol) : "—"}
+                    value={stagePrice ? fmtPrice(Number(stagePrice.value), currency, tokenSymbol) : "-"}
                     sub={stagePrice ? priceSub(Number(stagePrice.value), tokenSymbol) : undefined}
                     loaded={stateLoaded}
                   />
@@ -3907,7 +3907,7 @@ function ParticipantsTerminal() {
               !launchStats.anchorReady &&
               launchStats.anchorTargetWeth !== "0" && (
                 <p className="mt-2 font-mono text-[10px] uppercase leading-relaxed tracking-[0.02em] text-dim tabular-nums">
-                  Anchor · {stageMarket?.raisedWeth ?? "0"} / {launchStats.anchorTargetWeth} ETH — round 1 must reach the anchor
+                  Anchor · {stageMarket?.raisedWeth ?? "0"} / {launchStats.anchorTargetWeth} ETH - round 1 must reach the anchor
                   before later rounds open
                 </p>
               )}
@@ -3967,7 +3967,7 @@ function ParticipantsTerminal() {
                     {stageLadder()}
                     {refundableWeth > 0 ? (
                       <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.02em] text-dim tabular-nums">
-                        Refundable · {trimDecimals(refundableWeth.toFixed(4), 4)} ETH — you receive{" "}
+                        Refundable · {trimDecimals(refundableWeth.toFixed(4), 4)} ETH - you receive{" "}
                         {trimDecimals((refundableWeth * (1 - refundCostPct / 100)).toFixed(4), 4)} ETH · cost{" "}
                         {trimDecimals(((refundableWeth * refundCostPct) / 100).toFixed(4), 4)} ETH
                       </p>
@@ -4016,10 +4016,10 @@ function ParticipantsTerminal() {
                       {canWithdrawTokens
                         ? `Withdrawable · ${compactNumber(Number(position?.withdrawableTokens || 0))} ${tokenSymbol}`
                         : !hasWallet
-                          ? "The launch is complete — connect a wallet to check your locker"
+                          ? "The launch is complete - connect a wallet to check your locker"
                           : hasLocker
-                            ? "Trading is live on the official pool — no unlocked tokens in this locker"
-                            : "Trading is live — set your locker to check for unlocked tokens"}
+                            ? "Trading is live on the official pool - no unlocked tokens in this locker"
+                            : "Trading is live - set your locker to check for unlocked tokens"}
                     </p>
                     {tokenAddress && (
                       <p className="mt-3 flex flex-wrap items-baseline gap-x-5 gap-y-1 font-mono text-[11px] uppercase tracking-[0.02em]">
@@ -4041,7 +4041,7 @@ function ParticipantsTerminal() {
                         </a>
                         {!IS_MAINNET && (
                           <span className="text-[10px] text-dim">
-                            Mainnet link structure — will not resolve for {CHAIN_NAME} tokens
+                            Mainnet link structure - will not resolve for {CHAIN_NAME} tokens
                           </span>
                         )}
                       </p>
@@ -4061,12 +4061,12 @@ function ParticipantsTerminal() {
                       {hasLocker && stateLoaded
                         ? Number(position?.lockedWeth || 0) > 0
                           ? `Refundable · ${position?.lockedWeth} WETH from your locker`
-                          : "No committed WETH in this locker — nothing to refund"
+                          : "No committed WETH in this locker - nothing to refund"
                         : "Committed WETH is refundable from participants' lockers"}
                     </p>
                     {hasWallet && !hasLocker ? (
                       <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">
-                        If you participated, set your locker <span className="xl:hidden">in the participants panel below</span><span className="hidden xl:inline">in the right rail</span> to claim your refund — there is nothing to
+                        If you participated, set your locker <span className="xl:hidden">in the participants panel below</span><span className="hidden xl:inline">in the right rail</span> to claim your refund - there is nothing to
                         create on a failed launch.
                       </p>
                     ) : (
@@ -4102,7 +4102,7 @@ function ParticipantsTerminal() {
               <div className="min-w-0">
                 <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">
                   Total committed · all stages
-                  {myCommittedSeries.length > 0 && <span className="text-electric"> · — you</span>}
+                  {myCommittedSeries.length > 0 && <span className="text-electric"> · - you</span>}
                 </p>
                 <CommittedChart
                   series={committedSeries}
@@ -4122,7 +4122,7 @@ function ParticipantsTerminal() {
                 </p>
                 <PriceChart market={roundMarket.slice(0, scheduledRoundCount)} rounds={rounds.slice(0, scheduledRoundCount)} />
               </div>
-              {/* At two-column width this spans the full row — no dead corner. */}
+              {/* At two-column width this spans the full row - no dead corner. */}
               <div className="min-w-0 @2xl:col-span-2 @4xl:col-span-1">
                 <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">
                   Volume per round · ETH · <span className="text-live">■ commits</span>{" "}
@@ -4136,7 +4136,7 @@ function ParticipantsTerminal() {
           <section className="max-sm:order-2 border-b border-hairline px-4 py-5 sm:px-6">
             <SectionHeader
               title="Your position"
-              meta={isReplay ? "Live locker data — not replayed" : undefined}
+              meta={isReplay ? "Live locker data - not replayed" : undefined}
               action={tokenAddress ? <ExplorerLink label="Token" address={tokenAddress} /> : undefined}
             />
             {!hasLocker ? (
@@ -4246,7 +4246,7 @@ function ParticipantsTerminal() {
               <div className="min-w-0">
                 <SectionHeader title="Contracts" />
                 <div>
-                  {/* Deployed factory suite — the schema is authoritative for
+                  {/* Deployed factory suite - the schema is authoritative for
                       the current network (shows before any launch exists).
                       Factory honours a selected launch's own D17Factory; the
                       rest are network-level, so the schema wins over any
@@ -4256,7 +4256,7 @@ function ParticipantsTerminal() {
                   <AddressLine label="Launch factory" value={schemaContracts.launchFactory || ""} />
                   <AddressLine label="Vault factory" value={schemaContracts.liquidityVaultFactory || ""} />
                   <AddressLine label="Locker factory" value={schemaContracts.lockerFactory || lockerFactoryAddress || ""} />
-                  {/* Per-launch — populated once a launch is selected. */}
+                  {/* Per-launch - populated once a launch is selected. */}
                   <AddressLine label="Launch" value={launchAddress} />
                   <AddressLine label="Token" value={tokenAddress} />
                   <AddressLine label="Vault" value={liquidityVaultAddress} />
@@ -4271,7 +4271,7 @@ function ParticipantsTerminal() {
         <aside id="participants" className="order-3 scroll-mt-12 border-t border-hairline xl:min-h-0 xl:overflow-y-auto xl:border-t-0 xl:border-l xl:border-hairline">
           <div className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-3 sm:px-6">
             <h2 className="font-mono text-[11px] font-semibold uppercase tracking-[0.06em] text-ink">Participants</h2>
-            {/* Testing aid only — public users must not be able to hammer
+            {/* Testing aid only - public users must not be able to hammer
                 the API with manual refreshes. */}
             {TEST_CONTROLS_ENABLED && (
               <Button
@@ -4436,7 +4436,7 @@ function ParticipantsTerminal() {
                 <LedgerRow label="Settlement" value={formatSettlementStatus(position)} loaded={stateLoaded} />
               </div>
               {/* Withdraw/recover live HERE because this is where the funds
-                  live — as a floating center section they read as unrelated
+                  live - as a floating center section they read as unrelated
                   to the locker they act on. */}
               <div className="mt-4 border-t border-faint pt-3">
                 <p className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">Withdrawals & recovery</p>
@@ -4483,7 +4483,7 @@ function ParticipantsTerminal() {
                 )}
               </div>
               <p className="mt-3 font-mono text-[10px] uppercase leading-relaxed tracking-[0.02em] text-quiet">
-                The locker is a contract you own — the developer never holds your funds
+                The locker is a contract you own - the developer never holds your funds
               </p>
               {txLog.length > 0 && (
                 <div className="mt-4 border-t border-faint pt-3">
@@ -4527,7 +4527,7 @@ function ParticipantsTerminal() {
       {/* Mobile action bar: the phase's one primary action, under the thumb,
           only while the real CTA is off-screen. Connect fires directly;
           everything else jumps to the stage CTA (single source of truth for
-          transactions — the bar never duplicates tx logic). */}
+          transactions - the bar never duplicates tx logic). */}
       {!simpleView && actionBarVisible && mobileAction && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-paper px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] xl:hidden">
           <Button className="w-full" onClick={jumpToStageCta}>
@@ -4588,7 +4588,7 @@ function chipClass(active: boolean) {
   }`;
 }
 
-/** Discovery list — one shared component used in the desktop rail tab and the
+/** Discovery list - one shared component used in the desktop rail tab and the
  *  mobile #launches section. Live/open launches pin to the top, then upcoming
  *  by soonest start, then finished newest-first; unknown-start items sink
  *  under a "Start time pending" divider (partial indexer data stays visible,
@@ -4620,7 +4620,7 @@ function LaunchList({
     );
   }
   // Live/open launches pin to the top; then newest-created first (createdBlock
-  // is the only monotonic ordering the list exposes — a stable proxy for
+  // is the only monotonic ordering the list exposes - a stable proxy for
   // "by start time" that also surfaces the freshest launches for discovery).
   const sorted = [...launches].sort((a, b) => {
     const ra = launchSortRank(a);
@@ -4669,7 +4669,7 @@ function LaunchList({
   );
 }
 
-/** Trust signal — ✓ in ink (green stays reserved for live/now), Unverified
+/** Trust signal - ✓ in ink (green stays reserved for live/now), Unverified
  *  in quiet. Metadata-unavailable is handled by the masthead not rendering. */
 function VerifiedBadge({ verified }: { verified: boolean }) {
   if (verified) {
@@ -4707,12 +4707,12 @@ function LaunchMasthead({
   const symbol = metadata.tokenSymbol?.trim();
   // Tokenomics chips from the real launch config (token split + the treasury
   // WETH cut). Total supply = sale + LP + deployer + dead-address allocation. Defection is
-  // NOT shown here — it's per-round (early rounds are free), so it lives on
+  // NOT shown here - it's per-round (early rounds are free), so it lives on
   // the round rows, not as one misleading launch-level number.
   const tokenomics: { label: string; value: string }[] = [];
   if (config) {
     const total = config.saleTokens + config.lpTokens + config.deadTokens + config.manualTokens;
-    const pct = (part: bigint) => (total > 0n ? `${Math.round((Number(part) / Number(total)) * 100)}%` : "—");
+    const pct = (part: bigint) => (total > 0n ? `${Math.round((Number(part) / Number(total)) * 100)}%` : "-");
     if (total > 0n) {
       tokenomics.push({ label: "Supply", value: compactNumber(Number(ethers.formatUnits(total, 18))) });
       tokenomics.push({ label: "Sale", value: pct(config.saleTokens) });
@@ -4780,7 +4780,7 @@ function LaunchMasthead({
                 <button
                   type="button"
                   onClick={() => copyText(tokenAddress)}
-                  title={`Copy token contract ${tokenAddress} — add ${symbol || "the token"} to your wallet`}
+                  title={`Copy token contract ${tokenAddress} - add ${symbol || "the token"} to your wallet`}
                   className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink max-xl:min-h-11"
                 >
                   <span>Token</span>
@@ -4834,7 +4834,7 @@ function LedgerRow({ label, value, unit, loaded = true }: { label: string; value
     <div className="flex items-baseline justify-between gap-3 border-b border-faint py-2 last:border-b-0">
       <span className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">{label}</span>
       <span className="min-w-0 truncate text-right font-mono text-[12px] text-ink tabular-nums">
-        {loaded ? value : "—"}
+        {loaded ? value : "-"}
         {unit && loaded && <span className="ml-1.5 text-[10px] uppercase text-dim">{unit}</span>}
       </span>
     </div>
@@ -4876,17 +4876,17 @@ function RulesHashRow({ loadedHash, linkHash, stateLoaded }: { loadedHash: strin
           </button>
         </span>
       ) : (
-        <span className="font-mono text-[11px] text-quiet">{stateLoaded ? "Not set" : "—"}</span>
+        <span className="font-mono text-[11px] text-quiet">{stateLoaded ? "Not set" : "-"}</span>
       )}
     </div>
   );
 }
 
-/** The rounds SCHEDULE — a visual snapshot of what the rounds are: when
+/** The rounds SCHEDULE - a visual snapshot of what the rounds are: when
  *  each opens/closes, what leaving costs, what price was discovered. One
  *  row per scheduled round, dynamic to the launch's round count. Activity
  *  detail (commits/refunds counts, sparkline) deliberately lives in the
- *  rail's expandable stage rows instead — one job per surface.
+ *  rail's expandable stage rows instead - one job per surface.
  *  Notation rules: units in headers only; no interpunct compounds; the
  *  refund column always states a cost ("free" / "17% cost"); status is a
  *  word, not a glyph. */
@@ -4992,7 +4992,7 @@ type LifecycleFacts = {
 
 type FactRow = { label: string; value: string; href?: string };
 
-/** CREATE POOL is permissionless — the button lives in the rail's POOL
+/** CREATE POOL is permissionless - the button lives in the rail's POOL
  *  READY row, visible only while creation is actually available, and reads
  *  as completed the moment anyone succeeds. */
 type PoolAction = { status: "hidden" | "available" | "created"; busy?: boolean };
@@ -5013,7 +5013,7 @@ function vestedCreatorAmount(vesting: CreatorVesting, nowSeconds: number) {
   return (vesting.total * BigInt(elapsed)) / BigInt(vesting.periodSeconds);
 }
 
-/** RELEASE CREATOR TOKENS is permissionless — anyone can push the vested part
+/** RELEASE CREATOR TOKENS is permissionless - anyone can push the vested part
  *  to the creator address fixed in the launch rules; the caller gets nothing. */
 function CreatorVestingPanel({
   vesting,
@@ -5242,7 +5242,7 @@ function LaunchTimeline({
           const roundIndex = roundIndexForStage(stage.id);
           const detail = roundIndex !== null ? details[roundIndex] : undefined;
           // Lifecycle stages (finalize / claim / pool-ready / trading) expand
-          // like round rows do — what happened, when, and the contracts.
+          // like round rows do - what happened, when, and the contracts.
           const lifeRows = roundIndex === null ? lifecycleRows(stage.id, facts, stage, currency) : null;
           const expandable = hasLaunch && (roundIndex !== null || lifeRows !== null);
           const isExpanded = expandedId === stage.id;
@@ -5343,14 +5343,14 @@ function LaunchTimeline({
                 >
                   <span className="flex items-baseline justify-between gap-3 font-mono uppercase tracking-[0.02em] text-quiet">
                     <span className="flex min-w-0 items-baseline gap-2 text-[10px]">
-                      <span aria-hidden>—</span>
+                      <span aria-hidden>-</span>
                       <span className="truncate">{stage.title}</span>
                     </span>
                     <span className="shrink-0 text-[9px]">Did not open{expandable && <span aria-hidden> {isExpanded ? "−" : "+"}</span>}</span>
                   </span>
                   <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.02em] text-quiet tabular-nums">
-                    Configured {stage.startsAt ? formatMinute(stage.startsAt) : "—"} →{" "}
-                    {stage.endsAt && isFiniteEnd(stage.endsAt) ? formatMinute(stage.endsAt) : "—"}
+                    Configured {stage.startsAt ? formatMinute(stage.startsAt) : "-"} →{" "}
+                    {stage.endsAt && isFiniteEnd(stage.endsAt) ? formatMinute(stage.endsAt) : "-"}
                   </span>
                 </button>
                 {panel}
@@ -5378,8 +5378,8 @@ function LaunchTimeline({
                     <span className="shrink-0 text-[9px]">Closed{expandable && <span aria-hidden> {isExpanded ? "−" : "+"}</span>}</span>
                   </span>
                   <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.02em] text-quiet tabular-nums">
-                    {stage.startsAt ? formatMinute(stage.startsAt) : "—"} →{" "}
-                    {stage.endsAt && isFiniteEnd(stage.endsAt) ? formatMinute(stage.endsAt) : "—"}
+                    {stage.startsAt ? formatMinute(stage.startsAt) : "-"} →{" "}
+                    {stage.endsAt && isFiniteEnd(stage.endsAt) ? formatMinute(stage.endsAt) : "-"}
                   </span>
                 </button>
                 {panel}
@@ -5420,7 +5420,7 @@ function LaunchTimeline({
                   </span>
                 </div>
                 <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.02em] text-quiet tabular-nums">
-                  {stage.startsAt ? formatMinute(stage.startsAt) : "Start —"} →{" "}
+                  {stage.startsAt ? formatMinute(stage.startsAt) : "Start -"} →{" "}
                   {stage.endsAt && isFiniteEnd(stage.endsAt) ? formatMinute(stage.endsAt) : "open"}
                 </p>
                 {stage.active && isFiniteEnd(stage.endsAt) && stage.startsAt > 0 && (
@@ -5625,7 +5625,7 @@ function hideHoverCard() {
   if (hoverCardElement) hoverCardElement.style.display = "none";
 }
 /** Spreadable handlers: `{...hoverCard("R2 · 0.5 Ξ")}`. Mouse follows the
- *  pointer; touch shows the card at the tap point and auto-hides — charts
+ *  pointer; touch shows the card at the tap point and auto-hides - charts
  *  keep a data readout on phones where hover doesn't exist. */
 let hoverCardHideTimer = 0;
 function hoverCard(text: string) {
@@ -5642,7 +5642,7 @@ function hoverCard(text: string) {
   };
 }
 
-/** EoW-style ramp — largest holders boldest. CSS vars so the light theme
+/** EoW-style ramp - largest holders boldest. CSS vars so the light theme
  *  inverts it (bright-on-black → dark-on-cream); see globals.css. */
 const holderRampColor = (index: number) => `var(--holder-${Math.min(index, 10)})`;
 
@@ -5707,7 +5707,7 @@ function HolderBar({ lockers, total, mine }: { lockers: LockerSummary[]; total: 
   );
 }
 
-/** Value of a step series at time t — the last point at or before t. */
+/** Value of a step series at time t - the last point at or before t. */
 function stepValueAt(points: { t: number; v: number }[], t: number): number {
   let value = 0;
   for (const point of points) {
@@ -5845,7 +5845,7 @@ function RoundVolumeChart({
       className="grid gap-1"
       style={{ gridTemplateColumns: `repeat(${volumes.length}, minmax(0, 1fr))` }}
       role="img"
-      aria-label={`Volume per round in ETH — ${summary}`}
+      aria-label={`Volume per round in ETH - ${summary}`}
     >
       {volumes.map((volume, index) => (
         <div key={index} className="min-w-0">
@@ -5864,7 +5864,7 @@ function RoundVolumeChart({
             />
           </div>
           <p className="mt-1 text-center font-mono text-[9px] text-dim tabular-nums">
-            {volume.commit > 0 ? trimDecimals(volume.commit.toFixed(2), 2) : "—"}
+            {volume.commit > 0 ? trimDecimals(volume.commit.toFixed(2), 2) : "-"}
           </p>
           <p className="text-center font-mono text-[9px] uppercase text-quiet">R{index + 1}</p>
         </div>
@@ -5894,7 +5894,7 @@ function PriceChart({ market, rounds }: { market: RoundMarket[]; rounds: RoundTe
   const x = (t: number) => pad + ((Math.min(Math.max(t, t0), t1) - t0) / (t1 - t0)) * (width - pad * 2);
   const y = (value: number) => height - pad - (value / vMax) * (height - pad * 2);
   // Ladder: each discovered price holds flat across its round's span, and
-  // the vertical step to the next level lands on the next round's start —
+  // the vertical step to the next level lands on the next round's start -
   // exchange-style levels instead of a per-event sawtooth.
   const steps = levels.map((level, index) => ({
     ...level,
@@ -5989,7 +5989,7 @@ function LedgerAction({
             onClick={() => onChange(max)}
             disabled={disabled}
             className="text-right font-mono text-[10px] uppercase tracking-[0.02em] text-dim transition-colors hover:text-ink disabled:text-quiet tabular-nums max-xl:min-h-11"
-            title={`Indexed available ≈ ${max} ${unit} — the chain is the source of truth if the indexer lags`}
+            title={`Indexed available ≈ ${max} ${unit} - the chain is the source of truth if the indexer lags`}
           >
             Max {trimDecimals(max, 6)}
           </button>
@@ -6032,7 +6032,7 @@ function Metric({
         className="mt-1 font-mono text-[13px] text-ink tabular-nums [overflow-wrap:anywhere] sm:truncate"
         title={loaded ? value : undefined}
       >
-        {loaded ? value : "—"}
+        {loaded ? value : "-"}
       </p>
       {loaded && sub ? <p className="mt-0.5 font-mono text-[9px] text-quiet tabular-nums">{sub}</p> : null}
     </div>
@@ -6109,7 +6109,7 @@ function AddressLine({ label, value }: { label: string; value: string }) {
           </a>
         </span>
       ) : (
-        <span className="font-mono text-[11px] text-quiet">—</span>
+        <span className="font-mono text-[11px] text-quiet">-</span>
       )}
     </div>
   );
@@ -6299,7 +6299,7 @@ function describePhase(phase: PhaseSnapshot) {
 function phaseMeta(phase: PhaseSnapshot, rounds: RoundTerm[], nowSeconds: number): string[] {
   const parts: string[] = [];
   if (phase.phaseKind === PHASE.ROUND_OPEN || phase.phaseKind === PHASE.REFUND_OPEN) {
-    // Terms (allocation, refund cost) live on the round chips — the banner
+    // Terms (allocation, refund cost) live on the round chips - the banner
     // meta carries only the countdown.
     if (isFiniteEnd(phase.endsAt)) parts.push(timeLeft(phase.endsAt, nowSeconds));
   } else if (phase.phaseKind === PHASE.SETTLEMENT_OPEN) {
@@ -6316,7 +6316,7 @@ function phaseMeta(phase: PhaseSnapshot, rounds: RoundTerm[], nowSeconds: number
   } else if (phase.phaseKind === PHASE.READY_TO_FINALIZE) {
     parts.push("Sale rounds complete");
   } else if (phase.phaseKind === PHASE.POOL_READY) {
-    parts.push("Settlement window ended — the pool can be created");
+    parts.push("Settlement window ended - the pool can be created");
   }
   return parts.length > 0 ? parts : ["Live from launch contract"];
 }
@@ -6406,7 +6406,7 @@ function buildTimelineStages(phase: PhaseSnapshot | null, rounds: RoundTerm[], n
   stages.push({
     id: "settlement",
     title: "Settlement · claim window",
-    subtitle: "Settle to claim tokens — the pool can open after this window",
+    subtitle: "Settle to claim tokens - the pool can open after this window",
     startsAt: phase?.phaseKind === PHASE.SETTLEMENT_OPEN ? phase.startsAt : 0,
     endsAt: phase?.phaseKind === PHASE.SETTLEMENT_OPEN ? phase.endsAt : 0,
     active: phase?.phaseKind === PHASE.SETTLEMENT_OPEN,
@@ -6638,7 +6638,7 @@ function toActivityItem(event: any, timestamp?: number): ActivityItem {
 }
 
 /**
- * Map an indexed-API activity item to the app's ActivityItem — the same
+ * Map an indexed-API activity item to the app's ActivityItem - the same
  * shape toActivityItem produces from an on-chain event, so the feed and the
  * pure aggregateLockerSummaries() work identically in api mode. The backend
  * carries generic amountWeth/amountToken/penaltyWeth in base units (wei);
@@ -6690,7 +6690,7 @@ function apiToActivityItem(item: ApiActivityItem): ActivityItem {
         amountWeth: weth,
         amountToken: token,
       };
-    // V14: settlement after pool creation no longer blocks the lifecycle —
+    // V14: settlement after pool creation no longer blocks the lifecycle -
     // late claims top the pool up instead.
     case "LateVaultSettlementClaimed":
       return {
@@ -6836,7 +6836,7 @@ function compactNumber(value: number): string {
   return trimDecimals(value.toFixed(2), 2);
 }
 
-// Full precision — amountToken fields get parsed back to bigints in
+// Full precision - amountToken fields get parsed back to bigints in
 // buildLockerSummaries, so they must never carry display formatting.
 function formatToken(value: bigint) {
   return trimDecimals(ethers.formatUnits(value, 18), 2);
@@ -6924,7 +6924,7 @@ function formatMinute(unixSeconds: number) {
   });
 }
 
-/** Time-of-day only — for tables where the date lives in the header. */
+/** Time-of-day only - for tables where the date lives in the header. */
 function formatClock(unixSeconds: number) {
   return new Date(unixSeconds * 1000).toLocaleTimeString(undefined, {
     hour: "2-digit",
@@ -6932,7 +6932,7 @@ function formatClock(unixSeconds: number) {
   });
 }
 
-/** Date only — pairs with formatClock. */
+/** Date only - pairs with formatClock. */
 function formatDay(unixSeconds: number) {
   return new Date(unixSeconds * 1000).toLocaleDateString(undefined, {
     day: "2-digit",

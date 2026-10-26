@@ -5,7 +5,7 @@ import path from "node:path";
  * The single definition of which files belong to the release manifest.
  * generate-release-checksums.mjs writes RELEASE_SHA256SUMS.txt from this
  * collection; check-release.mjs re-collects with the same rules and verifies
- * the manifest matches the tree byte-for-byte — so a manifest generated
+ * the manifest matches the tree byte-for-byte - so a manifest generated
  * before a later build/tooling step can no longer pass the release gate.
  */
 

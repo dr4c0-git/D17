@@ -2,7 +2,7 @@
 
 *D17 blog · 04 · verification*
 
-Every marketplace eventually invents a badge. A blue tick, a "verified" label, an audited stamp — and with it, a committee. Someone decides who gets the badge, and the badge quietly becomes a measure of who knows the committee.
+Every marketplace eventually invents a badge. A blue tick, a "verified" label, an audited stamp - and with it, a committee. Someone decides who gets the badge, and the badge quietly becomes a measure of who knows the committee.
 
 D17 has mechanical verification checks. No one grants them by discretion.
 
@@ -16,9 +16,9 @@ Neither check has an application form, review queue, or judgment call. They are 
 
 ## What it protects you from
 
-The subtle scam in token launches isn't usually the code — it's the **gap between the pitch and the deployment**. The site says 5% team allocation; the contract says 10%. The announcement says a 1% fee; the contract takes 2%. Nobody reads the bytecode, everybody reads the landing page, and the gap is where trust dies.
+The subtle scam in token launches isn't usually the code - it's the **gap between the pitch and the deployment**. The site says 5% team allocation; the contract says 10%. The announcement says a 1% fee; the contract takes 2%. Nobody reads the bytecode, everybody reads the landing page, and the gap is where trust dies.
 
-The metadata check makes identity drift visible. The locker rules check prevents a call through that locker from treating an imitation contract — or a launch with different terms — as the canonical D17 launch you checked. Because the fees are inside the rules hash, a launch's fees can't silently differ from what you verified, and they can't change after you commit. A malicious frontend can still propose an unrelated wallet transaction, which is why the wallet's destination and transaction details remain important.
+The metadata check makes identity drift visible. The locker rules check prevents a call through that locker from treating an imitation contract - or a launch with different terms - as the canonical D17 launch you checked. Because the fees are inside the rules hash, a launch's fees can't silently differ from what you verified, and they can't change after you commit. A malicious frontend can still propose an unrelated wallet transaction, which is why the wallet's destination and transaction details remain important.
 
 ## What it deliberately doesn't promise
 
@@ -31,7 +31,7 @@ Honesty about the badge requires saying what it isn't:
 
 "Verified" should therefore be read narrowly: *these on-chain records agree*. That is useful evidence, but it is not a promise about price, intent, or safety.
 
-Trust, minimized: not "trust us," not even "trust the reviewers" — just check the hash.
+Trust, minimized: not "trust us," not even "trust the reviewers" - just check the hash.
 
 ---
 

@@ -5,7 +5,7 @@
  * generation when it starts; by the time its awaited reads resolve, the user
  * may have selected another launch. Results, caches, status lines and
  * loading-flag clears belonging to a stale generation must never be
- * committed — otherwise a slow refresh for launch A can write A's data onto
+ * committed - otherwise a slow refresh for launch A can write A's data onto
  * launch B.
  *
  * All launch-scoped commits go through commitIfCurrentGeneration so the

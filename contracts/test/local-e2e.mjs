@@ -885,7 +885,7 @@ async function main() {
     assertOk("vault retains no WETH after pool creation", await weth.balanceOf(await vault.getAddress()) === 0n);
 
     // Late settlements: identical user outcome to on-time settlement, and the LP-share WETH
-    // still enters the official pool — paired with the position's reserved LP-token share at
+    // still enters the official pool - paired with the position's reserved LP-token share at
     // the canonical launch ratio, LP minted to the permanently locked vault.
     const officialPairBefore = await launch.officialPair();
     const officialWethBefore = await launch.officialWethUsedForLp();

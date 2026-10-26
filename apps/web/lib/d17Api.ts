@@ -33,12 +33,12 @@ export function wsUrl(): string {
 export const CHAIN_ID = ACTIVE_NETWORK.chainId;
 
 // ── Chain identity (env-driven: one codebase serves testnet AND mainnet
-//    builds — no chain literals in page code) ──────────────────────────
+//    builds - no chain literals in page code) ──────────────────────────
 
 export const IS_MAINNET = ACTIVE_NETWORK.key === "mainnet";
 /** Human chain name; error messages and dialog copy derive from this. */
 export const CHAIN_NAME = ACTIVE_NETWORK.chainName;
-/** Header/status label — mainnet stands alone, testnets carry the suffix. */
+/** Header/status label - mainnet stands alone, testnets carry the suffix. */
 export const NETWORK_LABEL = ACTIVE_NETWORK.networkLabel;
 
 export const EXPLORER_BASE = ACTIVE_NETWORK.explorerBase;
@@ -183,7 +183,7 @@ export const getLaunchMetadata = (launch: string, signal?: AbortSignal) =>
 export const getPhase = (launch: string, signal?: AbortSignal) =>
   getJson<ApiPhase>(`/api/launches/${launch}/phase`, signal);
 
-/** ETH/USD reference (Chainlink mainnet, read once/min by the backend — the
+/** ETH/USD reference (Chainlink mainnet, read once/min by the backend - the
  *  browser never touches an oracle or RPC). `price` is an exact decimal
  *  string; USD is display-only, so we only ever multiply it for display. */
 export type EthUsd = {
@@ -197,7 +197,7 @@ export type EthUsd = {
 };
 /** PriceProvider boundary. USD display is optional and explicit:
  *  - api mode defaults to the indexed API's /api/prices/eth-usd;
- *  - rpc mode has NO default — it stays off unless the deployment configures
+ *  - rpc mode has NO default - it stays off unless the deployment configures
  *    a standalone price endpoint (same envelope), keeping direct-RPC display
  *    free of any D17 indexed-API call.
  *  An explicitly configured per-network priceUrl always wins. */
@@ -213,7 +213,7 @@ export const getEthUsd = async (signal?: AbortSignal): Promise<ApiResult<EthUsd>
   return { data: body.data, meta: body.meta };
 };
 
-/** The deployed contract suite (factories) — available before any launch
+/** The deployed contract suite (factories) - available before any launch
  *  exists, so the participant "Contracts" panel can show them on a fresh
  *  network. Wallet/RPC never reads these; they come from the indexed API. */
 export type DeployerContracts = {

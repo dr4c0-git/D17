@@ -1,4 +1,4 @@
-# D17 V15 — hardened launch rules and protocol fee
+# D17 V15 - hardened launch rules and protocol fee
 
 This fork of [0xlocker/D17](https://github.com/0xlocker/D17) (MIT) changes the launch
 contracts. Every launch created by the V15 factory follows the rules below; they are
@@ -20,7 +20,7 @@ after the launch is created.
 | Minimum share of every successful commitment locked in the official pool | 80% | **88%** |
 | Refund penalty, rounds 1–2 | free | **1% fixed**, paid into the official pool |
 | Refund penalty, rounds 3–4 | 0–50%, paid to the creator's treasury | **1–25%, paid into the official pool** |
-| Penalties when a launch fails | — (rounds 1–2 were free) | burned (sent to `0x…dEaD`), never paid to anyone |
+| Penalties when a launch fails | - (rounds 1–2 were free) | burned (sent to `0x…dEaD`), never paid to anyone |
 | Unsold sale tokens | burned **or sent to the creator's treasury** | **always burned** |
 | Final round price | whole final pool handed to whoever commits, at any price | **never below the round-1 anchor price**; the rest is burned |
 | LP token allocation | fixed, even if the sale under-sells | **scaled to the share actually sold**; the unused part is burned |

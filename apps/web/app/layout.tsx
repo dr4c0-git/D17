@@ -13,7 +13,7 @@ const plexMono = IBM_Plex_Mono({
 /*
  * Wallet extensions (e.g. Phantom's evmAsk.js vs MetaMask) race to define
  * window.ethereum and the loser throws "Cannot redefine property: ethereum".
- * That error comes from the extensions, not this app — the app connects via
+ * That error comes from the extensions, not this app - the app connects via
  * EIP-6963 announcements and never redefines window.ethereum. This guard
  * runs before hydration and stops extension-origin errors from surfacing
  * as app errors (e.g. in the Next.js dev overlay).

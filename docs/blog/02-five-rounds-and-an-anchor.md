@@ -14,26 +14,26 @@ Pulling out of round 1 costs a fixed 1%, paid into the launch's pool. That small
 
 ## Every later round is held to the anchor
 
-Each subsequent round offers its own allocation of tokens, with a target: the WETH needed to sell that allocation *at the anchor price*. A round that beats its target sells everything, at a higher price. A round that falls short sells only what its money covers at the anchor price — never more.
+Each subsequent round offers its own allocation of tokens, with a target: the WETH needed to sell that allocation *at the anchor price*. A round that beats its target sells everything, at a higher price. A round that falls short sells only what its money covers at the anchor price - never more.
 
-That rule now applies to all four later rounds. **No round can sell tokens below the price round 1 established.** The sale's economics are set by its earliest, most-committed participants — not by the creator's optimism and not by whoever shows up last.
+That rule now applies to all four later rounds. **No round can sell tokens below the price round 1 established.** The sale's economics are set by its earliest, most-committed participants - not by the creator's optimism and not by whoever shows up last.
 
-Because the schedule is fixed and published before round 1 opens — allocations per round, lengths, refund windows — there's no lever for anyone to pull once price discovery begins. The creator watches like everyone else.
+Because the schedule is fixed and published before round 1 opens - allocations per round, lengths, refund windows - there's no lever for anyone to pull once price discovery begins. The creator watches like everyone else.
 
 ## Round five takes what's left, at a fair price
 
-Real sales are lumpy. Some rounds oversubscribe, some fall short. Allocation that rounds 2–4 didn't place rolls into round 5, which gets one last chance to sell it — at or above the anchor price.
+Real sales are lumpy. Some rounds oversubscribe, some fall short. Allocation that rounds 2–4 didn't place rolls into round 5, which gets one last chance to sell it - at or above the anchor price.
 
-What round 5 can't sell at that price isn't handed out at a discount, and it isn't given to anyone. It's **burned**, along with the matching share of the liquidity allocation, so the pool's opening price follows what buyers actually paid. (In the earlier version of the protocol, round 5 handed its whole pool to whoever committed, at whatever price — a gift to a last-minute sniper. That door is closed.)
+What round 5 can't sell at that price isn't handed out at a discount, and it isn't given to anyone. It's **burned**, along with the matching share of the liquidity allocation, so the pool's opening price follows what buyers actually paid. (In the earlier version of the protocol, round 5 handed its whole pool to whoever committed, at whatever price - a gift to a last-minute sniper. That door is closed.)
 
 ## Why this beats a fixed price
 
-- **No hidden presale price inside the round mechanism.** Any creator allocation is a separate, capped, visible part of the supply split — and it vests over six months.
+- **No hidden presale price inside the round mechanism.** Any creator allocation is a separate, capped, visible part of the supply split - and it vests over six months.
 - **No stale guess.** A price set weeks before launch can't respond to the market. An anchor set by round 1 is, by construction, current.
 - **No bargain bin at the end.** The last round is held to the same floor as the others.
 - **The anchor requirements are explicit.** If round 1 does not meet the published minimum raise and minimum anchor price, the launch **fails** and remaining commitments can be reclaimed in full, without penalty. Participants still pay their own transaction gas.
 
-The quiet radical idea here is that a launch's price is a *finding*, not a *setting*. Five rounds is how long D17 gives the market to speak — and the contract writes down exactly what it heard.
+The quiet radical idea here is that a launch's price is a *finding*, not a *setting*. Five rounds is how long D17 gives the market to speak - and the contract writes down exactly what it heard.
 
 ---
 

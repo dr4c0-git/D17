@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * /deploy — create a D17 launch directly through the connected wallet. The
+ * /deploy - create a D17 launch directly through the connected wallet. The
  * selected chain uses the bundled manifest, ABI, and
  * validation schema. The optional participant API never controls deployment.
  * The form is one page with four sections and a live participant preview.
@@ -190,7 +190,7 @@ function DeployPaused() {
             New deploys are switched off for this site. Existing launches remain available in the terminal.
           </p>
           <p className="mt-3 font-mono text-[10px] uppercase leading-relaxed tracking-[0.02em] text-quiet">
-            Live launches are unaffected —{" "}
+            Live launches are unaffected -{" "}
             <a href={d17Href("/")} className="text-electric hover:text-ink">
               back to the terminal →
             </a>
@@ -245,7 +245,7 @@ function DeployForm() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [result, setResult] = useState<DeployResult | null>(null);
-  // Clock text is locale + Date.now() dependent — rendering it during SSR
+  // Clock text is locale + Date.now() dependent - rendering it during SSR
   // hydrates against different text in the browser. Render placeholders
   // until mounted, then tick every 30s so "opens in" stays honest.
   const [mounted, setMounted] = useState(false);
@@ -436,7 +436,7 @@ function DeployForm() {
   if (sharesPct.some((pct) => Math.trunc((saleTokens * pct) / 100) < Number(MIN_ROUND_ALLOCATION_TOKENS)))
     problems.push("each round needs at least 1 sale token");
   // The factory requires the canonical dead recipient when deadTokens > 0;
-  // the constant IS that address — this guards against the constant drifting.
+  // the constant IS that address - this guards against the constant drifting.
   if (DEAD_RECIPIENT.toLowerCase() !== "0x000000000000000000000000000000000000dead")
     problems.push("dead recipient is not the canonical dead address");
   const ready = problems.length === 0;
@@ -477,7 +477,7 @@ function DeployForm() {
       await ensureWalletChain(window.ethereum);
       const provider = new ethers.BrowserProvider(window.ethereum);
       const network = await provider.getNetwork();
-      if (network.chainId !== CHAIN_ID_BIG) throw new Error(`Switch your wallet to ${CHAIN_NAME} — this deployer serves ${CHAIN_NAME} only.`);
+      if (network.chainId !== CHAIN_ID_BIG) throw new Error(`Switch your wallet to ${CHAIN_NAME} - this deployer serves ${CHAIN_NAME} only.`);
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
       setWalletAddress(address);
@@ -531,7 +531,7 @@ function DeployForm() {
           withTimeout(
             factory.createLaunch.staticCall(config, { from: signerAddress, gasLimit: SIMULATION_GAS_LIMIT }),
             30_000,
-            "Simulation timed out — the RPC is slow right now. Nothing was sent; try again."
+            "Simulation timed out - the RPC is slow right now. Nothing was sent; try again."
           );
         try {
           await simulate(simFactory);
@@ -566,7 +566,7 @@ function DeployForm() {
         config,
         simulationGasCapped ? { gasLimit: creationGasLimit(config) } : {}
       )) as ethers.ContractTransactionResponse;
-      setBusy("Deploying — waiting for the block…");
+      setBusy("Deploying - waiting for the block…");
       const confirmed = await waitForDeployment(tx);
       const receipt = confirmed.receipt;
 
@@ -608,7 +608,7 @@ function DeployForm() {
     const text = await file.text();
     const uri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(text)))}`;
     if (byteLength(uri) > 8192) {
-      setLogoError(`Logo is ${byteLength(uri)} bytes — the contract caps it at 8192. Simplify the SVG.`);
+      setLogoError(`Logo is ${byteLength(uri)} bytes - the contract caps it at 8192. Simplify the SVG.`);
       return;
     }
     setLogoSvgUri(uri);
@@ -1017,7 +1017,7 @@ function DeployForm() {
         <div className="border-hairline px-4 py-5 sm:px-6 xl:border-r">
           <section>
             <h2 className={H2}>01 · Token</h2>
-            <p className={HINT}>The identity participants verify — it gets hashed on-chain.</p>
+            <p className={HINT}>The identity participants verify - it gets hashed on-chain.</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <label className="block">
                 <span className={LABEL}>Name</span>
@@ -1057,7 +1057,7 @@ function DeployForm() {
           <section className="mt-6 border-t border-hairline pt-5">
             <h2 className={H2}>02 · Economics</h2>
             <p className={HINT}>
-              Set sale, LP, and deployer — the remainder goes to the canonical dead address. Deployer tokens vest to your
+              Set sale, LP, and deployer - the remainder goes to the canonical dead address. Deployer tokens vest to your
               wallet linearly over {vestingDays} days once trading opens.
             </p>
             <div className="mt-3 flex h-4 border border-hairline" aria-hidden>
@@ -1111,12 +1111,12 @@ function DeployForm() {
             <p className={HINT}>
               Protocol fee:{" "}
               <span className="font-semibold text-ink">
-                {protocolFeeBps === null ? "—" : `${protocolFeeBps / 100}%`}
+                {protocolFeeBps === null ? "-" : `${protocolFeeBps / 100}%`}
               </span>{" "}
               of each successful commitment (hard cap 2%, fixed into your launch&apos;s rules). Never charged on refunds or a
               failed launch. With your treasury share, participants see{" "}
               <span className="font-semibold text-ink">
-                {protocolFeeBps === null ? "—" : `${100 - treasuryPct - protocolFeeBps / 100}%`}
+                {protocolFeeBps === null ? "-" : `${100 - treasuryPct - protocolFeeBps / 100}%`}
               </span>{" "}
               of every successful commitment locked in the official pool.
             </p>
@@ -1124,7 +1124,7 @@ function DeployForm() {
 
           <section className="mt-6 border-t border-hairline pt-5">
             <h2 className={H2}>03 · Rounds &amp; schedule</h2>
-            <p className={HINT}>Five rounds, fixed by the contract — the preset covers most launches.</p>
+            <p className={HINT}>Five rounds, fixed by the contract - the preset covers most launches.</p>
             <div className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-[0.02em] text-quiet">
               Round 1 opens
               <select value={customStart ? "custom" : opensIn} onChange={(event) => (event.target.value === "custom" ? setCustomStart(toDateTimeLocal(new Date(Date.now() + 3_600_000))) : (setCustomStart(""), setOpensIn(event.target.value)))} className={`${FIELD} w-auto py-1`}>
@@ -1164,7 +1164,7 @@ function DeployForm() {
               </div>
             ))}
             <p className={`mt-1 font-mono text-[10px] uppercase tracking-[0.02em] ${sharesSum === 100 ? "text-quiet" : "text-alert"}`}>
-              Shares total {sharesSum}% {sharesSum === 100 ? "✓" : "— must be 100%"}
+              Shares total {sharesSum}% {sharesSum === 100 ? "✓" : "- must be 100%"}
             </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               <label className="block">
@@ -1184,7 +1184,7 @@ function DeployForm() {
 
           <section className="mt-6 border-t border-hairline pt-5">
             <h2 className={H2}>04 · Deploy</h2>
-            <p className={HINT}>Simulated first — you only sign what already passed.</p>
+            <p className={HINT}>Simulated first - you only sign what already passed.</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               <label className="block">
                 <span className={LABEL}>Round 1 floor (WETH)</span>
@@ -1200,8 +1200,8 @@ function DeployForm() {
               </label>
             </div>
             <p className={HINT}>
-              Round 1 sets the anchor price (raised ÷ its allocation). If it raises less than the floor — or the price lands
-              below the anchor floor — the launch fails and every remaining commitment refunds in full. No round, including the
+              Round 1 sets the anchor price (raised ÷ its allocation). If it raises less than the floor - or the price lands
+              below the anchor floor - the launch fails and every remaining commitment refunds in full. No round, including the
               final one, sells below the anchor price.
             </p>
             <p className={HINT}>
@@ -1226,7 +1226,7 @@ function DeployForm() {
                   href={d17Href("/", { launch: result.launch })}
                   className="mt-3 block w-full border border-live px-3 py-2.5 text-center font-mono text-[12px] uppercase tracking-[0.04em] text-live transition-colors hover:bg-faint"
                 >
-                  Launch deployed ✓ — open your launch page →
+                  Launch deployed ✓ - open your launch page →
                 </a>
                 <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-[0.02em] text-quiet">
                   <span className="normal-case text-dim">{shortAddress(result.launch)}</span> ·{" "}
@@ -1273,7 +1273,7 @@ function DeployForm() {
         </div>
 
         <div className="px-4 py-5 sm:px-6">
-          <p className={LABEL}>Live preview — what participants see</p>
+          <p className={LABEL}>Live preview - what participants see</p>
           <div className="mt-2 border border-hairline p-3">
             <div className="flex items-center gap-3">
               {logoSvgUri ? (
@@ -1299,9 +1299,9 @@ function DeployForm() {
                   · Deployer <span className="font-semibold text-dim">{depPct}%</span>
                 </>
               )}{" "}
-              · Dead address <span className="font-semibold text-dim">{overAllocated ? "—" : `${deadAddressPct}%`}</span> · Treasury{" "}
+              · Dead address <span className="font-semibold text-dim">{overAllocated ? "-" : `${deadAddressPct}%`}</span> · Treasury{" "}
               <span className="font-semibold text-dim">{treasuryPct}% ETH</span> · Protocol{" "}
-              <span className="font-semibold text-dim">{protocolFeeBps === null ? "—" : `${protocolFeeBps / 100}%`} ETH</span>
+              <span className="font-semibold text-dim">{protocolFeeBps === null ? "-" : `${protocolFeeBps / 100}%`} ETH</span>
             </p>
           </div>
 
@@ -1329,7 +1329,7 @@ function DeployForm() {
             <p className={LABEL}>After you deploy</p>
             <ol className="mt-1.5 grid gap-1 font-mono text-[11px] uppercase tracking-[0.02em] text-dim">
               <li>
-                <span className="text-live">1</span> Sign once — token, launch, and vault deploy together
+                <span className="text-live">1</span> Sign once - token, launch, and vault deploy together
               </li>
               <li>
                 <span className="text-live">2</span>{" "}
@@ -1342,7 +1342,7 @@ function DeployForm() {
                     Open your launch page →
                   </a>
                 ) : (
-                  "Your launch page goes live — share the link"
+                  "Your launch page goes live - share the link"
                 )}
               </li>
               <li>
@@ -1366,7 +1366,7 @@ function DeployForm() {
           </div>
 
           <p className="mt-3 border border-hairline px-3 py-2 font-mono text-[10px] uppercase leading-relaxed tracking-[0.02em] text-quiet">
-            The ✓ is earned, not granted — publish exactly this and the rules hash verifies on-chain automatically.
+            The ✓ is earned, not granted - publish exactly this and the rules hash verifies on-chain automatically.
           </p>
         </div>
       </div>
@@ -1478,7 +1478,7 @@ function trimZeros(value: string) {
   return value.replace(/\.?0+$/, "");
 }
 
-/** 90 → "1h 30m", 2880 → "2d" — so long rounds never read as raw minutes. */
+/** 90 → "1h 30m", 2880 → "2d" - so long rounds never read as raw minutes. */
 function humanMinutes(minutes: number) {
   if (minutes >= 1440) {
     const days = Math.floor(minutes / 1440);

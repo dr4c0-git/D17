@@ -4,21 +4,21 @@
 
 Every launch platform makes the same promise: *trust us with your deposit.* D17's answer is to remove the "us."
 
-When you commit to a D17 launch, your ETH doesn't go to the website, the launch creator, or some shared protocol pot. It goes into a **locker** — a small contract deployed for you, owned by you, that exists to do exactly one job: hold your position and act only on your instruction.
+When you commit to a D17 launch, your ETH doesn't go to the website, the launch creator, or some shared protocol pot. It goes into a **locker** - a small contract deployed for you, owned by you, that exists to do exactly one job: hold your position and act only on your instruction.
 
 ## What a locker actually is
 
 The first time you take part, you create a locker. One transaction, one contract, yours. A locker can hold positions across multiple launches. From then on:
 
-- Your committed ETH is wrapped to WETH and sits **in your locker** — not in the launch, not in a pool of everyone's funds.
+- Your committed ETH is wrapped to WETH and sits **in your locker** - not in the launch, not in a pool of everyone's funds.
 - When you refund, the locker credits your WETH back to you, minus the published refund penalty for that round, which it sends into the launch's official pool.
 - When you settle, the locker pays the published fees, sends the liquidity share to the pool, and receives your purchased tokens, holding them until you withdraw.
 
-The terminal — the website — is a window, not a wallet. It reads public data and asks your wallet to sign things. If the site vanished tomorrow, your locker and everything in it would be untouched, and every action it supports could be performed directly on-chain.
+The terminal - the website - is a window, not a wallet. It reads public data and asks your wallet to sign things. If the site vanished tomorrow, your locker and everything in it would be untouched, and every action it supports could be performed directly on-chain.
 
 ## The locker is paranoid on your behalf
 
-A locker doesn't take the website's word for which launch it is talking to. Before the first commitment, it checks the launch identity, WETH address, exact rules hash, and canonical factory registration. The rules hash covers every economic setting of the launch, including its fees. Rules-sensitive recovery and settlement paths repeat those checks. A canonical D17 locker refuses to interact with an incompatible launch — including launches from an older version of the protocol. Wrong identity, no interaction.
+A locker doesn't take the website's word for which launch it is talking to. Before the first commitment, it checks the launch identity, WETH address, exact rules hash, and canonical factory registration. The rules hash covers every economic setting of the launch, including its fees. Rules-sensitive recovery and settlement paths repeat those checks. A canonical D17 locker refuses to interact with an incompatible launch - including launches from an older version of the protocol. Wrong identity, no interaction.
 
 This matters because the classic launch-scam move is a look-alike contract. You think you're committing to the real sale; you're actually feeding an imitation. A D17 locker structurally can't be pointed at an imitation: the verification runs inside your own contract, using on-chain facts, on every action.
 

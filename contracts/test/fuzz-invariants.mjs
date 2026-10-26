@@ -56,7 +56,7 @@ let context = "";
 function invariant(name, condition, detail = "") {
   checks += 1;
   if (!condition) {
-    const message = `INVARIANT BROKEN [seed ${SEED}] ${context}: ${name}${detail ? ` — ${detail}` : ""}`;
+    const message = `INVARIANT BROKEN [seed ${SEED}] ${context}: ${name}${detail ? ` - ${detail}` : ""}`;
     rows.assertion.push({ name, passed: 0, detail: message });
     failures.push(message);
     throw new Error(message);
