@@ -3,6 +3,18 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-02 - Mainnet deployment checklist
+
+- **`docs/MAINNET_CHECKLIST.md`**: every step of the mainnet deployment in order, from
+  the Safe that owns the fee settings and two fresh deployer keys to the checks after
+  the deployment and switching the site to mainnet. Includes the gas measured on a full
+  run (about 15.5M for the factory key, 2.3M for the locker factory key) and the timing
+  rule: mainnet launches open at least 24 hours after creation.
+- **`check:env` checks more before a deployment**: the gas price now and whether each
+  key holds enough ETH for its part (30% margin), and on mainnet the official WETH and
+  Uniswap V2 router addresses, that the fee owner is a contract (the Safe), the
+  confirmation flag and the Etherscan key.
+
 ## 2026-10-26 - Etherscan source verification command
 
 - **Done on Sepolia: the 8 contracts of the suite are verified on Etherscan** (fee

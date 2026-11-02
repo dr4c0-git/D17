@@ -58,6 +58,9 @@ Creator, Test 4 and 5 Buyers.
 - Etherscan: the 8 suite contracts are verified on Sepolia (2026-10-26, `verify:etherscan`,
   needs `ETHERSCAN_API_KEY` in `contracts/.env`; `-- --dry-run` checks without sending).
   Redo it on mainnet with `-- --network mainnet` right after the mainnet deployment.
+- Mainnet: follow [MAINNET_CHECKLIST.md](./MAINNET_CHECKLIST.md) step by step (Safe, two fresh
+  deployer keys, gas budget, commands in order, checks, site switch). Deploy at least 2 days
+  before the first launch opens: mainnet launches start at least 24 hours after creation.
 - Site content: `/docs`, `/blog` and `/progress` render `docs/` and `CHANGELOG.md` from
   `apps/web/content/site-content.json`. After editing any of them, run
   `npm run content:sync` before `release:checksums` (`check:release` fails otherwise).
