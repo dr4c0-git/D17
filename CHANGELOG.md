@@ -3,6 +3,31 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-09 - V15.1: two contract fixes
+
+Two bugs reported by the project lead after the Sepolia test launches. Both were
+reproduced on V15 by a new test suite before being fixed; details in
+[docs/V15_HARDENING.md](./docs/V15_HARDENING.md).
+
+- **A pool could never open.** Fees are taken per buyer and rounded down, while the
+  pool's expected ETH was computed once on the total, so the two could differ by a few
+  wei. When every buyer collected before the pool opened, the pool asked for more
+  tokens than were reserved and its creation reverted forever, leaving the tokens stuck
+  (they cannot move before the pool exists). Odd amounts were enough, and anyone could
+  cause it on purpose. The pool now never takes more than the reserved tokens.
+- **Supplies too large for Uniswap V2 are refused.** Uniswap V2 cannot hold more than
+  2^112 - 1 raw units per pool (about 5 million billion tokens). A larger launch could
+  collect ETH and then fail to open its pool; launch creation now rejects it, and the
+  create form says so before anything is sent.
+- New test suite `v15-1-regressions-e2e` (10 assertions, part of `npm test`): odd amounts
+  with a take-back fee and every buyer collecting first, then the pool opens and tokens
+  move; supplies above the limit rejected; the largest allowed supply opens its pool.
+- Known limit, for V16: liquidity of buyers who collect after the pool opened is added at
+  the market price and the unmatched part is burned (pool depth lost, not the buyer's
+  tokens).
+- The launch rules, ABIs and contract identities are unchanged. V15.1 must be redeployed
+  on Sepolia and run through a full launch before mainnet.
+
 ## 2026-11-09 - Predatory launch warning, fee settings renounced at deployment
 
 - **Predatory launches are flagged.** The contract accepts any number of tokens in the

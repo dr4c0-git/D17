@@ -403,6 +403,8 @@ function DeployForm() {
   if (!tokenSymbol.trim()) problems.push("token symbol");
   else if (byteLength(tokenSymbol.trim()) > symbolMax) problems.push(`token symbol over ${symbolMax} bytes`);
   if (supplyTokens <= 0 || !Number.isSafeInteger(supplyTokens)) problems.push("supply must be a whole, safely-sized token count");
+  // Uniswap V2 reserves are uint112: the contract refuses a larger raw supply (18 decimals).
+  else if (BigInt(supplyTokens) * 10n ** 18n > (1n << 112n) - 1n) problems.push("supply above the Uniswap V2 limit");
   if (saleTokens <= 0) problems.push("sale allocation");
   if (lpTokens < Number(MIN_LP_TOKENS)) problems.push("LP allocation below 1 token");
   if (overAllocated) problems.push("allocation over 100%");
@@ -667,6 +669,8 @@ function DeployForm() {
     if (problem === "token symbol") return "Give your token a short ticker (step 1).";
     if (problem.startsWith("links must")) return "Links must start with https:// (step 1).";
     if (problem === "allocation over 100%") return "The token split adds up to more than 100% (step 2).";
+    if (problem === "supply above the Uniswap V2 limit")
+      return "The total number of tokens is too large: trading pools cannot hold more than about 5 million billion tokens (step 2).";
     if (problem.startsWith("deployer allocation over")) return "Your own share of the tokens can be at most 10% (step 2).";
     if (problem.startsWith("treasury share over")) return "Your share of the ETH can be at most 10% (step 3).";
     if (problem === "treasury address") return "The address that receives your ETH share is not valid (step 3).";

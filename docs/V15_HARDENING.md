@@ -10,6 +10,9 @@ after the launch is created.
 > `D17FeeSplitter`, 45/45 deployment checks). It is **not deployed on mainnet**:
 > `deployments/mainnet.json` says `"status": "not-deployed"`. The upstream V14 deployment is **not**
 > compatible with this source tree. V15 has **not** been professionally audited.
+> **V15.1** (two bug fixes, see [V15.1 fixes](#v151-fixes)) replaces it in this source
+> tree; it is redeployed on Sepolia and run through a full launch before any mainnet
+> deployment.
 
 ## What participants can rely on
 
@@ -114,6 +117,26 @@ The creator never receives refund penalties, unsold sale tokens or unused LP tok
 - The deploy script failed with "nonce has already been used" on fast-mining nodes; it
   now uses one nonce manager per key.
 
+## V15.1 fixes
+
+Two contract bugs reported by the project lead after the Sepolia test launches, both
+reproduced on V15 by `contracts/test/v15-1-regressions-e2e.mjs` before being fixed. The
+launch rules, the ABIs and the contract identities are unchanged.
+
+- **Pool creation could revert forever.** The fees are taken per position (each rounded
+  down), while the pool's expected WETH is computed once on the total. The settled WETH
+  can therefore exceed the expected amount by a few wei, and when every position settled
+  before the pool opened, `claimVaultLiquidityTokens` asked for more LP tokens than were
+  reserved: the transfer reverted, the pool could never open and the tokens, which cannot
+  move before it exists, were stuck. Ordinary amounts could trigger it, and anyone could
+  on purpose with odd wei amounts. The pool now never takes more than the reserved LP
+  tokens (`D17Launch.sol:725-728`); the gap is a few wei of price.
+- **Supply above Uniswap V2's limit.** Uniswap V2 stores each reserve as a `uint112`. A
+  launch with a larger supply could collect funds and then fail to open its pool.
+  `createLaunch` now rejects any `tokenSupply` above `2^112 - 1` raw units, about 5.19
+  million billion tokens with 18 decimals (`SUPPLY_ABOVE_V2_RESERVE_MAX`,
+  `D17Factory.sol:205-206`).
+
 ## Known limits (not fixed)
 
 - **No professional audit.** Static analysis (Slither 0.11.6) reports only benign
@@ -128,6 +151,15 @@ The creator never receives refund penalties, unsold sale tokens or unused LP tok
 - **Liquidity-add MEV.** A late settlement is a liquidity add; an attacker who moves the
   price around it pays swap fees on both legs and gains at most the impermanent loss of the
   late position. Most positions settle before pool creation.
+- **Late settlement can burn pool value.** A position settled after the pool opened adds
+  its liquidity at the pool's current price, and what cannot be paired at that price is
+  burned. The settler still receives every token they bought; what is lost is pool
+  depth, and how much depends on trading before the settlement. Anyone can settle an
+  absent locker once pool creation opens (`settleAfterGrace`), which limits it; the
+  planned fix (V16) opens the pool only once every position has settled.
+- **Opening price set by the creator's split.** The contract accepts any LP allocation
+  from 1 token, so a creator can open the pool far above the average price paid. The web
+  app flags such launches as predatory; a contract rule is planned for V16.
 - **Copycat tokens.** Anyone can deploy a token with the same name elsewhere; only
   launches registered by the canonical factory (`isCanonicalLaunch`) are shown by the
   terminal and accepted by lockers.

@@ -202,6 +202,8 @@ contract D17Factory {
         _validateJsonSafe(config.tokenSymbol, "TOKEN_SYMBOL_JSON");
         _validateMetadata(config);
         require(config.tokenSupply > 0, "SUPPLY_ZERO");
+        // Uniswap V2 stores reserves as uint112: a pool balance above it can never be synced.
+        require(config.tokenSupply <= type(uint112).max, "SUPPLY_ABOVE_V2_RESERVE_MAX");
         require(config.saleTokens > 0, "SALE_ZERO");
         require(config.lpTokens >= MIN_LP_TOKENS, "LP_TOO_LOW");
         require(

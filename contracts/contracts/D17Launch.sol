@@ -723,6 +723,9 @@ contract D17Launch {
         // (poolTokenAllocation : totalLiquidityWeth). The rest stays reserved for late settlers.
         wethForPool = settledLiquidityWeth + retainedPenaltyWeth;
         liquidityTokens = effectiveLpTokens * wethForPool / totalLiquidityWeth();
+        // Per-position fee rounding can make the settled WETH a few wei larger than the
+        // aggregate totalLiquidityWeth(); never ask for more than the reserved LP tokens.
+        if (liquidityTokens > effectiveLpTokens) liquidityTokens = effectiveLpTokens;
         require(liquidityTokens > 0, "NO_LIQUIDITY_TOKENS");
 
         vaultLiquidityClaimed = true;

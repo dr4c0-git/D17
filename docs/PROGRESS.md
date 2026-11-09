@@ -21,6 +21,10 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
 
 ## Next
 
+- **V15.1**: two contract bugs fixed (a pool that could never open after every buyer
+  collected first, and token supplies too large for Uniswap V2). Next: a fresh Sepolia
+  deployment with a full launch and Etherscan verification, then mainnet.
+
 - **External security audit** of the contracts.
 - **Mainnet deployment** on V15, with the protocol fee settings renounced at deployment:
   the 1% fee and its split (75% D17 buybacks, 25% development fund) are then final, with

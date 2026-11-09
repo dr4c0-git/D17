@@ -139,8 +139,8 @@ command (it kills the shell itself); run the node as a separate background task.
 | `D17LiquidityVault` | Initial pool = settled WETH + penalties; late liquidity at the live ratio (remainder burned, zero-LP → burned); 180-day creator vesting (`releaseCreatorTokens`, callable by anyone); `burnFailedLaunchPenalties`; ETH→WETH sweep. |
 
 IDs: `*_V15_HARDENED` everywhere (contracts, `scripts/lib.mjs`, apps, release).
-Sizes: `D17LaunchDeployer` 22,759 bytes (1.8 KB headroom: any growth of `D17Launch`
-consumes it), `D17Launch` 17,557 bytes, `D17LaunchFactory` 5,129 bytes.
+Sizes (V15.1): `D17LaunchDeployer` 22,778 bytes (1.8 KB headroom: any growth of `D17Launch`
+consumes it), `D17Launch` 17,576 bytes, `D17Factory` 11,108 bytes, `D17LaunchFactory` 5,129 bytes.
 
 ## Fee decision (approved by the owner as "the most honest")
 
@@ -220,6 +220,19 @@ durations. For automated checks, Playwright with an injected `window.ethereum` r
 - `docs/blog/`: 9 V15 essays (post 09 explains the protocol fee).
 - Opening price: it follows the average price paid and equals it (net of fees) only when
   `lpTokens == saleTokens`; never write that it is always equal.
+
+## V15.1 (2026-11-09)
+
+Two contract bugs reported by the project lead, both reproduced on V15 by
+`test/v15-1-regressions-e2e.mjs` (in `npm test`) before the fix: (1) pool creation
+reverted forever when every position settled before the pool and per-position fee
+rounding put the settled WETH a few wei above `totalLiquidityWeth()` (fix: cap the pool's
+LP tokens at `effectiveLpTokens`); (2) supplies above Uniswap V2's `uint112` reserve were
+accepted (fix: `SUPPLY_ABOVE_V2_RESERVE_MAX`). ABIs and `*_V15_HARDENED` identities are
+unchanged. A third report (late settlement burning pool value at a moved price) is a
+known limit, fixed in V16 by opening the pool only once every position has settled.
+Before mainnet: redeploy the suite on Sepolia, one full launch, `verify:etherscan`.
+The mainnet date of 2026-11-11 is not held: the reports came two days before it.
 
 ## Still to do
 

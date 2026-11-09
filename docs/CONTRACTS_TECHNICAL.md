@@ -133,7 +133,7 @@ Contract rounds 0–4 = display rounds 1–5. Timing anchors: `startTime` (immut
 tradingOpenAt` (D17Launch.sol:415-419). `tradingOpen() == liquidityPoolCreated`
 (D17Launch.sol:421-423). On Ethereum mainnet (`block.chainid == 1`) the factory requires
 `startTime ≥ now + 1 day` and every round/refund/settlement window ≥ 1 hour
-(D17Factory.sol:220-229, 241).
+(D17Factory.sol:222-231, 241).
 
 `launchPhase()` (D17Launch.sol:512-544) reports one of 8 phases:
 
@@ -149,7 +149,7 @@ tradingOpenAt` (D17Launch.sol:415-419). `tradingOpen() == liquidityPoolCreated`
 | 6 `PHASE_TRADING_OPEN` | `liquidityPoolCreated` | `claimLateSettlement()` (forever); locker `withdrawUnlockedTokens`; token transfers/burns ungated; vault `releaseCreatorTokens`; launch `burnResidualTokens` once all settled |
 
 Failure is terminal-by-predicate (only reachable pre-finalization); finalization is
-one-shot (`FINALIZED`, D17Launch.sol:779) and requires nonzero committed WETH (:789).
+one-shot (`FINALIZED`, D17Launch.sol:782) and requires nonzero committed WETH (:792).
 Pool creation is one-shot (`POOL_CREATED` + `VAULT_LIQUIDITY_CLAIMED`,
 D17Launch.sol:715-716; vault `poolCreated`, D17LiquidityVault.sol:122).
 
@@ -577,24 +577,24 @@ Deliberately permissionless entry points and why they are safe:
 | `settleAfterGrace(launch)` (D17Locker.sol:221) | Only after the fixed grace boundary; outcome identical to owner settlement; stored-rules-hash verification |
 | `createOfficialPool(minLp, deadline)` (D17LiquidityVault.sol:117) | Time-gated; virgin-pair + preseed checks; amounts come from launch accounting |
 | `releaseCreatorTokens()` (D17LiquidityVault.sol:241) | Amount from a deterministic schedule; recipient fixed in the rules |
-| `burnResidualTokens()` (D17Launch.sol:760), `burnFailedLaunchPenalties()` (D17LiquidityVault.sol:252) | Only burn; only once every commitment settled / only after failure |
+| `burnResidualTokens()` (D17Launch.sol:763), `burnFailedLaunchPenalties()` (D17LiquidityVault.sol:252) | Only burn; only once every commitment settled / only after failure |
 | Sweeps/recovery (launch :770, vault :263,271,282) | Only move donations/force-sent value to the fixed treasury |
 
 ## 8. Invariants (enforcement map)
 
 | # | Invariant | Enforcing check(s) |
 |---|---|---|
-| 1 | Supply conservation: `sale + lp + manual + dead == tokenSupply`; mint one-shot; no post-deploy authority | D17Factory.sol:207-215; D17LaunchFactory.sol:155-163; D17Token.sol:196-214 |
+| 1 | Supply conservation: `sale + lp + manual + dead == tokenSupply`; mint one-shot; no post-deploy authority | D17Factory.sol:209-217; D17LaunchFactory.sol:155-163; D17Token.sol:196-214 |
 | 2 | Timing-invariant buyer outcome | single `_settlePosition` + `_vaultSettlementAmounts` (D17Launch.sol:647-702, 810-821); `FINAL_CLAIM_MISMATCH` (D17Locker.sol:259) |
-| 3 | `gross = wethForVault + treasuryWeth + protocolFeeWeth`; pool share ≥ 88% | D17Launch.sol:818-820; caps D17Factory.sol:233, D17FeeConfig.sol:18 |
-| 4 | Creator income = `treasuryBps` share + vested allocation only (no penalties, no unsold tokens) | penalties → vault (D17Locker.sol:173); burns (D17Launch.sol:798-800); vesting (D17LiquidityVault.sol:241-248) |
+| 3 | `gross = wethForVault + treasuryWeth + protocolFeeWeth`; pool share ≥ 88% | D17Launch.sol:821-823; caps D17Factory.sol:235, D17FeeConfig.sol:18 |
+| 4 | Creator income = `treasuryBps` share + vested allocation only (no penalties, no unsold tokens) | penalties → vault (D17Locker.sol:173); burns (D17Launch.sol:801-803); vesting (D17LiquidityVault.sol:241-248) |
 | 5 | Fee immutability per launch | immutables + `rulesHash` (D17Launch.sol:43,52,276,287); fee config never read after creation |
 | 6 | No launch while an admin key exists in the creation path | D17Factory.sol:163; D17LaunchFactory.sol:95-100 |
 | 7 | No round sells below the anchor | `roundAnchorTargetWeth`/`roundSoldTokens` for r ≥ 1 (D17Launch.sol:368-391) |
 | 8 | Sale-token conservation; single claim per position | claim flags (D17Launch.sol:661-662, 668-669); `_soldSaleTokenAmount` cap (:836-839) |
 | 9 | Custody isolation: user WETH lives in the user's locker until refund/settlement | D17Locker.sol:138 (wrap-and-hold); no WETH inflow path in D17Launch |
 | 10 | No hostage mechanisms; claims never expire | `allFinalCommitmentsSettled` gates only the residual burn; no deadline on settlement (D17Locker.sol:226) |
-| 11 | One-time pool creation; write-once pool records | D17Launch.sol:715-716, 741-746; D17LiquidityVault.sol:122 |
+| 11 | One-time pool creation; write-once pool records | D17Launch.sol:715-716, 744-749; D17LiquidityVault.sol:122 |
 | 12 | LP reserve bound: `initial + Σ late ≤ effectiveLpTokens`, never reverting | cap at D17Launch.sol:678-680 |
 | 13 | Late deposits balanced at the live ratio; remainder burned | D17LiquidityVault.sol:193-234 |
 | 14 | LP permanence | no LP-moving function; recovery excludes `officialPair` (D17LiquidityVault.sol:276) |
