@@ -8,6 +8,7 @@
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatMultiple, isPredatory } from "@/lib/opening-price";
 
 export type SimplePhase =
   | "not-started"
@@ -57,6 +58,7 @@ export type SimpleModel = {
     poolPct: number;
     creatorTokenPct: number;
     burnedPct: number;
+    openingMultiple: number | null; // opening price / average price paid (lib/opening-price.ts)
   } | null;
   raisedEth: number;
   participants: number;
@@ -131,6 +133,16 @@ export function SimpleView({ m }: { m: SimpleModel }) {
         </button>
       )}
       {m.launch && <LaunchHeader m={m} />}
+      {m.rules && isPredatory(m.rules.openingMultiple) && (
+        <section className="border border-alert px-5 py-4 text-[15px] leading-relaxed text-alert" role="alert">
+          <p className="font-mono text-[12px] font-semibold uppercase tracking-[0.06em]">Predatory launch</p>
+          <p className="mt-1">
+            The creator paired the ETH raised with very few tokens: trading would open at{" "}
+            <b>{formatMultiple(m.rules.openingMultiple!)} the price buyers paid</b> on average. The first people to sell could
+            empty the pool at everyone else&apos;s expense. Think twice before putting in ETH.
+          </p>
+        </section>
+      )}
       {m.rulesMismatch && (
         <p className="border border-alert px-5 py-4 text-[15px] leading-relaxed text-alert" role="alert">
           Warning: the link you opened describes different rules than this launch actually has. Do not put in ETH from
@@ -941,6 +953,12 @@ function HowItWorks({ m }: { m: SimpleModel }) {
           </>
         ) : null}
         . Tokens nobody buys are destroyed.
+      </>
+    ) : null,
+    r.openingMultiple !== null ? (
+      <>
+        When trading opens, the price is <b>{formatMultiple(r.openingMultiple)}</b> the price buyers paid on average
+        {isPredatory(r.openingMultiple) ? " (see the warning at the top)" : ""}.
       </>
     ) : null,
     <>

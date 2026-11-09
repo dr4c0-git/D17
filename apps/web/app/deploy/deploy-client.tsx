@@ -24,6 +24,7 @@ import { LOCAL_DEPLOYER_SCHEMA, PROTOCOL_DEPLOYED, PUBLIC_DEPLOYMENT } from "@/l
 import { d17Href } from "@/lib/d17Network";
 import { ensureWalletChain } from "@/lib/walletChain";
 import { createReadProvider } from "@/lib/readProvider";
+import { formatMultiple, isPredatory, openingPriceMultiple } from "@/lib/opening-price";
 
 declare global {
   interface Window {
@@ -212,6 +213,9 @@ function DeployForm() {
   ]);
   const [logoSvgUri, setLogoSvgUri] = useState("");
   const [logoError, setLogoError] = useState("");
+  // Asked before every creation; a predatory split needs its own explicit consent.
+  const [confirmExists, setConfirmExists] = useState(false);
+  const [confirmPredatory, setConfirmPredatory] = useState(false);
 
   const [salePct, setSalePct] = useState(45);
   const [lpPct, setLpPct] = useState(45);
@@ -488,6 +492,7 @@ function DeployForm() {
   };
 
   const deploy = async () => {
+    if (!confirmed) return;
     setError("");
     setBusy("Simulating…");
     try {
@@ -621,6 +626,27 @@ function DeployForm() {
 
   const symbolLabel = tokenSymbol.trim() || "tokens";
   const poolEthPct = protocolFeeBps === null ? null : Math.max(0, 100 - treasuryPct - protocolFeeBps / 100);
+  const openingMultiple = openingPriceMultiple(BigInt(Math.max(0, saleTokens)), BigInt(Math.max(0, lpTokens)), treasuryPct, (protocolFeeBps ?? 0) / 100);
+  const predatory = isPredatory(openingMultiple);
+  const confirmed = confirmExists && (!predatory || confirmPredatory);
+  const confirmBlock = (
+    <div className="mt-5 flex flex-col gap-3 border border-hairline px-4 py-3 text-[14px] leading-relaxed">
+      <p className="font-semibold text-ink">Are you sure this token deserves to exist?</p>
+      <label className="flex items-start gap-2 text-dim">
+        <input type="checkbox" className="mt-1" checked={confirmExists} onChange={(event) => setConfirmExists(event.target.checked)} />
+        <span>Yes. I am creating it in good faith, and I understand its rules are final once it is created.</span>
+      </label>
+      {predatory && openingMultiple !== null && (
+        <label className="flex items-start gap-2 text-alert">
+          <input type="checkbox" className="mt-1" checked={confirmPredatory} onChange={(event) => setConfirmPredatory(event.target.checked)} />
+          <span>
+            I understand this launch will be shown as <b>PREDATORY</b> to every participant: trading would open at{" "}
+            {formatMultiple(openingMultiple)} the price buyers paid on average.
+          </span>
+        </label>
+      )}
+    </div>
+  );
   const startOptions = IS_MAINNET
     ? [{ value: "1500", label: "In about a day (25 h)" }]
     : [
@@ -784,6 +810,13 @@ function DeployForm() {
             : "Tip: give the pool the same share as buyers, so trading opens at the price buyers paid. "}
           Tokens nobody buys are destroyed at the end of the sale.
         </p>
+        {predatory && openingMultiple !== null && (
+          <p className="mt-3 border-l-2 border-alert pl-3 text-[14px] leading-relaxed text-alert" role="alert">
+            <b>Predatory split.</b> With these shares, trading would open at {formatMultiple(openingMultiple)} the price buyers
+            paid on average: the first sellers could empty the pool at everyone else&apos;s expense. Every participant will see
+            this launch flagged as predatory. Give the pool about the same share as buyers to avoid it.
+          </p>
+        )}
       </section>
 
       <section className={card}>
@@ -947,10 +980,11 @@ function DeployForm() {
           </div>
         ) : (
           <>
+            {walletAddress && confirmBlock}
             <button
               type="button"
               onClick={walletAddress ? () => void deploy() : () => void connectWallet()}
-              disabled={Boolean(busy) || (Boolean(walletAddress) && !ready)}
+              disabled={Boolean(busy) || (Boolean(walletAddress) && (!ready || !confirmed))}
               className="mt-5 h-12 w-full bg-ink px-4 text-[15px] font-semibold text-paper transition-opacity disabled:opacity-40"
             >
               {busy ? plainBusy(busy) : walletAddress ? "Create my launch" : "Connect my wallet"}
@@ -1237,14 +1271,17 @@ function DeployForm() {
                 </p>
               </>
             ) : (
+              <>
+              {walletAddress && confirmBlock}
               <button
                 type="button"
                 onClick={walletAddress ? () => void deploy() : () => void connectWallet()}
-                disabled={Boolean(busy) || (Boolean(walletAddress) && !ready)}
+                disabled={Boolean(busy) || (Boolean(walletAddress) && (!ready || !confirmed))}
                 className="mt-3 w-full border border-ink bg-ink px-3 py-2.5 font-mono text-[12px] uppercase tracking-[0.04em] text-paper transition-opacity disabled:opacity-40"
               >
                 {busy || (walletAddress ? "Deploy launch →" : "Connect wallet →")}
               </button>
+              </>
             )}
             {/* Known contract limits are driven by the bundled schema. */}
             {(() => {

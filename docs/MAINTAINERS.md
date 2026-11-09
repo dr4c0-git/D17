@@ -64,11 +64,19 @@ Creator, Test 4 and 5 Buyers.
 - Site content: `/docs`, `/blog` and `/progress` render `docs/` and `CHANGELOG.md` from
   `apps/web/content/site-content.json`. After editing any of them, run
   `npm run content:sync` before `release:checksums` (`check:release` fails otherwise).
-- Mainnet split confirmed by the project lead (2026-10-21): D17 buybacks 50%, 2027
-  buybacks 12.5%, XBT buybacks 12.5%, development fund 25%, i.e. `FEE_SPLIT_BPS=
-  5000,1250,1250,2500` with `FEE_SPLIT_RECIPIENTS` in that exact order. The four
-  addresses were provided by the project lead and are kept off the repo until the
-  mainnet deployment (the owner has them). The project lead is creating a dedicated
+- Mainnet split, decided 2026-11-09 (replaces the 4-way split of 2026-10-21, dropped to
+  avoid double counting): D17 buybacks 75%, development fund 25%, i.e. `FEE_SPLIT_BPS=
+  7500,2500` with `FEE_SPLIT_RECIPIENTS` in that order. The addresses were provided by the
+  project lead and are kept off the repo until the mainnet deployment (the owner has them).
+- Mainnet fee settings: renounced at deployment (`RENOUNCE_FEE_CONFIG_OWNER=1`, option A,
+  decided 2026-11-09): no multisig, the 1% fee and the splitter are final for the suite.
+  Mainnet goes out on V15 (2026-11-11); a V16 is planned after launch (permanently
+  locked liquidity residue, pool opening rules).
+- Predatory launches: the contract accepts any LP allocation from 1 token, so a creator can
+  open trading far above what buyers paid. Until a contract rule (V16), the web app flags a
+  launch whose opening price is at least 2x the average price paid as PREDATORY (simple and
+  expert views, `apps/web/lib/opening-price.ts`), and the create form asks "Are you sure this
+  token deserves to exist?" plus an explicit consent for a predatory split. The project lead is creating a dedicated
   GitHub account to be added as a collaborator. Never ask for a key or the content of a `.env`.
 
 ## Status (2026-10-06)

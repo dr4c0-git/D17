@@ -87,8 +87,12 @@ if (deployKey && lockerKey && deployKey.address === lockerKey.address && process
   problems.push("D17_FACTORY_PRIVATE_KEY and D17_LOCKER_FACTORY_PRIVATE_KEY must be two different keys.");
 }
 
-const feeOwner = address("FEE_CONFIG_OWNER");
-if (feeOwner) show("Fee config owner", feeOwner);
+const renounceFeeConfig = process.env.RENOUNCE_FEE_CONFIG_OWNER === "1";
+const feeOwner = renounceFeeConfig ? null : address("FEE_CONFIG_OWNER");
+if (renounceFeeConfig) {
+  show("Fee config owner", "none: renounced at the end of the deployment (fee final)");
+  if ((process.env.FEE_CONFIG_OWNER || "").trim()) problems.push("Leave FEE_CONFIG_OWNER empty with RENOUNCE_FEE_CONFIG_OWNER=1.");
+} else if (feeOwner) show("Fee config owner", feeOwner);
 const feeBps = Number(process.env.PROTOCOL_FEE_BPS ?? "0");
 if (!Number.isInteger(feeBps) || feeBps < 0 || feeBps > 200) problems.push("PROTOCOL_FEE_BPS must be a whole number from 0 to 200 (2% maximum).");
 else show("Protocol fee", `${feeBps} bps (${feeBps / 100}%)`);
@@ -132,7 +136,7 @@ if (chainId === 1) {
   if (router && router !== MAINNET_ROUTER) problems.push(`UNISWAP_V2_ROUTER must be the mainnet Uniswap V2 router, ${MAINNET_ROUTER}.`);
   if (feeOwner) {
     const code = await provider.getCode(feeOwner).catch(() => null);
-    if (code === "0x") problems.push("FEE_CONFIG_OWNER must be the Safe (multisig) address on mainnet: this address is a plain wallet.");
+    if (code === "0x") problems.push("FEE_CONFIG_OWNER must be the Safe (multisig) address on mainnet: this address is a plain wallet. Or leave it empty and set RENOUNCE_FEE_CONFIG_OWNER=1.");
     else if (code) show("Fee config owner type", "contract (Safe expected)");
   }
   if (process.env.D17_CONFIRM_MAINNET_DEPLOY !== "1") problems.push("Add D17_CONFIRM_MAINNET_DEPLOY=1 to confirm the mainnet deployment.");

@@ -15,15 +15,18 @@ fee address ever goes into the repository or a chat.
 
 ## Before the day
 
-### 1. The Safe (fee settings owner)
+### 1. Who controls the fee settings
 
-- Create a Safe on Ethereum mainnet at [app.safe.global](https://app.safe.global), with
-  several owners and a threshold of at least 2 (for example 2 of 3).
-- Its address is `FEE_CONFIG_OWNER`. It is the only key that can change the protocol fee
-  of **future** launches (0% to 2%, hard cap in the contract) or where it is paid; it can
-  never touch a launch already created or anyone's funds. `deploy:factory` refuses a
-  plain wallet here.
-- Send one small test transaction from the Safe so every owner knows how to sign.
+Decided: **nobody**. With `RENOUNCE_FEE_CONFIG_OWNER=1` (and `FEE_CONFIG_OWNER` empty),
+`deploy:factory` creates the fee config with the deployer as owner and renounces it as its
+last transaction: the 1% rate and the fee splitter as recipient are then final for every
+launch of this suite, and no key, multisig or person can change them. A different fee or
+split means deploying a new version.
+
+The alternative, if ever needed: a Safe at [app.safe.global](https://app.safe.global)
+(threshold of at least 2) as `FEE_CONFIG_OWNER`, without `RENOUNCE_FEE_CONFIG_OWNER`. It
+could change the fee of **future** launches only (0% to 2%), never a launch already created
+or anyone's funds. `deploy:factory` refuses a plain wallet as owner on mainnet.
 
 ### 2. Two fresh deployer wallets
 
@@ -59,11 +62,12 @@ then fill `contracts/.env` with:
 | `D17_EXPECTED_CHAIN_ID` | `1` |
 | `WETH_ADDRESS` | `0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2` |
 | `UNISWAP_V2_ROUTER` | `0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D` |
-| `FEE_CONFIG_OWNER` | the Safe address |
+| `RENOUNCE_FEE_CONFIG_OWNER` | `1` (nobody controls the fee afterwards) |
+| `FEE_CONFIG_OWNER` | empty |
 | `PROTOCOL_FEE_BPS` | `100` (1%) |
 | `PROTOCOL_FEE_RECIPIENT` | empty (the fee splitter becomes the recipient) |
-| `FEE_SPLIT_RECIPIENTS` | the 4 fee addresses, comma separated, no spaces, in the agreed order |
-| `FEE_SPLIT_BPS` | `5000,1250,1250,2500` (same order) |
+| `FEE_SPLIT_RECIPIENTS` | the 2 fee addresses, comma separated, no spaces: D17 buybacks, then the development fund |
+| `FEE_SPLIT_BPS` | `7500,2500` (same order) |
 | `D17_FACTORY_PRIVATE_KEY` | factory key |
 | `D17_LOCKER_FACTORY_PRIVATE_KEY` | locker factory key |
 | `RENOUNCE_D17_FACTORY_OWNER` | `1` |
@@ -82,9 +86,10 @@ npm test -w @d17/contracts
 npm run check:env -w @d17/contracts
 ```
 
-`check:env` must end with "contracts/.env looks good". On mainnet it also checks the
-WETH and router addresses, that the fee owner is a contract (the Safe), the confirmation
-flag, the Etherscan key and each key's balance against the current gas price. Note the
+`check:env` must end with "contracts/.env looks good" and show "Fee config owner: none:
+renounced at the end of the deployment". On mainnet it also checks the WETH and router
+addresses, the confirmation flag, the Etherscan key and each key's balance against the
+current gas price. Note the
 commit hash (`git rev-parse HEAD`): it is the code being deployed.
 
 ## On the day
@@ -96,8 +101,8 @@ npm run check:env -w @d17/contracts
 npm run deploy:factory -w @d17/contracts
 ```
 
-It sends 17 transactions in a row (fee splitter, fee config, the factories, the pins,
-then every owner key renounced) and writes `contracts/runs/factory-deployment.json`.
+It sends 18 transactions in a row (fee splitter, fee config, the factories, the pins,
+then every owner key renounced, the fee config last) and writes `contracts/runs/factory-deployment.json`.
 Let it finish. If it stops halfway, do **not** run it again: keep the output and the
 `runs/` folder as they are, and ask for help (a second run deploys a second suite and
 spends the gas again).
@@ -108,7 +113,8 @@ spends the gas again).
 npm run verify:factory -w @d17/contracts
 ```
 
-Must report **45 checks out of 45** passed (`contracts/runs/factory-verification.json`).
+Every check must pass (48 in the mainnet rehearsal, including "fee config ownership
+renounced (fee final)"; report in `contracts/runs/factory-verification.json`).
 
 ### 8. Publish the addresses
 
@@ -140,8 +146,9 @@ verified".
 - Open the site in a private window: the header says Ethereum mainnet, the launch list
   loads (empty at first), and "Create a launch" offers start times at least 24 hours
   ahead.
-- On Etherscan, read `owner()` on the fee config: it must be the Safe. Read
-  `recipients()` on the fee splitter: the 4 addresses and shares.
+- On Etherscan, read `owner()` on the fee config: it must be
+  `0x0000000000000000000000000000000000000000`. Read `recipients()` on the fee splitter: the
+  2 addresses and 7500 / 2500.
 
 ### 11. Afterwards
 

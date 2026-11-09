@@ -3,6 +3,26 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-09 - Predatory launch warning, fee settings renounced at deployment
+
+- **Predatory launches are flagged.** The contract accepts any number of tokens in the
+  trading pool, from 1 up: a creator who pairs the ETH raised with very few tokens opens
+  trading far above what buyers paid, and the first sellers can then drain the pool.
+  When the opening price is at least 2x the average price paid, the launch page shows a
+  red "Predatory launch" warning (simple view) or a "Predatory" badge (expert view), and
+  "How this launch works" always says how the opening price compares with what buyers
+  paid. A contract rule is planned for V16.
+- **"Are you sure this token deserves to exist?"** The create form now asks it before
+  every launch, and a predatory split needs its own explicit consent; the button stays
+  disabled until then.
+- **`RENOUNCE_FEE_CONFIG_OWNER=1`** for `deploy:factory`: the fee config is renounced as
+  the last transaction of the deployment, so nobody (no key, no multisig) can change the
+  fee or its recipient afterwards. `check:env`, `verify:factory` (new check "fee config
+  ownership renounced") and the mainnet checklist handle it. Rehearsed end to end on a
+  local chain with mainnet's chain id: deployment, 48 checks out of 48, publication and
+  the Etherscan dry run.
+- Mainnet fee split: 75% D17 buybacks, 25% development fund.
+
 ## 2026-11-02 - Mainnet deployment checklist
 
 - **`docs/MAINNET_CHECKLIST.md`**: every step of the mainnet deployment in order, from

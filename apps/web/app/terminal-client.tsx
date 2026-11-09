@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { SimpleView, type SimpleModel, type SimplePhase } from "./simple-view";
 import { ensureWalletChain } from "@/lib/walletChain";
 import { createReadProvider } from "@/lib/readProvider";
+import { formatMultiple, isPredatory, openingPriceMultiple } from "@/lib/opening-price";
 import {
   apiBase,
   CHAIN_ID,
@@ -3304,6 +3305,9 @@ function ParticipantsTerminal() {
     : 0n;
   const simplePct = (part: bigint) =>
     simpleSupply > 0n ? Math.round((Number(part) / Number(simpleSupply)) * 100) : 0;
+  const openingMultiple = launchConfig
+    ? openingPriceMultiple(launchConfig.saleTokens, launchConfig.lpTokens, launchConfig.treasuryPct, launchConfig.protocolFeePct)
+    : null;
   const simpleModel: SimpleModel = {
     chainName: CHAIN_NAME,
     isMainnet: IS_MAINNET,
@@ -3344,6 +3348,7 @@ function ParticipantsTerminal() {
           poolPct: simplePct(launchConfig.lpTokens),
           creatorTokenPct: simplePct(launchConfig.manualTokens),
           burnedPct: simplePct(launchConfig.deadTokens),
+          openingMultiple,
         }
       : null,
     raisedEth: Number(launchStats?.totalCommittedWeth ?? 0),
@@ -3820,6 +3825,14 @@ function ParticipantsTerminal() {
                   </span>
                 )}
               </h1>
+              {isPredatory(openingMultiple) && (
+                <span
+                  className="border border-alert px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.04em] text-alert"
+                  title={`Trading would open at ${formatMultiple(openingMultiple!)} the average price paid: the first sellers can drain the pool.`}
+                >
+                  Predatory · opens at {formatMultiple(openingMultiple!).replace("about ", "")} the price paid
+                </span>
+              )}
               {rulesState && (
                 <button
                   type="button"

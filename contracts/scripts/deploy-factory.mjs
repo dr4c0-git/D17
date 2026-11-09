@@ -27,7 +27,14 @@ if (process.env.RENOUNCE_D17_FACTORY_OWNER !== "1") {
   throw new Error("RENOUNCE_D17_FACTORY_OWNER=1 is required: V15 launches cannot be created before renounce.");
 }
 
-const feeConfigOwner = ethers.getAddress(requireEnv("FEE_CONFIG_OWNER"));
+// RENOUNCE_FEE_CONFIG_OWNER=1: nobody keeps control over the protocol fee. The fee config
+// is created with the deployer as owner and renounced at the end of this run, so its rate
+// and recipient are final for every launch of this suite (no multisig needed).
+const renounceFeeConfig = process.env.RENOUNCE_FEE_CONFIG_OWNER === "1";
+if (renounceFeeConfig && process.env.FEE_CONFIG_OWNER) {
+  throw new Error("Leave FEE_CONFIG_OWNER empty with RENOUNCE_FEE_CONFIG_OWNER=1: the fee config ends with no owner.");
+}
+const configuredFeeConfigOwner = renounceFeeConfig ? null : ethers.getAddress(requireEnv("FEE_CONFIG_OWNER"));
 let protocolFeeRecipient = process.env.PROTOCOL_FEE_RECIPIENT ? ethers.getAddress(process.env.PROTOCOL_FEE_RECIPIENT) : ethers.ZeroAddress;
 const protocolFeeBps = Number(process.env.PROTOCOL_FEE_BPS ?? "0");
 if (!Number.isInteger(protocolFeeBps) || protocolFeeBps < 0 || protocolFeeBps > 200) {
@@ -52,8 +59,8 @@ if (feeSplitRecipients.length > 0) {
 }
 
 if (chainId === MAINNET_CHAIN_ID) {
-  if ((await provider.getCode(feeConfigOwner)) === "0x") {
-    throw new Error("Mainnet FEE_CONFIG_OWNER must be a contract (multisig), not an EOA.");
+  if (!renounceFeeConfig && (await provider.getCode(configuredFeeConfigOwner)) === "0x") {
+    throw new Error("Mainnet FEE_CONFIG_OWNER must be a contract (multisig), not an EOA, or set RENOUNCE_FEE_CONFIG_OWNER=1.");
   }
   if (process.env.D17_CONFIRM_MAINNET_DEPLOY !== "1") {
     throw new Error("Refusing mainnet deployment without D17_CONFIRM_MAINNET_DEPLOY=1.");
@@ -103,7 +110,7 @@ if (feeSplitRecipients.length > 0) {
 
 const feeConfigArt = artifact("D17FeeConfig.sol", "D17FeeConfig");
 const FeeConfig = new ethers.ContractFactory(feeConfigArt.abi, feeConfigArt.bytecode, d17FactorySigner);
-const feeConfig = await FeeConfig.deploy(feeConfigOwner, protocolFeeRecipient, protocolFeeBps);
+const feeConfig = await FeeConfig.deploy(configuredFeeConfigOwner ?? d17FactoryDeployer, protocolFeeRecipient, protocolFeeBps);
 await feeConfig.waitForDeployment();
 
 const art = artifact("D17Factory.sol", "D17Factory");
@@ -169,6 +176,13 @@ let launchDeployerRenounceTransaction = null;
   await renounceTx.wait();
   renounceTransaction = renounceTx.hash;
 }
+let feeConfigRenounceTransaction = null;
+if (renounceFeeConfig) {
+  const feeConfigRenounceTx = await feeConfig.connect(d17FactorySigner).renounceOwnership();
+  await feeConfigRenounceTx.wait();
+  feeConfigRenounceTransaction = feeConfigRenounceTx.hash;
+}
+const feeConfigOwner = renounceFeeConfig ? ethers.ZeroAddress : configuredFeeConfigOwner;
 
 const deployment = {
   schema: "d17-factory-deployment-v1",
@@ -210,7 +224,8 @@ const deployment = {
   renounceTransaction,
   tokenFactoryRenounceTransaction,
   vaultFactoryRenounceTransaction,
-  launchDeployerRenounceTransaction
+  launchDeployerRenounceTransaction,
+  ...(feeConfigRenounceTransaction ? { feeConfigRenounceTransaction } : {})
 };
 
 writeJson(out, deployment);

@@ -76,11 +76,18 @@ check("D17FeeConfig identity matches", await feeConfig.D17_FEE_CONFIG_ID() === e
 check("D17LaunchDeployer identity matches", await launchDeployer.D17_LAUNCH_DEPLOYER_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_DEPLOYER_V15_HARDENED")));
 check("factory points to fee config", sameAddress(await factory.feeConfig(), deployment.feeConfig));
 check("fee config hard cap is 2%", Number(await feeConfig.MAX_PROTOCOL_FEE_BPS()) === 200);
-check("fee config owner matches deployment", sameAddress(await feeConfig.owner(), deployment.feeConfigOwner));
+check(
+  deployment.feeConfigOwner === ethers.ZeroAddress ? "fee config ownership renounced (fee final)" : "fee config owner matches deployment",
+  sameAddress(await feeConfig.owner(), deployment.feeConfigOwner)
+);
 const [feeRecipientNow, feeBpsNow] = await feeConfig.currentFee();
 check("fee config rate within cap", Number(feeBpsNow) <= 200, String(feeBpsNow));
 if (chainId === MAINNET_CHAIN_ID) {
-  check("mainnet fee config owner is a contract (multisig)", (await provider.getCode(await feeConfig.owner())) !== "0x");
+  const feeOwnerNow = await feeConfig.owner();
+  check(
+    "mainnet fee config owner is a contract (multisig) or renounced",
+    feeOwnerNow === ethers.ZeroAddress || (await provider.getCode(feeOwnerNow)) !== "0x"
+  );
 }
 check("factory WETH matches deployment", sameAddress(await factory.weth(), deployment.weth));
 check("factory router matches deployment", sameAddress(await factory.router(), deployment.router));

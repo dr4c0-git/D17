@@ -22,7 +22,11 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
 ## Next
 
 - **External security audit** of the contracts.
-- **Mainnet deployment**, with the protocol fee settings held by a multisig.
+- **Mainnet deployment** on V15, with the protocol fee settings renounced at deployment:
+  the 1% fee and its split (75% D17 buybacks, 25% development fund) are then final, with
+  no admin key.
+- **V16**, after the mainnet launch: what happens to the liquidity left in a pool once a
+  token is no longer traded, and contract rules for how a pool opens.
 - **Own domain and dedicated RPC** for the site.
 
 ## Status
