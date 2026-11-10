@@ -86,7 +86,7 @@ Creator, Test 4 and 5 Buyers.
   then docs/release, creator-vesting UI (`f5aee23`), V15 docs rewrite (`f944f69`).
 - **V15.1 is deployed on Sepolia** (2026-11-10, start block 12104784, factory
   `0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624`, fee splitter `0xdee4D77a0Bb32Aa435c0cf66EDB793A3B17eD543` paying Test 2 / Test 5 7500/2500, fee config renounced,
-  verify 45/45), a rehearsal of the mainnet settings. Provenance in
+  verify 45/45, Etherscan 8/8), a rehearsal of the mainnet settings. Provenance in
   `release/deployments/sepolia.json`. The first V15 suite (2026-10-20, factory
   `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, block 11958083) is superseded.
   Commit from the Mac with the noreply address set in the repository's git config

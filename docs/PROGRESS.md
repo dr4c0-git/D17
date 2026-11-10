@@ -14,10 +14,9 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
   closing the sale, collecting tokens, the official pool, sending tokens to wallets.
 - **Protocol fee in the open**: 1% (hard cap 2%), frozen per launch, paid only on a
   successful sale to a fee splitter with no owner. Distributed for real on Sepolia.
-- **Source code verified on Etherscan** for the 8 contracts of the first V15 suite, so
+- **Source code verified on Etherscan** for the 8 contracts of the V15.1 suite, so
   anyone can read the code behind each address, for example the
-  [fee splitter](https://sepolia.etherscan.io/address/0x6ad3FAF084f554aAd54A47134bf168c4FAe9Ab23#code).
-  The V15.1 suite is being verified the same way.
+  [fee splitter](https://sepolia.etherscan.io/address/0xdee4D77a0Bb32Aa435c0cf66EDB793A3B17eD543#code).
 - **Web app**: a plain-language simple view, the full expert view, a guided
   create-a-launch form, and this documentation.
 

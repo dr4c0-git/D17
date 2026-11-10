@@ -13,6 +13,8 @@ newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
   `release/deployments/sepolia.json`.
 - The web app now reads this suite on Sepolia. Launches of the first V15 suite are no
   longer listed.
+- **Source code verified on Etherscan** for the 8 contracts of the V15.1 suite
+  (`verify:etherscan`: 8 of 8).
 
 ## 2026-11-09 - V15.1: two contract fixes
 
