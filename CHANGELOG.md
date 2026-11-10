@@ -28,8 +28,10 @@ in this repository, with the decided 1% fee instead of its fixed 2%. Details in
 - Tests: our suites adapted, plus the project lead's suites for cancelled-launch refunds,
   hostile callbacks, minimum liquidity and the rounding model, against the real Uniswap
   V2 contracts. Fuzz campaigns pass.
-- The Sepolia suite deployed earlier today runs the first draft (two fixes): it will be
-  redeployed. Mainnet comes only after an independent audit.
+- **Redeployed on Sepolia** (block 12105659, factory `0x21ae6ae63526B9874A98e1B7C1eeC6AE8A90Fd79`) with the mainnet settings:
+  1% fee split 75 / 25, fee settings renounced, 45 checks out of 45. It replaces the
+  first V15.1 draft deployed earlier the same day. Mainnet comes only after an
+  independent audit.
 
 ## 2026-11-10 - V15.1 deployed on Sepolia
 

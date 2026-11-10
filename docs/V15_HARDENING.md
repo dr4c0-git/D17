@@ -5,10 +5,10 @@ contracts. Every launch created by the V15 factory follows the rules below; they
 enforced by the contracts, published in each launch's `rulesHash` and cannot be changed
 after the launch is created.
 
-> **Status:** this source tree is **V15.1** (see [V15.1 fixes](#v151-fixes)). The suite
-> live on Sepolia since 2026-11-10 (factory `0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624`)
-> runs an earlier V15.1 draft with only the first two fixes; the full V15.1 is redeployed
-> on Sepolia and run through complete success and failure launches before anything else.
+> **Status:** this source tree is **V15.1** (see [V15.1 fixes](#v151-fixes)). It is
+> **deployed on Sepolia** (2026-11-10, factory `0x21ae6ae63526B9874A98e1B7C1eeC6AE8A90Fd79`, protocol fee 1% to a fee splitter
+> with no owner, fee settings renounced, 45/45 deployment checks), where it runs
+> complete successful and cancelled test launches before anything else.
 > It is **not deployed on mainnet** (`deployments/mainnet.json` says `"not-deployed"`),
 > and it goes to mainnet only after an independent audit. The upstream V14 deployment is
 > **not** compatible with this source tree.
