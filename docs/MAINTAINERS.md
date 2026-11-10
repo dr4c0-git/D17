@@ -100,7 +100,7 @@ Creator, Test 4 and 5 Buyers.
 ```bash
 npm ci                                     # Node 22.13+ or 24+
 npm test                                   # typecheck + api + contracts + web tests
-npm run test:contracts                     # E2E suites (~2 min): 567 + 52 + 33 assertions
+npm run test:contracts                     # E2E suites (~2 min): 517 + 51 + 36 + 25 + 17 assertions, plus 4 review suites
 npm run test:fuzz -w @d17/contracts        # stateful fuzz, ~15 min per 8 campaigns (FUZZ_SEED, FUZZ_CAMPAIGNS)
 npm run build                              # Next.js (apps/web)
 npm run demo:local                         # local chain + V15 suite + bot launches + web app (free test ETH)
@@ -144,8 +144,9 @@ command (it kills the shell itself); run the node as a separate background task.
 | `D17LiquidityVault` | Pool = every settled WETH + penalties with all effective LP tokens; 180-day creator vesting (`releaseCreatorTokens`, callable by anyone); ETH→WETH sweep. V15.1: `mintLateLiquidity` and `burnFailedLaunchPenalties` revert, `returnFailedPenalty` (launch only). |
 
 IDs: `*_V15_HARDENED` everywhere (contracts, `scripts/lib.mjs`, apps, release).
-Sizes (V15.1): `D17LaunchDeployer` 22,778 bytes (1.8 KB headroom: any growth of `D17Launch`
-consumes it), `D17Launch` 17,576 bytes, `D17Factory` 11,108 bytes, `D17LaunchFactory` 5,129 bytes.
+Sizes (V15.1, `release/protocol-build.json`): `D17LaunchDeployer` 22,910 bytes (1.6 KB headroom:
+any growth of `D17Launch` consumes it), `D17Launch` 17,722 bytes, `D17Factory` 11,538 bytes,
+`D17LaunchFactory` 5,129 bytes.
 
 ## Fee decision (approved by the owner as "the most honest")
 
@@ -171,7 +172,7 @@ future launches only.
 | 9 | Rounding dust | Fixed: `burnResidualTokens()`; plus a real bug fixed (last late settler blocked by `LP_RESERVE_EXCEEDED`). |
 | 10 | WETH pre-seeded into the pair | Analysed: not exploitable, kept (documented). |
 | 11 | Sweep blocked by the treasury | Fixed: ETH→WETH wrap. |
-| 12 | Timestamps / stealth launches | Mainnet floors (24 h notice, windows ≥ 1 h). Tested by `test/mainnet-floors-e2e.mjs` on the `mainnetSim` network (local EDR, chain id 1): exact boundaries plus a full launch at the minimum durations (33 assertions). |
+| 12 | Timestamps / stealth launches | Mainnet floors (24 h notice, windows ≥ 1 h). Tested by `test/mainnet-floors-e2e.mjs` on the `mainnetSim` network (local EDR, chain id 1): exact boundaries plus a full launch at the minimum durations (36 assertions in V15.1). |
 | 13 | Front-end | Checks feeConfig + wiring; "not deployed" banner; decoding by name; "Creator vesting" panel + release button in the Trading stage (tested in a browser against a local node). |
 
 Other bugs fixed: deploy script nonce (`NonceManager` per key).
@@ -205,7 +206,7 @@ durations. For automated checks, Playwright with an injected `window.ethereum` r
 ## Documentation (keep in sync with the code)
 
 - `docs/V15_HARDENING.md`: public disclosure of the V15 changes and the fee.
-- `docs/CONTRACTS_TECHNICAL.md`: V15 reference with `File.sol:line` citations -
+- `docs/CONTRACTS_TECHNICAL.md`: V15.1 reference with `File.sol:line` citations -
   **any contract change shifts lines: re-check the citations.**
 - `contracts/docs/ABI_TRACEABILITY.md`: 364 classified entries (consumer, indexed or
   not). After an ABI change, keep the existing V15 classification and classify new
@@ -242,8 +243,9 @@ Uniswap V2 bytecode from `@uniswap/v2-core`, a root dev dependency). Not ported:
 release tooling (solc 0.8.38, prepare-release, publication), `settlement-liveness` and
 `release-100-lockers` (they need it). The Sepolia suite of 2026-11-10 runs the first draft
 (fixes 1 and 2 only): redeploy, then full success and failure launches. Mainnet only after
-an independent audit (decided 2026-11-10). `docs/CONTRACTS_TECHNICAL.md` citations still
-point to V15 (`fa6e6d2`): refresh before the audit.
+an independent audit (decided 2026-11-10). `docs/CONTRACTS_TECHNICAL.md` was refreshed for
+V15.1 (every citation re-checked against the current source, test counts from a full
+`npm run test:contracts` run).
 
 ## Still to do
 
