@@ -28,7 +28,7 @@
 
 D17 is a **launch mechanism** and a **terminal to watch and take part in it**.
 
-A launch raises **WETH** across a fixed sequence of **timed rounds**. Between rounds there are **refund windows** - you can pull your commitment back out. Early refunds cost a fixed 1%; later refunds use the published **defection** fee. Every refund penalty goes into the official pool, never to the creator. The token supply is minted once when the launch is created. Finalization later locks the sale accounting and burns unsold sale tokens. Settlement then funds the official pool and credits participants' tokens.
+A launch raises **WETH** across a fixed sequence of **timed rounds**. Between rounds there are **refund windows** - you can pull your commitment back out. Early refunds cost a fixed 1%; later refunds use the published **defection** fee. Every refund penalty goes into the official pool, never to the creator (if the launch fails, it is returned to the buyer). The token supply is minted once when the launch is created. Finalization later locks the sale accounting and burns unsold sale tokens. Settlement then funds the official pool and credits participants' tokens.
 
 The whole thing is **on-chain and rule-bound**. The creator publishes the exact rules up front and the launch records their hash. The terminal checks token metadata consistency separately, while the locker's **Check rules** action verifies the canonical launch and exact rules hash before commitment. Nothing about the schedule, split, or refund policy is discretionary once it is live.
 

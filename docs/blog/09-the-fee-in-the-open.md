@@ -22,7 +22,7 @@ Only when a commitment **succeeds**: when your locker settles and receives its t
 
 - Refund in a refund window? **No protocol fee.** (You pay the published refund penalty, which goes into the pool - not to the platform.)
 - Launch fails its round-1 floor? **No protocol fee.** Everyone is refunded in full.
-- Late settlement? **Exactly the same fee** as settling on time, never more.
+- Settled by someone else because you were away? **Exactly the same fee**, never more.
 
 The platform earns when a launch works, and only then. That's the incentive we want it to have.
 

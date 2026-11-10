@@ -24,11 +24,11 @@ This closes a quieter exploit. Without a gate, anyone holding early tokens - a c
 
 The creator allocation goes one step further: it isn't even in the creator's wallet. It is minted into the vault and released linearly over 180 days after the pool opens. No day-one dump is possible.
 
-## Late arrivals add to the pool at the market's price
+## The pool waits for everyone
 
-Settlement never closes - a participant can claim months late - and when they do, their liquidity share joins the pool. A reserved portion of the liquidity tokens waits in the launch for exactly this.
+The pool opens only once every buyer's position is settled, so all of the liquidity goes in at once, at the price buyers paid. Nobody's share arrives after trading has moved the price, so nothing has to be burned to fit a new price and nothing is left for an arbitrageur to grab.
 
-By then the market has moved, so the vault adds the late liquidity **at the pool's current price**, balanced on both sides. Whatever can't be paired at that price - some tokens if the price went up, some WETH if it went down - is burned. That detail matters: adding liquidity at a stale price would leave a lopsided surplus in the pool, a free gift for whoever arbitrages it first. Balanced deposits leave nothing to grab, and nobody, including the late settler, gains anything by settling late.
+A buyer who never shows up can't hold the pool hostage either: once the claim window is over, anyone can settle their position for them, and their tokens still land in their own vault.
 
 ## Even pool creation trusts no one
 
@@ -38,4 +38,4 @@ The pattern across all of it: don't ask the deployer to behave - remove the leve
 
 ---
 
-*The mechanics: the vault creates the official pool permissionlessly from settled liquidity WETH plus all refund penalties, holds all LP tokens with no withdrawal path, adds late liquidity at the pair's live reserve ratio and burns the unpairable remainder, and vests the creator allocation over 180 days; `effectiveLpTokens = lpTokens × sold ÷ saleTokens`; the token blocks transfers and burns before trading opens, excepting the launch and vault-to-pair paths.*
+*The mechanics: the vault creates the official pool permissionlessly from settled liquidity WETH plus all refund penalties, holds all LP tokens with no withdrawal path, opens only once every final commitment is settled (anyone may settle absent lockers after the grace period, up to 8 per batch), and vests the creator allocation over 180 days; `effectiveLpTokens = lpTokens × sold ÷ saleTokens`; the token blocks transfers and burns before trading opens, excepting the launch and vault-to-pair paths.*

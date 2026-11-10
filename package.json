@@ -22,6 +22,7 @@
     "ws": "^8.21.0"
   },
   "devDependencies": {
+    "@uniswap/v2-core": "1.0.1",
     "postcss": "8.5.19"
   },
   "scripts": {

@@ -71,6 +71,10 @@ interface ID17VaultLateLiquidity {
     function mintLateLiquidity(uint256 tokenAmount, uint256 wethAmount) external returns (uint256 liquidity);
 }
 
+interface ID17VaultFailedRefund {
+    function returnFailedPenalty(address locker, uint256 amount) external;
+}
+
 interface ID17FactoryView {
     function isLocker(address locker) external view returns (bool);
     function isCanonicalLaunch(address launch, bytes32 rulesHash) external view returns (bool);

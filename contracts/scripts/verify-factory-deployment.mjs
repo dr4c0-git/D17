@@ -83,11 +83,7 @@ check(
 const [feeRecipientNow, feeBpsNow] = await feeConfig.currentFee();
 check("fee config rate within cap", Number(feeBpsNow) <= 200, String(feeBpsNow));
 if (chainId === MAINNET_CHAIN_ID) {
-  const feeOwnerNow = await feeConfig.owner();
-  check(
-    "mainnet fee config owner is a contract (multisig) or renounced",
-    feeOwnerNow === ethers.ZeroAddress || (await provider.getCode(feeOwnerNow)) !== "0x"
-  );
+  check("mainnet fee config renounced (launches require it)", (await feeConfig.owner()) === ethers.ZeroAddress && (await feeConfig.pendingOwner()) === ethers.ZeroAddress);
 }
 check("factory WETH matches deployment", sameAddress(await factory.weth(), deployment.weth));
 check("factory router matches deployment", sameAddress(await factory.router(), deployment.router));

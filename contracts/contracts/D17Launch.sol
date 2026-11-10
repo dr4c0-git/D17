@@ -2,12 +2,13 @@
 pragma solidity ^0.8.24;
 
 import {D17SafeTransfer} from "./lib/D17SafeTransfer.sol";
-import {ID17FactoryView, IERC20BalanceView, IWETH} from "./interfaces/ID17.sol";
+import {ID17FactoryView, ID17VaultFailedRefund, IERC20BalanceView, IWETH} from "./interfaces/ID17.sol";
 
 contract D17Launch {
     using D17SafeTransfer for address;
 
     bytes32 public constant D17_LAUNCH_ID = keccak256("D17_LAUNCH_V15_HARDENED");
+    bytes32 public constant FAILED_REFUND_POLICY = keccak256("D17_FAILED_R1_FULL_REFUND_V1");
     uint8 public constant ROUND_COUNT = 5;
     uint8 public constant FINAL_ROUND = 4;
     uint8 public constant REFUND_STAGE_COUNT = 4;
@@ -15,8 +16,8 @@ contract D17Launch {
     // refundPenaltyBps; the final round has no normal refund window.
     uint8 public constant EARLY_REFUND_ROUNDS = 2;
     // Small fixed penalty on early refunds: makes "commit big, refund at the last second"
-    // anchor griefing cost real money. Like every penalty it goes to the official pool
-    // (or is burned if the launch fails), never to the creator or the protocol.
+    // exits cost money on successful launches. Penalties fund the official pool on
+    // success; on R1 failure they return to the payer, never the creator or protocol.
     uint16 public constant EARLY_REFUND_PENALTY_BPS = 100;
     uint8 public constant NO_ROUND = type(uint8).max;
     uint8 public constant PHASE_NOT_STARTED = 0;
@@ -64,6 +65,9 @@ contract D17Launch {
     bool public liquidityPoolCreated;
     bool public vaultLiquidityClaimed;
     address public officialPair;
+    // Sum of each Locker's exact net WETH, including wallets already settled.
+    // Maintained when commitments/refunds change, not when settlement transfers funds.
+    uint256 public exactCommittedLiquidityWeth;
     uint256 public settledLiquidityWeth;
     uint256 public finalCommittedWeth;
     uint256 public settledCommittedWeth;
@@ -84,6 +88,8 @@ contract D17Launch {
 
     uint256 public retainedPenaltyWeth;
     uint256 public penaltyWethPaid;
+    uint256 public penaltyWethRefunded;
+    mapping(address => uint256) public failedPenaltyWethRefunded;
     uint256 public treasuryWethPaid;
     uint256 public protocolFeeWethPaid;
     uint256 public unsoldSaleTokensSettled;
@@ -137,6 +143,7 @@ contract D17Launch {
     event RoundCommitted(address indexed locker, uint8 indexed round, uint256 amount);
     event RoundRefunded(address indexed locker, uint8 indexed refundRound, uint256 refundWeth, uint256 penaltyWeth);
     event LaunchFailedRefunded(address indexed locker, uint256 refundWeth);
+    event FailedPenaltyRefunded(address indexed locker, uint256 penaltyWeth);
     event VaultSettlementClaimed(
         address indexed locker,
         uint256 saleTokens,
@@ -292,7 +299,8 @@ contract D17Launch {
             deadRecipient,
             manualDistributionTokens,
             manualDistributionRecipient,
-            metadataHash
+            metadataHash,
+            FAILED_REFUND_POLICY
         ));
     }
 
@@ -431,11 +439,11 @@ contract D17Launch {
         return BPS - treasuryBps - protocolFeeBps;
     }
 
-    /// @notice Canonical pool WETH: the liquidity share of every final commitment plus all
-    /// refund penalties (which are paid into the vault and paired at pool creation).
+    /// @notice Exact sum of individually rounded Locker liquidity shares plus refund penalties.
+    /// Settlement rounds treasury and protocol fees per Locker, not once on total deposits;
+    /// using a global percentage here can demand more LP tokens than were minted.
     function totalLiquidityWeth() public view returns (uint256) {
-        uint256 committed = finalized ? finalCommittedWeth : totalCommittedWeth();
-        return committed * liquidityBps() / BPS + retainedPenaltyWeth;
+        return exactCommittedLiquidityWeth + retainedPenaltyWeth;
     }
 
     /// @notice LP tokens that will pair with totalLiquidityWeth(). Scaled to the share of the
@@ -447,7 +455,8 @@ contract D17Launch {
         return lpTokens * _soldSaleTokenAmount() / saleTokens;
     }
 
-    /// @notice Read-only settlement-progress metric; it never gates lifecycle progress.
+    /// @notice Pool creation requires every positive final commitment to be settled.
+    /// Anyone can settle an absent owner through its Locker after the grace period.
     function allFinalCommitmentsSettled() public view returns (bool) {
         return finalized && finalCommittedWeth > 0 && settledCommittedWeth == finalCommittedWeth;
     }
@@ -555,8 +564,11 @@ contract D17Launch {
         require(!position.refunded[round], "ROUND_REFUNDED");
         require(!position.finalSaleTokensClaimed, "SALE_TOKENS_CLAIMED");
 
+        uint256 oldNet = _positionLiquidityWeth(position);
         position.paid[round] += amount;
         roundRaised[round] += amount;
+        // Compute the *change* in the Locker-level net, rather than rounding each deposit.
+        exactCommittedLiquidityWeth += _positionLiquidityWeth(position) - oldNet;
         emit RoundCommitted(msg.sender, round, amount);
     }
 
@@ -576,14 +588,16 @@ contract D17Launch {
 
         uint256 gross = position.paid[round];
         require(gross > 0, "NO_ROUND_POSITION");
+        uint256 oldNet = _positionLiquidityWeth(position);
 
         roundRaised[round] -= gross;
         position.paid[round] = 0;
         position.refunded[round] = true;
+        exactCommittedLiquidityWeth -= oldNet - _positionLiquidityWeth(position);
 
         // Refund schedule [early, early, launch, launch, no-window]. The locker pays the
-        // penalty into the liquidity vault: it deepens the official pool (or is burned if
-        // the launch fails). Neither the creator's treasury nor the protocol receives it.
+        // penalty into the liquidity vault: it deepens the official pool on success,
+        // or returns to the payer on R1 failure. Treasury/protocol never receive it.
         penaltyWeth = gross * (round < EARLY_REFUND_ROUNDS ? EARLY_REFUND_PENALTY_BPS : refundPenaltyBps) / BPS;
         refundWeth = gross - penaltyWeth;
         retainedPenaltyWeth += penaltyWeth;
@@ -600,6 +614,7 @@ contract D17Launch {
         Position storage position = positions[msg.sender];
         require(!position.liquidityClaimed, "LIQUIDITY_CLAIMED");
         require(!position.finalSaleTokensClaimed, "SALE_TOKENS_CLAIMED");
+        uint256 oldNet = _positionLiquidityWeth(position);
 
         for (uint8 round; round < ROUND_COUNT; round++) {
             uint256 paid = position.paid[round];
@@ -610,8 +625,19 @@ contract D17Launch {
             refundWeth += paid;
         }
 
-        require(refundWeth > 0, "NO_POSITION");
+        uint256 penaltyRefund = position.penaltyWeth - failedPenaltyWethRefunded[msg.sender];
+        require(refundWeth + penaltyRefund > 0, "NO_POSITION");
+        exactCommittedLiquidityWeth -= oldNet;
+        // Historical paid penalties remain intact; consume only this Locker's right.
+        failedPenaltyWethRefunded[msg.sender] += penaltyRefund;
+        penaltyWethRefunded += penaltyRefund;
+        retainedPenaltyWeth -= penaltyRefund;
+        refundWeth += penaltyRefund;
         position.refundWeth += refundWeth;
+        if (penaltyRefund > 0) {
+            ID17VaultFailedRefund(liquidityVault).returnFailedPenalty(msg.sender, penaltyRefund);
+            emit FailedPenaltyRefunded(msg.sender, penaltyRefund);
+        }
         emit LaunchFailedRefunded(msg.sender, refundWeth);
     }
 
@@ -622,37 +648,21 @@ contract D17Launch {
         returns (uint256 saleTokenAmount, uint256 wethForVault, uint256 treasuryWeth, uint256 protocolFeeWeth)
     {
         require(!liquidityPoolCreated, "POOL_CREATED");
-        (saleTokenAmount, wethForVault, treasuryWeth, protocolFeeWeth, ) = _settlePosition(false);
+        (saleTokenAmount, wethForVault, treasuryWeth, protocolFeeWeth) = _settlePosition();
     }
 
-    /// @notice Settlement for lockers that missed pool creation: the exact finalized sale
-    /// tokens for the exact same WETH cost and fees. The position's LP-share WETH and its
-    /// share of the reserved LP tokens are sent to the vault, which adds them to the official
-    /// pair at the pair's current ratio in the same transaction. Callable forever.
-    function claimLateSettlement()
-        external
-        onlyLocker
-        nonReentrant
-        returns (
-            uint256 saleTokenAmount,
-            uint256 wethForVault,
-            uint256 treasuryWeth,
-            uint256 protocolFeeWeth,
-            uint256 lateLpTokens
-        )
-    {
-        require(liquidityPoolCreated, "POOL_NOT_CREATED");
-        return _settlePosition(true);
+    /// @notice Legacy ABI retained for clients; V15.1 settles all funding before trading.
+    function claimLateSettlement() external view onlyLocker returns (uint256, uint256, uint256, uint256, uint256) {
+        revert("LATE_SETTLEMENT_DISABLED");
     }
 
-    function _settlePosition(bool late)
+    function _settlePosition()
         internal
         returns (
             uint256 saleTokenAmount,
             uint256 wethForVault,
             uint256 treasuryWeth,
-            uint256 protocolFeeWeth,
-            uint256 lateLpTokens
+            uint256 protocolFeeWeth
         )
     {
         require(liquidityVault != address(0), "VAULT_NOT_CONFIGURED");
@@ -672,32 +682,10 @@ contract D17Launch {
         treasuryWethPaid += treasuryWeth;
         protocolFeeWethPaid += protocolFeeWeth;
 
-        if (late) {
-            // Per-position fee rounding means the per-position liquidity shares can sum to a
-            // few wei above totalLiquidityWeth(); capping at the remaining reserve keeps the
-            // last late settler from ever being blocked by that rounding.
-            uint256 reserve = effectiveLpTokens - vaultLiquidityTokensClaimed - lateLpTokensReleased;
-            lateLpTokens = effectiveLpTokens * wethForVault / totalLiquidityWeth();
-            if (lateLpTokens > reserve) lateLpTokens = reserve;
-            lateSettledCommittedWeth += grossCommittedWeth;
-            lateSettledLiquidityWeth += wethForVault;
-            lateLpTokensReleased += lateLpTokens;
-            if (lateLpTokens > 0) token.safeTransfer(liquidityVault, lateLpTokens);
-            emit LateVaultSettlementClaimed(
-                msg.sender,
-                saleTokenAmount,
-                wethForVault,
-                treasuryWeth,
-                protocolFeeWeth,
-                lateLpTokens,
-                grossCommittedWeth
-            );
-        } else {
-            settledLiquidityWeth += wethForVault;
-            emit VaultSettlementClaimed(
-                msg.sender, saleTokenAmount, wethForVault, treasuryWeth, protocolFeeWeth, grossCommittedWeth
-            );
-        }
+        settledLiquidityWeth += wethForVault;
+        emit VaultSettlementClaimed(
+            msg.sender, saleTokenAmount, wethForVault, treasuryWeth, protocolFeeWeth, grossCommittedWeth
+        );
 
         if (saleTokenAmount > 0) token.safeTransfer(msg.sender, saleTokenAmount);
     }
@@ -716,16 +704,14 @@ contract D17Launch {
         require(!liquidityPoolCreated, "POOL_CREATED");
         require(!vaultLiquidityClaimed, "VAULT_LIQUIDITY_CLAIMED");
         require(block.timestamp >= poolCreationOpensAt(), "POOL_CREATION_NOT_OPEN");
+        require(allFinalCommitmentsSettled(), "UNSETTLED_COMMITMENTS");
+        require(settledLiquidityWeth == exactCommittedLiquidityWeth, "LIQUIDITY_ACCOUNTING");
         require(settledLiquidityWeth > 0, "NO_SETTLED_LIQUIDITY");
 
-        // The initial pool pairs the settled WETH plus every refund penalty with the
-        // proportional share of the LP token allocation, so it opens at the canonical ratio
-        // (poolTokenAllocation : totalLiquidityWeth). The rest stays reserved for late settlers.
-        wethForPool = settledLiquidityWeth + retainedPenaltyWeth;
-        liquidityTokens = effectiveLpTokens * wethForPool / totalLiquidityWeth();
-        // Per-position fee rounding can make the settled WETH a few wei larger than the
-        // aggregate totalLiquidityWeth(); never ask for more than the reserved LP tokens.
-        if (liquidityTokens > effectiveLpTokens) liquidityTokens = effectiveLpTokens;
+        // One complete initial deposit: no later contribution can observe market prices.
+        // Individual owner absence is not a veto: after grace anyone can settle each Locker.
+        wethForPool = totalLiquidityWeth();
+        liquidityTokens = effectiveLpTokens;
         require(liquidityTokens > 0, "NO_LIQUIDITY_TOKENS");
 
         vaultLiquidityClaimed = true;
@@ -809,6 +795,10 @@ contract D17Launch {
         if (unusedLpTokensBurned > 0) emit UnusedLpTokensBurned(unusedLpTokensBurned);
 
         emit Finalized(finalizedAt);
+    }
+
+    function _positionLiquidityWeth(Position storage position) private view returns (uint256 wethForVault) {
+        (, wethForVault, , ) = _vaultSettlementAmounts(position);
     }
 
     function _vaultSettlementAmounts(Position storage position)

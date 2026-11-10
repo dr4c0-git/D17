@@ -23,10 +23,9 @@ last transaction: the 1% rate and the fee splitter as recipient are then final f
 launch of this suite, and no key, multisig or person can change them. A different fee or
 split means deploying a new version.
 
-The alternative, if ever needed: a Safe at [app.safe.global](https://app.safe.global)
-(threshold of at least 2) as `FEE_CONFIG_OWNER`, without `RENOUNCE_FEE_CONFIG_OWNER`. It
-could change the fee of **future** launches only (0% to 2%), never a launch already created
-or anyone's funds. `deploy:factory` refuses a plain wallet as owner on mainnet.
+This is mandatory on mainnet in V15.1: the factory refuses to create a launch on chain
+id 1 while the fee config has an owner or a pending owner (`MAINNET_FEE_NOT_FROZEN`), and
+`deploy:factory` and `check:env` refuse a mainnet run without `RENOUNCE_FEE_CONFIG_OWNER=1`.
 
 ### 2. Two fresh deployer wallets
 

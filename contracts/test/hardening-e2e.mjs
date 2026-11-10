@@ -210,6 +210,10 @@ async function main() {
     await expectRevert("residual burn waits for every settlement", () => l1.launch.burnResidualTokens.staticCall(), "SETTLEMENT_OPEN");
 
     await setTime(provider, Number(await l1.launch.poolCreationOpensAt()) + 1);
+    await expectRevert("pool waits for complete funding", () => l1.vault.createOfficialPool.staticCall(1n, (2**32)-1), "UNSETTLED_COMMITMENTS");
+    const cPreview = await l1.launch.previewVaultSettlement(await lockerC.getAddress());
+    await wait(await lockerC.connect(users[3]).settleAfterGrace(l1Address), "third party completes missing C before pool");
+    assertOk("absent owner credited exact tokens", (await lockerC.positions(l1Address)).claimedSaleTokens === cPreview[0]);
     await wait(await l1.vault.createOfficialPool(1n, (await now(provider)) + 3600), "create pool 1");
     const pairAddress = await l1.vault.officialPair();
     const pair = new ethers.Contract(pairAddress, artifact("test/TestV2Pair.sol", "TestV2Pair").abi, provider);
@@ -233,21 +237,12 @@ async function main() {
     const afterDump = await reserves();
     assertOk("price fell below launch ratio", afterDump.weth * effectiveLp < afterDump.token * totalLiquidityWeth);
 
-    const cPreview = await l1.launch.previewVaultSettlement(await lockerC.getAddress());
-    const deadBefore = await weth.balanceOf(BURN_ADDRESS);
-    await wait(await lockerC.connect(users[3]).settleAfterGrace(l1Address), "third party settles C late");
-    const afterLate = await reserves();
-    const wethBurned = await l1.vault.lateWethBurned();
-    assertOk("late settlement after a price drop burns surplus WETH", wethBurned > 0n);
-    assertOk("late settlement after a price drop burns no tokens", await l1.vault.lateTokensBurned() === 0n);
-    assertOk("burned WETH sits at the burn address", await weth.balanceOf(BURN_ADDRESS) - deadBefore === wethBurned);
-    assertOk("late WETH pooled plus burned equals LP share", afterLate.weth - afterDump.weth + wethBurned === cPreview[2]);
-    const crossDiff = (afterLate.token - afterDump.token) * afterDump.weth - (afterLate.weth - afterDump.weth) * afterDump.token;
-    assertOk("late deposit balanced at the live ratio", (crossDiff < 0n ? -crossDiff : crossDiff) <= afterDump.token);
-    assertOk("late settler still gets exact sale tokens", (await lockerC.positions(l1Address)).claimedSaleTokens === cPreview[0]);
+    await expectRevert("price changes cannot enable repeated settlement", () => lockerC.settleAndClaim.staticCall(l1Address, l1.rulesHash), "LIQUIDITY_SETTLED");
+    assertOk("no late WETH or token burns", await l1.vault.lateWethBurned() === 0n && await l1.vault.lateTokensBurned() === 0n);
 
     assertOk("every final commitment settled", await l1.launch.allFinalCommitmentsSettled());
-    await wait(await l1.launch.burnResidualTokens(), "burn residual dust");
+    if (await l1.token.balanceOf(l1Address) > 0n) await wait(await l1.launch.burnResidualTokens(), "burn residual dust");
+    else await expectRevert("zero dust does not require burning", () => l1.launch.burnResidualTokens.staticCall(), "NO_RESIDUAL");
     assertOk("launch holds no tokens after residual burn", await l1.token.balanceOf(l1Address) === 0n);
     assertOk("vault holds only unvested creator tokens", await l1.token.balanceOf(vault1Address) === await l1.vault.lockedCreatorTokens());
     assertOk("vault holds no loose WETH", await weth.balanceOf(vault1Address) === 0n);

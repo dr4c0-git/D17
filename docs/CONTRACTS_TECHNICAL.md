@@ -1,10 +1,19 @@
 # D17 Contract Suite - Technical Reference (V15)
 
 Audience: Solidity/EVM engineers integrating with, extending, or reviewing the suite.
-Citation convention: `File.sol:line` paths are relative to the checksummed
-`contracts/contracts/` directory. `contracts/SHA256SUMS.txt` identifies
-the exact production source described here. The rule-level changes from the upstream V14
+Citation convention: `File.sol:line` paths are relative to the
+`contracts/contracts/` directory. The rule-level changes from the upstream V14
 suite are summarised in [V15_HARDENING.md](./V15_HARDENING.md).
+
+> **V15.1 note.** This reference was written for V15 (source at commit `fa6e6d2`, which
+> its line citations point to). V15.1 changes four behaviours, described in
+> [V15.1 fixes](./V15_HARDENING.md#v151-fixes): the pool's WETH is the exact per-locker
+> sum (`exactCommittedLiquidityWeth`), the pool opens only once every final commitment is
+> settled (late settlement and `mintLateLiquidity` always revert;
+> `D17LockerFactory.settleAfterGraceBatch` settles absent lockers), a failed launch
+> returns take-back penalties instead of burning them, and mainnet launches require a
+> renounced fee config. Wherever this document says otherwise, V15.1 wins; a full
+> refresh of the citations is part of the audit preparation.
 
 ---
 
@@ -21,10 +30,9 @@ anchor price and every later round sells at or above it; refund windows follow r
 0–3 and every refund pays a penalty into the official pool; after finalization each
 locker settles - sale tokens to the buyer, a treasury fee, a protocol fee, and the
 remainder into a permanently locked official liquidity pool. Pool creation is
-permissionless and never blocked by unsettled users: the initial pool pairs settled WETH
-plus all refund penalties with a *proportional* share of the (sale-scaled) LP token
-allocation at the canonical launch ratio; late settlers add their share at the pair's
-live ratio, forever. All admin authority in the creation path is destroyed before the
+permissionless once every final commitment is settled (V15.1); anyone can settle absent
+users after the grace period, so nobody can block it. The pool pairs all settled WETH
+plus all refund penalties with the whole (sale-scaled) LP token allocation. All admin authority in the creation path is destroyed before the
 first launch can exist (one-shot pins, mint close, ownership renounce, enforced on-chain).
 The only surviving owner is `D17FeeConfig`'s, which can only set the protocol fee
 (≤ 2%) for future launches.

@@ -12,6 +12,32 @@ the event (`event_only` = the function itself is not indexed, only the events it
   `D17Launch.previewSettlement(address)` (alias of `previewVaultSettlement`),
   `D17Launch.UnsoldSaleTokensPaid` event.
 
+## V15.1 changes
+
+V15.1 adds the entries below (classified by hand) and changes three existing ones:
+`D17Launch.claimLateSettlement()` and `D17LiquidityVault.mintLateLiquidity(uint256,uint256)`
+are kept for ABI compatibility but always revert `LATE_SETTLEMENT_DISABLED` (the pool opens
+only once every final commitment is settled), and `burnFailedLaunchPenalties()` always
+reverts (penalties are returned instead). `D17LiquidityVault.BurnFailed()` is gone.
+
+| Contract | Type | Signature | Mutability | Consumer | Mainnet Indexed | Purpose |
+|---|---|---|---|---|---|---|
+| D17Factory | function | `MAX_TOKEN_SUPPLY()` | view | api_frontend_readonly_verification | no | Uniswap V2 reserve bound on `tokenSupply` (2^112 - 1). |
+| D17Launch | function | `FAILED_REFUND_POLICY()` | view | api_frontend_readonly_verification | no | Failed-R1 refund policy identifier, part of `rulesHash`. |
+| D17Launch | event | `FailedPenaltyRefunded(address,uint256)` | - | indexer_api_activity | yes | A failed launch returns a locker's take-back penalty. |
+| D17Launch | function | `exactCommittedLiquidityWeth()` | view | api_frontend_readonly_verification | no | Exact sum of every locker's pool WETH share (per-locker rounding). |
+| D17Launch | function | `failedPenaltyWethRefunded(address)` | view | api_frontend_readonly_verification | no | Penalty already returned to a locker after a failed launch. |
+| D17Launch | function | `penaltyWethRefunded()` | view | api_frontend_readonly_verification | no | Total penalties returned after a failed launch. |
+| D17Locker | function | `failedPenaltyWethRefunded(address)` | view | api_frontend_readonly_verification | no | Penalty this locker already got back from a failed launch. |
+| D17Locker | function | `failedRefundDue(address)` | view | frontend_participant_wallet | no | WETH a failed launch still owes this locker (principal plus penalties). |
+| D17LiquidityVault | event | `FailedLaunchPenaltyReturned(address,uint256)` | - | indexer_api_activity | yes | Vault returns a failed launch penalty to its locker. |
+| D17LiquidityVault | function | `failedLaunchPenaltyWethRefunded()` | view | api_frontend_readonly_verification | no | Total failed-launch penalties returned by the vault. |
+| D17LiquidityVault | function | `returnFailedPenalty(address,uint256)` | nonpayable | launch_factory_only | event_only | Only the bound launch: returns a recorded penalty to its locker. |
+| D17LockerFactory | event | `BatchSettlementResult(address,address,bool)` | - | indexer_api_activity | no | Per-locker outcome of a batch settlement. |
+| D17LockerFactory | function | `MAX_SETTLEMENT_BATCH()` | view | api_frontend_readonly_verification | no | At most 8 lockers per batch. |
+| D17LockerFactory | function | `SETTLEMENT_CALL_GAS()` | view | api_frontend_readonly_verification | no | Gas forwarded to each locker settlement in a batch. |
+| D17LockerFactory | function | `settleAfterGraceBatch(address,address[])` | nonpayable | permissionless_lifecycle | event_only | Anyone settles up to 8 absent lockers after the grace period, so the pool can open. |
+
 ## Consumer Counts
 
 - api_frontend_readonly_verification: 230
@@ -316,7 +342,6 @@ the event (`event_only` = the function itself is not indexed, only the events it
 | D17Locker | function | `withdrawableWeth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Locker | receive | `receive` | payable | safety_revert_surface | no | Rejects unsupported ETH/calls or exists as Solidity ABI surface. |
 | D17LiquidityVault | constructor | `constructor(address,address,address,address,address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
-| D17LiquidityVault | error | `BurnFailed()` | - | tests_and_error_mapping | no | Custom revert surface for tests, API/user error handling, and review. |
 | D17LiquidityVault | error | `TransferFailed()` | - | tests_and_error_mapping | no | Custom revert surface for tests, API/user error handling, and review. |
 | D17LiquidityVault | event | `CreatorTokensReleased(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17LiquidityVault | event | `ExcessWethSwept(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
@@ -329,7 +354,7 @@ the event (`event_only` = the function itself is not indexed, only the events it
 | D17LiquidityVault | function | `BURN_ADDRESS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `CREATOR_VESTING_SECONDS()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `D17_LIQUIDITY_VAULT_ID()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
-| D17LiquidityVault | function | `burnFailedLaunchPenalties()` | nonpayable | permissionless_lifecycle | event_only | Anyone burns the phase-one refund penalties of a failed launch. |
+| D17LiquidityVault | function | `burnFailedLaunchPenalties()` | pure | safety_revert_surface | no | V15.1: always reverts `FAILED_PENALTIES_REFUND_ONLY`; failed-launch penalties are returned to their payers. |
 | D17LiquidityVault | function | `createOfficialPool(uint256,uint256)` | nonpayable | permissionless_lifecycle | event_only | Permissionless official pool creation. |
 | D17LiquidityVault | function | `creatorTokensReleased()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LiquidityVault | function | `failedLaunchPenaltyWethBurned()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |

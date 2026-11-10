@@ -5,12 +5,13 @@ contracts. Every launch created by the V15 factory follows the rules below; they
 enforced by the contracts, published in each launch's `rulesHash` and cannot be changed
 after the launch is created.
 
-> **Status:** V15.1 (V15 plus two bug fixes, see [V15.1 fixes](#v151-fixes)) is
-> **deployed on Sepolia** (2026-11-10, factory `0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624`, protocol fee 1% paid to a
-> `D17FeeSplitter`, fee settings renounced, 45/45 deployment checks). It is **not
-> deployed on mainnet**: `deployments/mainnet.json` says `"status": "not-deployed"`. The
-> upstream V14 deployment is **not** compatible with this source tree. V15 and V15.1
-> have **not** been professionally audited.
+> **Status:** this source tree is **V15.1** (see [V15.1 fixes](#v151-fixes)). The suite
+> live on Sepolia since 2026-11-10 (factory `0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624`)
+> runs an earlier V15.1 draft with only the first two fixes; the full V15.1 is redeployed
+> on Sepolia and run through complete success and failure launches before anything else.
+> It is **not deployed on mainnet** (`deployments/mainnet.json` says `"not-deployed"`),
+> and it goes to mainnet only after an independent audit. The upstream V14 deployment is
+> **not** compatible with this source tree.
 
 ## What participants can rely on
 
@@ -21,12 +22,12 @@ after the launch is created.
 | Minimum share of every successful commitment locked in the official pool | 80% | **88%** |
 | Refund penalty, rounds 1–2 | free | **1% fixed**, paid into the official pool |
 | Refund penalty, rounds 3–4 | 0–50%, paid to the creator's treasury | **1–25%, paid into the official pool** |
-| Penalties when a launch fails | - (rounds 1–2 were free) | burned (sent to `0x…dEaD`), never paid to anyone |
+| Penalties when a launch fails | - (rounds 1–2 were free) | **returned to the buyers who paid them** (V15.1; V15 burned them) |
 | Unsold sale tokens | burned **or sent to the creator's treasury** | **always burned** |
 | Final round price | whole final pool handed to whoever commits, at any price | **never below the round-1 anchor price**; the rest is burned |
 | LP token allocation | fixed, even if the sale under-sells | **scaled to the share actually sold**; the unused part is burned |
 | Creator token allocation (≤10% of supply) | sent to the creator's wallet, sellable at open | **vested linearly over 180 days** from pool creation |
-| Late settlers' liquidity | added at the launch ratio, surplus donated to the pair | added **at the pair's live ratio**; the unpairable remainder is burned |
+| Late settlers' liquidity | added at the launch ratio, surplus donated to the pair | **none**: the pool opens only once every buyer is settled; anyone can settle absent buyers (V15.1) |
 | Admin keys while launches exist | factory owners could stay unrenounced | **launch creation reverts until every factory owner key is renounced** |
 | Mainnet launch notice | none | start **≥ 24 hours** after creation; every window ≥ 1 hour |
 
@@ -97,7 +98,8 @@ The creator never receives refund penalties, unsold sale tokens or unused LP tok
   `saleTokens / lpTokens` ratio.
 - **Late liquidity sandwich.** In V14 a late settler's liquidity was added at the
   launch ratio even after the market moved, donating a one-sided surplus a sandwich could
-  capture. V15 adds it at the pair's live ratio and burns what cannot be paired.
+  capture. V15.1 has no late liquidity at all: every buyer is settled before the pool
+  opens.
 - **Pre-seeding the pair.** Tokens cannot reach the pair before the official pool exists
   (transfer gate). Anyone may donate WETH to the pair beforehand; it can only raise the
   opening price and is lost by the donor to the locked pool.
@@ -117,23 +119,44 @@ The creator never receives refund penalties, unsold sale tokens or unused LP tok
 
 ## V15.1 fixes
 
-Two contract bugs reported by the project lead after the Sepolia test launches, both
-reproduced on V15 by `contracts/test/v15-1-regressions-e2e.mjs` before being fixed. The
-launch rules, the ABIs and the contract identities are unchanged.
+Three issues reported by the project lead after the Sepolia test launches, fixed in V15.1
+from the project lead's own review candidate (ported here, without its fixed 2% mainnet
+fee). Each is replayed by `contracts/test/v15-1-regressions-e2e.mjs`; the project lead's
+suites for failed-launch refunds, callback safety and minimum liquidity are part of
+`npm test` too.
 
 - **Pool creation could revert forever.** The fees are taken per position (each rounded
-  down), while the pool's expected WETH is computed once on the total. The settled WETH
-  can therefore exceed the expected amount by a few wei, and when every position settled
-  before the pool opened, `claimVaultLiquidityTokens` asked for more LP tokens than were
-  reserved: the transfer reverted, the pool could never open and the tokens, which cannot
-  move before it exists, were stuck. Ordinary amounts could trigger it, and anyone could
-  on purpose with odd wei amounts. The pool now never takes more than the reserved LP
-  tokens (`D17Launch.sol:725-728`); the gap is a few wei of price.
+  down), while V15 computed the pool's expected WETH once on the total. The settled WETH
+  could exceed it by a few wei, and when every position settled before the pool opened,
+  the pool asked for more LP tokens than reserved: the transfer reverted, the pool could
+  never open and the tokens, which cannot move before it exists, were stuck. Ordinary
+  amounts could trigger it, and anyone could on purpose with odd wei amounts. V15.1 keeps
+  the exact sum of every position's pool share (`exactCommittedLiquidityWeth`), updated on
+  each commitment and refund, and the pool receives exactly that WETH with exactly the
+  reserved LP tokens.
 - **Supply above Uniswap V2's limit.** Uniswap V2 stores each reserve as a `uint112`. A
   launch with a larger supply could collect funds and then fail to open its pool.
   `createLaunch` now rejects any `tokenSupply` above `2^112 - 1` raw units, about 5.19
-  million billion tokens with 18 decimals (`SUPPLY_ABOVE_V2_RESERVE_MAX`,
-  `D17Factory.sol:205-206`).
+  million billion tokens with 18 decimals (`MAX_TOKEN_SUPPLY`, `SUPPLY_ABOVE_V2_RESERVE`).
+- **Late settlement burned pool value.** In V15 the pool could open while some buyers had
+  not collected yet; their liquidity was then added at the moved market price and the
+  unmatched part burned. In V15.1 the pool opens **only once every final commitment is
+  settled** (`UNSETTLED_COMMITMENTS` otherwise). Nobody can block it: after the claim
+  window anyone can settle an absent buyer (`D17Locker.settleAfterGrace`), or up to 8 at a
+  time (`D17LockerFactory.settleAfterGraceBatch`); the tokens always go to the buyer's own
+  vault. The late-settlement functions remain in the ABI but always revert.
+
+Also in V15.1:
+
+- **A cancelled launch returns everything.** When round 1 misses its minimum, every buyer
+  gets back all of their ETH **including the take-back fees** they paid in round 1's
+  window; those fees are no longer burned. The policy is part of each launch's `rulesHash`
+  (`FAILED_REFUND_POLICY`).
+- **Mainnet launches need a frozen fee.** On chain id 1 the factory refuses to create a
+  launch while the fee config has an owner or a pending owner, so the fee rate and its
+  recipient can never change for the whole suite (`MAINNET_FEE_NOT_FROZEN`).
+- **Ordering hardening.** Lockers update their accounting before every value-moving call,
+  and the fee splitter's `distributeEth` is guarded against reentrancy.
 
 ## Known limits (not fixed)
 
@@ -146,15 +169,10 @@ launch rules, the ABIs and the contract identities are unchanged.
   a few seconds.
 - **Sybil participation.** Nothing stops a creator from participating through other
   wallets on the same terms as everyone else.
-- **Liquidity-add MEV.** A late settlement is a liquidity add; an attacker who moves the
-  price around it pays swap fees on both legs and gains at most the impermanent loss of the
-  late position. Most positions settle before pool creation.
-- **Late settlement can burn pool value.** A position settled after the pool opened adds
-  its liquidity at the pool's current price, and what cannot be paired at that price is
-  burned. The settler still receives every token they bought; what is lost is pool
-  depth, and how much depends on trading before the settlement. Anyone can settle an
-  absent locker once pool creation opens (`settleAfterGrace`), which limits it; the
-  planned fix (V16) opens the pool only once every position has settled.
+- **Opening the pool costs the absent buyers' settlement gas.** Every buyer must be
+  settled before trading opens. Someone (usually the creator) pays the gas to settle
+  absent buyers, 8 per transaction; a launch with many small positions costs more to
+  open. Each position needs at least the launch's minimum commitment.
 - **Opening price set by the creator's split.** The contract accepts any LP allocation
   from 1 token, so a creator can open the pool far above the average price paid. The web
   app flags such launches as predatory; a contract rule is planned for V16.

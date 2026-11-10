@@ -37,7 +37,7 @@ Three design choices keep it honest:
 
 If a launch never clears its floor, all of this machinery steps aside. **Failed launch, full refund** - every participant, every remaining commitment, no defection, no argument. There is no deadline on withdrawing from a failed launch, and no one's approval is needed.
 
-What about the 1% already paid by someone who left round 1 before the launch failed? There's no pool for it to deepen, and handing it to the creator or the platform would reward a failure. So anyone can trigger its **burn**: it is sent to the dead address, where no one can ever spend it.
+What about the 1% already paid by someone who left round 1 before the launch failed? There's no pool for it to deepen, and handing it to the creator or the platform would reward a failure. So it goes back to the person who paid it: a failed launch returns **everything**, take-back fees included.
 
 A launch mechanism reveals its values in how it treats the people who leave. D17's answer: early doubt is cheap, late churn pays a posted price, every penalty benefits the people who stayed, and a failed launch pays everyone else back to the wei.
 

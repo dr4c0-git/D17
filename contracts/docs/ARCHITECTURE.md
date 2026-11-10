@@ -24,7 +24,8 @@ leaving no administrator able to replace the mechanism for existing launches.
 - `D17Token` enforces the fixed supply and pre-trading transfer/burn gate.
 - `D17LiquidityVault` creates the official pair and permanently holds all LP
   tokens minted to the protocol. It also vests the creator allocation (180 days)
-  and adds late settlers' liquidity at the pair's live ratio.
+  and, if a launch fails, returns take-back penalties to the lockers that paid them.
+  V15.1 opens the pool only once every final commitment is settled.
 - `D17Locker` holds one participant's WETH and claimed tokens. A locker can
   contain positions across multiple canonical launches.
 

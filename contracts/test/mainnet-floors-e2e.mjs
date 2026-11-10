@@ -107,6 +107,13 @@ async function main() {
       await wait(await owned.renounceOwnership(), "renounce");
     }
 
+    const safeConfig = config((await now(provider)) + DAY + 1000, treasuryAddress);
+    await expectRevert("mainnet rejects mutable fee config", () => d17Factory.createLaunch.staticCall(safeConfig), "MAINNET_FEE_NOT_FROZEN");
+    await wait(await feeConfig.transferOwnership(await users[0].getAddress()), "pending fee owner");
+    await wait(await feeConfig.renounceOwnership(), "freeze mainnet fee");
+    assertOk("fee renunciation clears pending owner", await feeConfig.pendingOwner() === ethers.ZeroAddress);
+    await expectRevert("renounced fee cannot change", () => feeConfig.setProtocolFee.staticCall(FEE_RECIPIENT, 0), "NOT_OWNER");
+
     assertOk("mainnet minimum window is one hour", await d17Factory.MAINNET_MIN_WINDOW_SECONDS() === BigInt(HOUR));
     assertOk("mainnet minimum notice is one day", await d17Factory.MAINNET_MIN_START_DELAY() === BigInt(DAY));
 

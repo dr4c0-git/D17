@@ -3,6 +3,10 @@
 //    totalLiquidityWeth(). When every position settled before the pool opened, the pool
 //    asked for more LP tokens than reserved and pool creation reverted forever (tokens
 //    cannot move before the pool exists). Anyone could trigger it with odd wei amounts.
+//    V15.1 keeps the exact per-buyer sum (exactCommittedLiquidityWeth).
+// 3. Late settlement added liquidity at the moved market price and burned the unmatched
+//    part. V15.1 opens the pool only once every buyer is settled; anyone can settle absent
+//    buyers after the grace period, one by one or in batches of up to 8.
 // 2. Token supplies above Uniswap V2's uint112 reserve limit were accepted, so the pool
 //    could never be created after participants had committed.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -147,12 +151,33 @@ async function main() {
 
     await setTime(provider, Number(await l1.launch.roundEnd(4)) + 5);
     await wait(await l1.launch.finalizeLaunch(), "finalize 1");
-    for (const locker of lockers) await wait(await locker.settleAndClaim(l1.launch.target, l1.rulesHash), "settle");
+    // Only the first buyer collects; the two others stay away.
+    await wait(await lockers[0].settleAndClaim(l1.launch.target, l1.rulesHash), "settle 0");
+    await setTime(provider, Number(await l1.launch.poolCreationOpensAt()) + 1);
+    await expectRevert(
+      "the pool cannot open while a buyer is unsettled",
+      async () => l1.vault.createOfficialPool.staticCall(1n, (await now(provider)) + 3600),
+      "UNSETTLED_COMMITMENTS"
+    );
+    // Anyone settles the absent buyers in one batch; junk entries do not block it.
+    const outsider = lockerFactory.connect(users[5]);
+    const batch = [lockers[1].target, lockers[2].target, lockers[1].target, leaver.target, users[5].address, lockers[0].target];
+    const completed = await outsider.settleAfterGraceBatch.staticCall(l1.launch.target, batch);
+    await wait(await outsider.settleAfterGraceBatch(l1.launch.target, batch), "batch settle absent buyers");
+    assertOk("batch settles exactly the two absent buyers", completed === 2n, String(completed));
+    assertOk("every buyer is settled", await l1.launch.allFinalCommitmentsSettled());
+    for (const [index, locker] of lockers.entries()) {
+      assertOk(`buyer ${index} received their sale tokens in their own vault`, (await locker.positions(l1.launch.target)).claimedSaleTokens > 0n);
+    }
     const aggregate = await l1.launch.totalLiquidityWeth();
     const settled = (await l1.launch.settledLiquidityWeth()) + (await l1.launch.retainedPenaltyWeth());
-    assertOk("scenario reproduces the rounding gap (settled WETH above the aggregate)", settled > aggregate, `${settled - aggregate} wei`);
+    // V15 computed the pool's WETH as one percentage of the total, which this scenario
+    // puts below what the buyers actually settled; V15.1 tracks the exact per-buyer sum.
+    const liquidityBps = await l1.launch.liquidityBps();
+    const v15Formula = (await l1.launch.finalCommittedWeth()) * liquidityBps / 10000n + (await l1.launch.retainedPenaltyWeth());
+    assertOk("scenario reproduces the V15 rounding gap", settled > v15Formula, `${settled - v15Formula} wei`);
+    assertOk("expected pool WETH is the exact per-buyer sum", aggregate === settled);
 
-    await setTime(provider, Number(await l1.launch.poolCreationOpensAt()) + 1);
     await wait(await l1.vault.createOfficialPool(1n, (await now(provider)) + 3600), "create pool 1");
     const effective = await l1.launch.effectiveLpTokens();
     assertOk("pool opens although every position settled first", await l1.launch.liquidityPoolCreated());
@@ -174,12 +199,12 @@ async function main() {
     await expectRevert(
       "supply above 2^112 - 1 is rejected at creation",
       () => d17Factory.createLaunch.staticCall(config(start, treasuryAddress, UINT112_MAX + 1n), { gasLimit: 15_000_000 }),
-      "SUPPLY_ABOVE_V2_RESERVE_MAX"
+      "SUPPLY_ABOVE_V2_RESERVE"
     );
     await expectRevert(
       "far larger supplies are rejected too",
       () => d17Factory.createLaunch.staticCall(config(start, treasuryAddress, UINT112_MAX * 4n), { gasLimit: 15_000_000 }),
-      "SUPPLY_ABOVE_V2_RESERVE_MAX"
+      "SUPPLY_ABOVE_V2_RESERVE"
     );
     // The largest allowed supply still goes all the way to a live pool. Round 1 then sells
     // about 1e15 tokens, so it needs over 1,000 ETH to clear the minimum anchor price.

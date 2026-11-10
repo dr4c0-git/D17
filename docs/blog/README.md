@@ -8,7 +8,7 @@ Short essays on the ideas inside the D17 V15 launch mechanism - one per topic, e
 | 02 | [Five rounds and an anchor](./02-five-rounds-and-an-anchor.md) | The price is discovered by the first round, and no later round - the last one included - can sell below it. |
 | 03 | [The exit is part of the design](./03-the-exit-is-part-of-the-design.md) | Refund windows on every early round: 1% early, a posted fee late, every penalty into the pool, full refunds if the launch fails. |
 | 04 | [The ✓ is earned, not granted](./04-the-tick-is-earned-not-granted.md) | Metadata and economic rules - fees included - have separate mechanical consistency checks. Neither is an endorsement. |
-| 05 | [Liquidity that cannot leave](./05-liquidity-that-cannot-leave.md) | The vault holds the LP position forever, the pool opens at the price people paid, and late liquidity can't be sandwiched. |
+| 05 | [Liquidity that cannot leave](./05-liquidity-that-cannot-leave.md) | The vault holds the LP position forever, and the pool opens at the price people paid, only once every buyer is settled. |
 | 06 | [Supply math that cannot lie](./06-supply-math-that-cannot-lie.md) | The split must sum exactly, the caps are `require` statements, and unsold tokens are always burned. |
 | 07 | [Nobody gets stranded](./07-nobody-gets-stranded.md) | Every mandatory step is permissionless; every personal claim waits forever. Absence strands no one. |
 | 08 | [One signature](./08-one-signature.md) | A launch is born complete in one transaction - no admin keys, fee consented, minted, ownership renounced - or not at all. |

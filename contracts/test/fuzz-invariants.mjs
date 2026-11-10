@@ -188,7 +188,7 @@ async function main() {
           // Per-position WETH conservation: everything committed is accounted for exactly once.
           invariant(
             "position WETH conservation",
-            p.ethCommitted === p.wethRefunded + p.penaltyPaid + p.wethSentToVault + p.treasuryWeth + p.protocolFeeWeth + p.wethCommitted,
+            p.ethCommitted === p.wethRefunded + p.penaltyPaid - await l.contract.failedPenaltyWethRefunded(L) + p.wethSentToVault + p.treasuryWeth + p.protocolFeeWeth + p.wethCommitted,
             `${l.address}`
           );
           invariant("locker committed WETH equals launch ledger", p.liquiditySettled || p.wethCommitted === await sumPaid(l.address));
@@ -305,7 +305,7 @@ async function main() {
         invariant("failed launch is reported as failed", await launch.launchFailed());
         await expectRevert(`[${campaign}] failed launch cannot finalize`, () => launch.finalizeLaunch.staticCall(), "LAUNCH_FAILED");
         for (const l of lockers) {
-          const owed = await sumPaid(l.address);
+          const owed = await l.contract.failedRefundDue(L);
           if (owed === 0n) continue;
           const before = await l.contract.positions(L);
           await act("failed-launch refund", async () => { await wait(await l.contract.refundFailedLaunch(L, rules)); });
@@ -314,16 +314,11 @@ async function main() {
           const residual = after.residualWeth;
           await act("withdraw refunded WETH", async () => { await wait(await l.contract.withdrawUnlockedWeth(L, residual)); });
         }
-        const penalties = await weth.balanceOf(vaultAddress);
-        invariant("vault holds exactly the phase-one penalties", penalties === await launch.retainedPenaltyWeth());
-        if (penalties > 0n) {
-          const deadBefore = await weth.balanceOf(BURN);
-          await act("burn failed-launch penalties", async () => { await wait(await vault.connect(stranger).burnFailedLaunchPenalties()); });
-          invariant("failed-launch penalties are burned, not paid", (await weth.balanceOf(BURN)) - deadBefore === penalties);
-        }
+        invariant("all failed-launch penalties returned", await weth.balanceOf(vaultAddress) === 0n && await launch.retainedPenaltyWeth() === 0n);
+        await expectRevert("failed-launch burn disabled", () => vault.burnFailedLaunchPenalties.staticCall(), "FAILED_PENALTIES_REFUND_ONLY");
         for (const l of participants) {
           const p = await l.contract.positions(L);
-          invariant("failed launch: committed = refunded + penalties", p.ethCommitted === p.wethRefunded + p.penaltyPaid);
+          invariant("failed launch: committed = refunded", p.ethCommitted === p.wethRefunded);
         }
         invariant("treasury got nothing from a failed launch", (await weth.balanceOf(treasury)) === 0n);
         return { outcome: "failed", actions, feeBps, treasuryBps, penaltyBps, lockers: participants.size };
@@ -368,7 +363,8 @@ async function main() {
         (await launch.poolCreationOpensAt()) >= (await launch.finalizedAt()) + (await launch.settlementSeconds()));
       await setTime(provider, Number(await launch.poolCreationOpensAt()) + 1);
       if ((await launch.settledLiquidityWeth()) === 0n) await settle(pending.shift(), "third-party");
-      while (pending.length > 0 && chance(0.3)) await settle(pending.shift(), "third-party");
+      if (pending.length) await expectRevert(`[${campaign}] incomplete funding blocks pool`, () => vault.createOfficialPool.staticCall(0n, (2**32)-1), "UNSETTLED_COMMITMENTS");
+      while (pending.length > 0) await settle(pending.shift(), "third-party");
 
       const pairAddress0 = await v2.getPair(created.token, await weth.getAddress());
       if (chance(0.3)) {
@@ -413,25 +409,8 @@ async function main() {
           traderTokens -= amountIn;
         }
       }
-      while (pending.length > 0) {
-        if (chance(0.6)) await act("price move", async () => { await swap(chance(0.55)); });
-        const l = pending.shift();
-        const before = await reserves();
-        const burnedBefore = [await vault.lateTokensBurned(), await vault.lateWethBurned()];
-        const reserveLeft = eff - (await launch.vaultLiquidityTokensClaimed()) - (await launch.lateLpTokensReleased());
-        const preview = await settle(l, chance(0.5) ? "owner" : "third-party");
-        let lateLp = eff * preview[2] / T;
-        if (lateLp > reserveLeft) lateLp = reserveLeft;
-        const after = await reserves();
-        const tokensBurned = (await vault.lateTokensBurned()) - burnedBefore[0];
-        const wethBurned = (await vault.lateWethBurned()) - burnedBefore[1];
-        invariant("late WETH is pooled or burned, never kept", after.weth - before.weth + wethBurned === preview[2]);
-        invariant("late LP tokens are pooled or burned, never kept", after.token - before.token + tokensBurned === lateLp);
-        invariant("late settlement burns at most one side", tokensBurned === 0n || wethBurned === 0n);
-        const dToken = after.token - before.token;
-        const dWeth = after.weth - before.weth;
-        invariant("late deposit is balanced at the live ratio", abs(dToken * before.weth - dWeth * before.token) <= (before.token > before.weth ? before.token : before.weth));
-      }
+      for (let move = 0; move < 3; move++) await act("post-open price move", async () => { await swap(move === 0 || chance(0.5)); });
+      invariant("no post-open liquidity loss", (await vault.lateWethBurned()) === 0n && (await vault.lateTokensBurned()) === 0n);
       invariant("every final commitment settled", await launch.allFinalCommitmentsSettled());
       const residual = await token.balanceOf(L);
       if (residual > 0n) {

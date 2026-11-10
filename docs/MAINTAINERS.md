@@ -136,11 +136,12 @@ command (it kills the shell itself); run the node as a separate background task.
 | `D17FeeSplitter` | Optional fee recipient, no owner: fixed recipients and shares (sum 10 000 bps), permissionless `distribute(token)` / `distributeEth()`. Deployed by `deploy:factory` when `FEE_SPLIT_RECIPIENTS` / `FEE_SPLIT_BPS` are set (then leave `PROTOCOL_FEE_RECIPIENT` empty); checked by `verify:factory`. |
 | `D17LaunchFactory` | Creates token + launch (via deployer) + vault; refuses if the token/vault factory or deployer still has an owner; mints the `manual` allocation **into the vault**. |
 | `D17LaunchDeployer` | `create`s `D17Launch` from pre-encoded params (EIP-170 headroom). Pinned, then renounced. |
-| `D17TokenFactory`, `D17LiquidityVaultFactory`, `D17LockerFactory` | Unchanged apart from IDs. |
+| `D17TokenFactory`, `D17LiquidityVaultFactory` | Unchanged apart from IDs. |
+| `D17LockerFactory` | V15.1: `settleAfterGraceBatch(launch, lockers[])`, up to 8 absent lockers per call, junk entries skipped. |
 | `D17Token` | Unchanged apart from ID (transfer gate before the pool exists). |
-| `D17Launch` | `LaunchParams` struct. Protocol fee frozen (immutables + `rulesHash`), penalties to the pool, anchor floor on the final round, `effectiveLpTokens`, burn of unsold + unused LP, late LP reserve cap, `burnResidualTokens`, ETH→WETH sweep. |
-| `D17Locker` | Penalty → vault; pays `protocolFeeWeth`; `protocolFeeWeth` field inserted in `LockerPosition` (decode by **name**, not by index). |
-| `D17LiquidityVault` | Initial pool = settled WETH + penalties; late liquidity at the live ratio (remainder burned, zero-LP → burned); 180-day creator vesting (`releaseCreatorTokens`, callable by anyone); `burnFailedLaunchPenalties`; ETH→WETH sweep. |
+| `D17Launch` | `LaunchParams` struct. Protocol fee frozen (immutables + `rulesHash`), penalties to the pool, anchor floor on the final round, `effectiveLpTokens`, burn of unsold + unused LP, `burnResidualTokens`, ETH→WETH sweep. V15.1: `exactCommittedLiquidityWeth` (exact per-locker pool share), pool only when `allFinalCommitmentsSettled()`, `claimLateSettlement` reverts, failed-R1 penalties returned (`FAILED_REFUND_POLICY` in `rulesHash`). |
+| `D17Locker` | Penalty → vault; pays `protocolFeeWeth`; `protocolFeeWeth` field inserted in `LockerPosition` (decode by **name**, not by index). V15.1: accounting before external calls, `failedRefundDue`. |
+| `D17LiquidityVault` | Pool = every settled WETH + penalties with all effective LP tokens; 180-day creator vesting (`releaseCreatorTokens`, callable by anyone); ETH→WETH sweep. V15.1: `mintLateLiquidity` and `burnFailedLaunchPenalties` revert, `returnFailedPenalty` (launch only). |
 
 IDs: `*_V15_HARDENED` everywhere (contracts, `scripts/lib.mjs`, apps, release).
 Sizes (V15.1): `D17LaunchDeployer` 22,778 bytes (1.8 KB headroom: any growth of `D17Launch`
@@ -225,18 +226,24 @@ durations. For automated checks, Playwright with an injected `window.ethereum` r
 - Opening price: it follows the average price paid and equals it (net of fees) only when
   `lpTokens == saleTokens`; never write that it is always equal.
 
-## V15.1 (2026-11-09)
+## V15.1 (2026-11-10)
 
-Two contract bugs reported by the project lead, both reproduced on V15 by
-`test/v15-1-regressions-e2e.mjs` (in `npm test`) before the fix: (1) pool creation
-reverted forever when every position settled before the pool and per-position fee
-rounding put the settled WETH a few wei above `totalLiquidityWeth()` (fix: cap the pool's
-LP tokens at `effectiveLpTokens`); (2) supplies above Uniswap V2's `uint112` reserve were
-accepted (fix: `SUPPLY_ABOVE_V2_RESERVE_MAX`). ABIs and `*_V15_HARDENED` identities are
-unchanged. A third report (late settlement burning pool value at a moved price) is a
-known limit, fixed in V16 by opening the pool only once every position has settled.
-Before mainnet: redeploy the suite on Sepolia, one full launch, `verify:etherscan`.
-The mainnet date of 2026-11-11 is not held: the reports came two days before it.
+Contract changes ported from the project lead's own V15.1 review candidate, minus its fixed 2% mainnet fee (the decided fee is
+1%, split 75/25). Fixes: (1) pool creation reverted forever when every position settled
+first and per-position fee rounding put the settled WETH above the V15 aggregate (fix:
+exact per-locker sum `exactCommittedLiquidityWeth`); (2) supplies above Uniswap V2's
+`uint112` reserve (fix: `MAX_TOKEN_SUPPLY`, `SUPPLY_ABOVE_V2_RESERVE`); (3) late settlement
+burned pool value at a moved price (fix: pool only once every commitment is settled,
+`settleAfterGraceBatch`). Also: failed-R1 penalties returned, mainnet factory refuses a
+fee config with an owner (`MAINNET_FEE_NOT_FROZEN`), CEI ordering in the locker and
+splitter. Tests: ours adapted plus the lead's `failed-refund-remediation`,
+`adversarial-callbacks`, `minimum-liquidity`, `rounding-reference-model` (they use the real
+Uniswap V2 bytecode from `@uniswap/v2-core`, a root dev dependency). Not ported: the lead's
+release tooling (solc 0.8.38, prepare-release, publication), `settlement-liveness` and
+`release-100-lockers` (they need it). The Sepolia suite of 2026-11-10 runs the first draft
+(fixes 1 and 2 only): redeploy, then full success and failure launches. Mainnet only after
+an independent audit (decided 2026-11-10). `docs/CONTRACTS_TECHNICAL.md` citations still
+point to V15 (`fa6e6d2`): refresh before the audit.
 
 ## Still to do
 

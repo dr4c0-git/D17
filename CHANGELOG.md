@@ -3,6 +3,34 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-10 - V15.1, complete: every buyer settled before trading
+
+The project lead's own V15.1 review went further than ours. Its contract changes are now
+in this repository, with the decided 1% fee instead of its fixed 2%. Details in
+[docs/V15_HARDENING.md](./docs/V15_HARDENING.md).
+
+- **The pool's ETH is now exact.** The contract keeps the exact sum of every buyer's
+  share, updated at each commitment and refund, instead of one percentage of the total.
+  The pool gets exactly the right amount, and the rounding gap that could block it is
+  gone at the root.
+- **Trading opens only once every buyer has collected.** Nobody's liquidity reaches the
+  pool after the price moved, so nothing is burned anymore. Absent buyers cannot block
+  it: after the claim window anyone can collect for them, up to 8 at a time, and their
+  tokens still go to their own vault. The site shows "Collect for N buyers" until
+  everyone is settled, then "Open trading".
+- **A cancelled launch returns everything**, including the take-back fees paid in round
+  1's window, which V15 burned.
+- **Mainnet launches require a frozen fee**: the factory refuses to create one while the
+  fee settings still have an owner. `deploy:factory` and `check:env` require
+  `RENOUNCE_FEE_CONFIG_OWNER=1` on mainnet.
+- **Safer ordering** of accounting before transfers in the personal vault and the fee
+  splitter.
+- Tests: our suites adapted, plus the project lead's suites for cancelled-launch refunds,
+  hostile callbacks, minimum liquidity and the rounding model, against the real Uniswap
+  V2 contracts. Fuzz campaigns pass.
+- The Sepolia suite deployed earlier today runs the first draft (two fixes): it will be
+  redeployed. Mainnet comes only after an independent audit.
+
 ## 2026-11-10 - V15.1 deployed on Sepolia
 
 - **The V15.1 suite is live on Sepolia** (block 12104784, factory

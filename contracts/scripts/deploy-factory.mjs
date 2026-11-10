@@ -59,8 +59,9 @@ if (feeSplitRecipients.length > 0) {
 }
 
 if (chainId === MAINNET_CHAIN_ID) {
-  if (!renounceFeeConfig && (await provider.getCode(configuredFeeConfigOwner)) === "0x") {
-    throw new Error("Mainnet FEE_CONFIG_OWNER must be a contract (multisig), not an EOA, or set RENOUNCE_FEE_CONFIG_OWNER=1.");
+  // D17Factory refuses mainnet launches while the fee config has an owner.
+  if (!renounceFeeConfig) {
+    throw new Error("Mainnet requires RENOUNCE_FEE_CONFIG_OWNER=1: the factory only accepts launches once the fee config has no owner.");
   }
   if (process.env.D17_CONFIRM_MAINNET_DEPLOY !== "1") {
     throw new Error("Refusing mainnet deployment without D17_CONFIRM_MAINNET_DEPLOY=1.");

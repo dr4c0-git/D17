@@ -10,6 +10,8 @@ interface IV2RouterView {
 
 interface ID17FeeConfigView {
     function currentFee() external view returns (address recipient, uint16 bps);
+    function owner() external view returns (address);
+    function pendingOwner() external view returns (address);
 }
 
 contract D17Factory {
@@ -33,6 +35,8 @@ contract D17Factory {
     uint256 public constant MIN_COMMIT_WETH = 1e15;
     uint256 public constant MIN_LP_TOKENS = 1e18;
     uint256 public constant MIN_ROUND_ALLOCATION_TOKENS = 1e18;
+    // Uniswap V2 reserves are uint112; reject unpairable total supply at creation time.
+    uint256 public constant MAX_TOKEN_SUPPLY = type(uint112).max;
     uint256 public constant MIN_ANCHOR_PRICE_WAD = 1e6;
     uint32 public constant MIN_ROUND_SECONDS = 60;
     uint32 public constant MAX_ROUND_SECONDS = 90 days;
@@ -164,6 +168,15 @@ contract D17Factory {
         _validateConfig(config);
 
         (address feeRecipient, uint16 feeBps) = ID17FeeConfigView(feeConfig).currentFee();
+        // Mainnet launches only use a frozen fee: the fee config must have no owner and no
+        // pending owner, so neither the rate nor the recipient can ever change.
+        if (block.chainid == 1) {
+            require(
+                ID17FeeConfigView(feeConfig).owner() == address(0)
+                    && ID17FeeConfigView(feeConfig).pendingOwner() == address(0),
+                "MAINNET_FEE_NOT_FROZEN"
+            );
+        }
         require(feeBps <= config.maxProtocolFeeBps, "PROTOCOL_FEE_ABOVE_MAX");
         (token, launch, liquidityVault) =
             ID17LaunchFactory(launchFactory).deployLaunch(config, msg.sender, feeRecipient, feeBps);
@@ -202,8 +215,7 @@ contract D17Factory {
         _validateJsonSafe(config.tokenSymbol, "TOKEN_SYMBOL_JSON");
         _validateMetadata(config);
         require(config.tokenSupply > 0, "SUPPLY_ZERO");
-        // Uniswap V2 stores reserves as uint112: a pool balance above it can never be synced.
-        require(config.tokenSupply <= type(uint112).max, "SUPPLY_ABOVE_V2_RESERVE_MAX");
+        require(config.tokenSupply <= MAX_TOKEN_SUPPLY, "SUPPLY_ABOVE_V2_RESERVE");
         require(config.saleTokens > 0, "SALE_ZERO");
         require(config.lpTokens >= MIN_LP_TOKENS, "LP_TOO_LOW");
         require(

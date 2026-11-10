@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {D17SafeTransfer} from "./lib/D17SafeTransfer.sol";
-import {ID17FactoryView, ID17Launch, ID17VaultLateLiquidity, IWETH} from "./interfaces/ID17.sol";
+import {ID17FactoryView, ID17Launch, IWETH} from "./interfaces/ID17.sol";
 
 contract D17Locker {
     using D17SafeTransfer for address;
@@ -43,6 +43,7 @@ contract D17Locker {
     }
 
     mapping(address => LockerPosition) public positions;
+    mapping(address => uint256) public failedPenaltyWethRefunded;
 
     event RoundCommitted(address indexed launch, uint8 indexed round, uint256 amount);
     event RoundRefunded(address indexed launch, uint8 indexed round, uint256 refundWeth, uint256 penaltyWeth);
@@ -107,6 +108,13 @@ contract D17Locker {
         return positions[launch].wethCommitted;
     }
 
+    function failedRefundDue(address launch) external view returns (uint256) {
+        LockerPosition storage position = positions[launch];
+        if (!position.known || position.liquiditySettled) return 0;
+        if (!ID17Launch(launch).launchFailed()) return 0;
+        return position.wethCommitted + position.penaltyPaid - failedPenaltyWethRefunded[launch];
+    }
+
     function roundPosition(address launch, uint8 round)
         external
         view
@@ -135,17 +143,19 @@ contract D17Locker {
         LockerPosition storage position = positions[launch];
         require(!position.liquiditySettled, "LIQUIDITY_SETTLED");
 
-        IWETH(weth).deposit{value: msg.value}();
-        accountedWeth += msg.value;
-
+        // Both ledgers are updated before the value-bearing WETH call. A failed
+        // deposit reverts the entire commitment, including the launch ledger.
+        address launchToken = ID17Launch(launch).token();
         position.known = true;
         position.rulesHash = expectedRulesHash;
-        position.token = ID17Launch(launch).token();
+        position.token = launchToken;
         position.ethCommitted += msg.value;
         position.wethCommitted += msg.value;
         position.roundWeth[round] += msg.value;
+        accountedWeth += msg.value;
 
         ID17Launch(launch).recordRoundCommitment(round, msg.value);
+        IWETH(weth).deposit{value: msg.value}();
         emit RoundCommitted(launch, round, msg.value);
     }
 
@@ -195,9 +205,9 @@ contract D17Locker {
         uint256 localRefund;
         for (uint8 round; round < ROUND_COUNT; round++) localRefund += position.roundWeth[round];
 
-        uint256 refundWeth = ID17Launch(launch).releaseFailedRefund();
-        require(refundWeth == localRefund, "FAILED_REFUND_MISMATCH");
-        require(position.wethCommitted >= refundWeth, "LOCKED_WETH_BALANCE");
+        uint256 penaltyRefund = position.penaltyPaid - failedPenaltyWethRefunded[launch];
+        uint256 totalRefund = localRefund + penaltyRefund;
+        require(position.wethCommitted >= localRefund, "LOCKED_WETH_BALANCE");
 
         for (uint8 round; round < ROUND_COUNT; round++) {
             if (position.roundWeth[round] > 0) {
@@ -206,10 +216,16 @@ contract D17Locker {
             }
         }
 
-        position.wethCommitted -= refundWeth;
-        position.wethRefunded += refundWeth;
-        position.residualWeth += refundWeth;
-        withdrawableWeth += refundWeth;
+        // Update all rights before the launch/vault/WETH interaction. Any failure
+        // rolls back both ledgers and the transfer atomically.
+        position.wethCommitted -= localRefund;
+        position.wethRefunded += totalRefund;
+        position.residualWeth += totalRefund;
+        withdrawableWeth += totalRefund;
+        failedPenaltyWethRefunded[launch] += penaltyRefund;
+        accountedWeth += penaltyRefund;
+        uint256 refundWeth = ID17Launch(launch).releaseFailedRefund();
+        require(refundWeth == totalRefund, "FAILED_REFUND_MISMATCH");
         emit FailedLaunchRefunded(launch, refundWeth);
     }
 
@@ -242,20 +258,12 @@ contract D17Locker {
             grossCommittedWeth += position.roundWeth[round];
         }
 
-        // After pool creation the launch routes settlement through the late top-up path:
-        // identical sale tokens, WETH cost, and fee, with the LP-share WETH still entering
-        // the official pool alongside the position's reserved LP-token share.
-        bool late = ID17Launch(launch).liquidityPoolCreated();
+        // All funding settles before the official pool can open. Sale-token ownership
+        // stays in this Locker regardless of who pays the permissionless settlement gas.
         uint256 wethForVault;
         uint256 treasuryWeth;
         uint256 protocolFeeWeth;
-        uint256 lateLpTokens;
-        if (late) {
-            (claimedSaleTokens, wethForVault, treasuryWeth, protocolFeeWeth, lateLpTokens) =
-                ID17Launch(launch).claimLateSettlement();
-        } else {
-            (claimedSaleTokens, wethForVault, treasuryWeth, protocolFeeWeth) = ID17Launch(launch).claimVaultSettlement();
-        }
+        (claimedSaleTokens, wethForVault, treasuryWeth, protocolFeeWeth) = ID17Launch(launch).claimVaultSettlement();
         require(claimedSaleTokens == previewTotal, "FINAL_CLAIM_MISMATCH");
         uint256 spent = wethForVault + treasuryWeth + protocolFeeWeth;
         require(position.wethCommitted >= spent, "LOCKED_WETH_BALANCE");
@@ -272,18 +280,15 @@ contract D17Locker {
         position.token = ID17Launch(launch).token();
         position.wethCommitted -= spent;
 
-        if (wethForVault > 0) weth.safeTransfer(position.liquidityVault, wethForVault);
-        if (treasuryWeth > 0) weth.safeTransfer(ID17Launch(launch).treasury(), treasuryWeth);
-        if (protocolFeeWeth > 0) weth.safeTransfer(ID17Launch(launch).protocolFeeRecipient(), protocolFeeWeth);
         accountedWeth -= spent;
-
-        if (late) {
-            ID17VaultLateLiquidity(position.liquidityVault).mintLateLiquidity(lateLpTokens, wethForVault);
-        }
 
         position.residualWeth += position.wethCommitted;
         withdrawableWeth += position.wethCommitted;
         position.wethCommitted = 0;
+
+        if (wethForVault > 0) weth.safeTransfer(position.liquidityVault, wethForVault);
+        if (treasuryWeth > 0) weth.safeTransfer(ID17Launch(launch).treasury(), treasuryWeth);
+        if (protocolFeeWeth > 0) weth.safeTransfer(ID17Launch(launch).protocolFeeRecipient(), protocolFeeWeth);
 
         emit VaultSettlementCompleted(
             launch,

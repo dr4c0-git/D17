@@ -15,7 +15,7 @@ This is a plain-language explanation of the D17 V15 contracts for someone consid
 | `D17FeeSplitter` | Optional fee recipient with no owner. It splits the protocol fee it receives between fixed addresses, in fixed shares set once at deployment. Anyone can trigger the split. |
 | `D17Launch` | Holds the launch rules and accounting. It controls rounds, refunds, finalization, settlement amounts, and the official-pool records. |
 | `D17Locker` | Your personal vault and claim agent. It holds your WETH and, after settlement, your purchased tokens. A locker can hold positions in more than one launch. |
-| `D17LiquidityVault` | Creates the official token/WETH pool, receives its LP tokens, and holds those LP tokens permanently. It also adds late settlers' liquidity and vests the creator allocation. |
+| `D17LiquidityVault` | Creates the official token/WETH pool, receives its LP tokens, and holds those LP tokens permanently. It also vests the creator allocation and, if a launch fails, returns the take-back penalties to the buyers who paid them. |
 | `D17Token` | The launched ERC-20 token. It fixes the maximum supply and blocks transfers and holder burns until the official pool opens. |
 | `D17TokenFactory` | A narrow factory that only the pinned launch factory can use to create tokens. |
 | `D17LiquidityVaultFactory` | A narrow factory that only the pinned launch factory can use to create liquidity vaults. |
@@ -65,9 +65,9 @@ The creator does choose the launch's timings, allocation split, minimums, treasu
 
 ### 3. Your position takes one of three paths
 
-**Normal refund:** the applicable round commitment is removed. The penalty is paid into the launch's liquidity vault and deepens the official pool (it is burned if the launch fails); it never goes to the creator. The remainder becomes withdrawable WETH in your locker. You must then withdraw it to your wallet.
+**Normal refund:** the applicable round commitment is removed. The penalty is paid into the launch's liquidity vault and deepens the official pool (if the launch fails, it is returned to you); it never goes to the creator. The remainder becomes withdrawable WETH in your locker. You must then withdraw it to your wallet.
 
-**Failed launch:** all WETH still committed by your locker becomes withdrawable without a penalty. Penalties already paid on earlier round-1 refunds are burned. This is a claim, not an automatic push; the locker owner must call the failed-launch refund and then withdraw the WETH.
+**Failed launch:** all WETH still committed by your locker becomes withdrawable without a penalty, and so do the penalties you already paid on earlier round-1 refunds: you get back everything you put in. This is a claim, not an automatic push; the locker owner must call the failed-launch refund and then withdraw the WETH.
 
 **Successful launch:** settlement calculates your final token entitlement. Your WETH is divided between the official liquidity path, the published treasury fee and the published protocol fee. Your purchased tokens are sent into your locker. You can withdraw those tokens to your wallet once the official pool has opened trading.
 
@@ -150,9 +150,8 @@ For a successful launch, the user-visible sequence is:
 1. **Finalize.** After round 5, anyone can finalize once. Finalization records total committed WETH, fixes the final-round token pool, and burns unsold sale tokens and the unused LP allocation.
 2. **Settle and claim.** The locker owner may settle at any time after the launch is finalizable. Settlement does not expire. It calculates the exact tokens owed and the WETH split.
 3. **Permissionless settlement after grace.** Once `poolCreationOpensAt` is reached, anyone may call `settleAfterGrace` for a known locker. The caller receives nothing; the outcome stays assigned to the locker owner.
-4. **Create the official pool.** After the fixed settlement window and scheduled trading boundary, anyone may create the pool once at least one position is settled. The initial pool uses the WETH settled so far plus every refund penalty, and the matching proportional LP-token allocation.
-5. **Late top-up.** A locker settled after pool creation receives the same token entitlement and pays the same configured fees. Its liquidity WETH and reserved token share are added to the official pair atomically at the pair's current price.
-6. **Withdraw and trade.** Purchased tokens first sit in the locker. Only the locker owner can withdraw them, and only after the official pool has opened. Refund WETH and any residual WETH are withdrawn separately by the owner.
+4. **Create the official pool.** After the fixed settlement window and scheduled trading boundary, anyone may create the pool once **every** final commitment is settled. Absent buyers do not block it: anyone can settle them (step 3), one by one or up to 8 at a time through the locker factory's `settleAfterGraceBatch`. The pool receives the exact WETH of every settled position plus every refund penalty, and the whole effective LP-token allocation.
+5. **Withdraw and trade.** Purchased tokens first sit in the locker. Only the locker owner can withdraw them, and only after the official pool has opened. Refund WETH and any residual WETH are withdrawn separately by the owner.
 
 "Claim" therefore does not always mean "tokens appear immediately in your wallet." Settlement claims them into your locker. A separate owner-only withdrawal moves them from the locker to your wallet after trading opens.
 
@@ -174,9 +173,9 @@ Locked liquidity prevents the creator from withdrawing the vault's LP position. 
 
 The factory checks hard safety bounds and structural consistency. It does not judge whether a launch is a good deal. The creator chooses the treasury address, treasury fee, refund penalty, round allocation, minimums, timing and creator allocation. Read the actual values for each launch.
 
-### Late liquidity can meet a moved market
+### Opening the pool can take a few transactions
 
-Late settlement adds liquidity at the pair's current price; the part that cannot be paired at that price is burned. Someone who moves the price around a late settlement pays swap fees both ways and can at most capture the impermanent loss of that late liquidity. The participant still receives the same sale-token entitlement and pays the same WETH amount.
+Trading opens only once every buyer is settled. If some buyers never collect, someone has to settle them after the claim window and pay the gas (8 per transaction). Their tokens still go to their own locker.
 
 ### External contracts matter
 

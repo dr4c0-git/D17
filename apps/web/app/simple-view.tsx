@@ -90,7 +90,7 @@ export type SimpleModel = {
   canClose: boolean;
   canCollect: boolean;
   canOpenTrading: boolean;
-  anyCollected: boolean; // the contract only opens trading once at least one buyer has collected
+  uncollectedCount: number; // buyers not settled yet: the contract opens trading only once this is 0
   canSend: boolean;
   canRecover: boolean;
   tokenAddress: string;
@@ -106,6 +106,7 @@ export type SimpleModel = {
     close: () => void;
     collect: () => void;
     openTrading: () => void;
+    collectForOthers: () => void; // anyone settles up to 8 absent buyers after the claim window
     send: () => void;
     recover: () => void;
     sendEth: () => void;
@@ -266,9 +267,10 @@ function statusText(m: SimpleModel): { title: string; detail: string } {
     case "pool-ready":
       return {
         title: "Ready to open trading",
-        detail: m.anyCollected
-          ? "Anyone can now open trading. The raised ETH and the tokens go into a trading pool that stays locked forever."
-          : "Trading opens as soon as one buyer has collected their tokens. The raised ETH and the tokens then go into a trading pool that stays locked forever.",
+        detail:
+          m.uncollectedCount === 0
+            ? "Anyone can now open trading. The raised ETH and the tokens go into a trading pool that stays locked forever."
+            : `${m.uncollectedCount} buyer${m.uncollectedCount > 1 ? "s have" : " has"} not collected yet. Trading opens once everyone has: anyone can collect for them, and their tokens still go to their own vault.`,
       };
     case "trading":
       return { title: "Trading is open", detail: "The sale is finished and the token can now be bought and sold." };
@@ -413,7 +415,7 @@ function ActionCard({ m }: { m: SimpleModel }) {
   const symbol = m.launch?.symbol || "tokens";
   const round = m.roundIndex + 1;
   const current = m.rounds[m.roundIndex];
-  // Round 1 missed its minimum: the launch will be cancelled, so taking ETH back now only costs a fee.
+  // Round 1 missed its minimum: the launch will be cancelled and everyone gets everything back.
   const roundOneMissed = m.roundIndex === 0 && m.minimumEth > 0 && !m.minimumReached;
   let body: ReactNode = null;
 
@@ -478,8 +480,8 @@ function ActionCard({ m }: { m: SimpleModel }) {
         <Steps m={m} verb={roundOneMissed ? "Wait for the cancellation" : "Take back my ETH (optional)"} />
         {roundOneMissed ? (
           <p className="mt-3 text-[15px] leading-relaxed text-dim">
-            Nothing to do. <span className="font-semibold text-ink">Do not take your ETH back now</span>: it would cost
-            {" "}{m.takeBack.feePct}%, while the cancellation gives everything back, with no fee.
+            Nothing to do: the cancellation gives everyone all of their ETH back, take-back fees included, so there is no
+            need to take it back now.
           </p>
         ) : m.mine.rows.some((row) => row.round === m.roundIndex && row.takenBack) ? (
           <p className="mt-3 text-[15px] font-semibold leading-relaxed text-live">
@@ -537,7 +539,7 @@ function ActionCard({ m }: { m: SimpleModel }) {
         )}
         {m.phase === "pool-ready" && (
           <div className="mt-5 border-t border-faint pt-4">
-            {m.anyCollected ? (
+            {m.uncollectedCount === 0 ? (
               <>
                 <p className="text-[15px] leading-relaxed text-dim">
                   Everything is ready: anyone can open trading now.
@@ -545,16 +547,27 @@ function ActionCard({ m }: { m: SimpleModel }) {
                 <Cta m={m} label="Open trading" onClick={m.actions.openTrading} disabled={!m.canOpenTrading} needsVault={false} />
               </>
             ) : (
-              <p className="text-[15px] leading-relaxed text-dim">
-                Trading can open as soon as one buyer has collected their tokens.
-              </p>
+              <>
+                <p className="text-[15px] leading-relaxed text-dim">
+                  {m.uncollectedCount} buyer{m.uncollectedCount > 1 ? "s have" : " has"} not collected yet, and trading only opens
+                  once everyone has. Anyone can collect for them (up to 8 at a time): their tokens go to their own vault, you only
+                  pay the network fee.
+                </p>
+                <Cta
+                  m={m}
+                  label={`Collect for ${Math.min(m.uncollectedCount, 8)} buyer${Math.min(m.uncollectedCount, 8) > 1 ? "s" : ""}`}
+                  onClick={m.actions.collectForOthers}
+                  disabled={Boolean(m.pending)}
+                  needsVault={false}
+                />
+              </>
             )}
           </div>
         )}
       </>
     );
   } else if (m.phase === "trading") {
-    // Nobody collected this position before trading opened: it can still be collected (late settlement).
+    // Launches before V15.1 could open trading with positions still to collect (late settlement).
     const toCollect = m.wallet.connected && !m.mine.collected && m.mine.totalTokens > 0;
     const inWallet = m.wallet.connected && m.mine.collected && m.mine.totalEth > 0 && m.mine.tokensToSend === 0;
     body = (
@@ -922,7 +935,7 @@ function HowItWorks({ m }: { m: SimpleModel }) {
     m.minimumEth > 0 ? (
       <>
         If round 1 raises less than <b>{eth(m.minimumEth)} ETH</b>, the launch is cancelled and everyone gets all of their ETH
-        back.
+        back, take-back fees included.
       </>
     ) : null,
     <>
@@ -933,6 +946,10 @@ function HowItWorks({ m }: { m: SimpleModel }) {
         </>
       ) : null}
       . The fee goes into the trading pool, not to anyone.
+    </>,
+    <>
+      Trading opens only once every buyer has collected their tokens. Anyone can collect for a buyer who is away, and the
+      tokens still go to that buyer&apos;s own vault.
     </>,
     <>
       Of every 1 ETH that stays in: <b>{poolEthPct}%</b> is locked forever in the trading pool, <b>{r.creatorEthPct}%</b> goes to

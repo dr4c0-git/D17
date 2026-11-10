@@ -146,6 +146,25 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "locker",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "penaltyWeth",
+        "type": "uint256"
+      }
+    ],
+    "name": "FailedPenaltyRefunded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "uint256",
         "name": "finalizedAt",
@@ -526,6 +545,19 @@
   },
   {
     "inputs": [],
+    "name": "FAILED_REFUND_POLICY",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "FINAL_ROUND",
     "outputs": [
       {
@@ -816,31 +848,31 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "saleTokenAmount",
+        "name": "",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "wethForVault",
+        "name": "",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "treasuryWeth",
+        "name": "",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "protocolFeeWeth",
+        "name": "",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "lateLpTokens",
+        "name": "",
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -967,12 +999,44 @@
   },
   {
     "inputs": [],
+    "name": "exactCommittedLiquidityWeth",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "factory",
     "outputs": [
       {
         "internalType": "address",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "failedPenaltyWethRefunded",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1388,6 +1452,19 @@
   {
     "inputs": [],
     "name": "penaltyWethPaid",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "penaltyWethRefunded",
     "outputs": [
       {
         "internalType": "uint256",

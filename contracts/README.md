@@ -41,8 +41,10 @@ npm run check:explorer
 
 The local end-to-end suite covers factory wiring, metadata, configuration
 bounds, failed launches, all five rounds, refunds, finalization, settlement,
-pool creation, late liquidity top-ups, price divergence, token conservation and
-adversarial reverts.
+pool creation once every commitment is settled (including third-party settlement
+of absent lockers), price divergence, token conservation and adversarial reverts.
+V15.1 adds suites for failed-launch refunds, callback safety, minimum liquidity
+and the exact rounding model (`npm test`).
 
 ## Public deployments
 

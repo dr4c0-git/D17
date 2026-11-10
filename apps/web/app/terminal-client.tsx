@@ -1270,6 +1270,11 @@ function ParticipantsTerminal() {
     [lockerSummaries]
   );
   const settledLockerCount = lockerSummaries.filter((item) => item.settled).length;
+  // V15.1 opens the pool only once every buyer with a final commitment is settled; anyone can
+  // settle absent buyers after the claim window (D17LockerFactory.settleAfterGraceBatch).
+  const unsettledLockers = lockerSummaries
+    .filter((item) => !item.settled && netCommitted(item) > 0n)
+    .map((item) => item.locker);
 
   // Facts for the lifecycle stage expandables - event-derived, so replay
   // mode shows period-correct history too.
@@ -2918,6 +2923,23 @@ function ParticipantsTerminal() {
     });
   };
 
+  const settleOthers = async () => {
+    await sendTx("settle absent buyers", async (signer) => {
+      requireAddress(launchAddress, "Launch contract");
+      const factoryAddress = schemaContracts.lockerFactory || lockerFactoryAddress;
+      requireAddress(factoryAddress, "D17LockerFactory");
+      const factory = await contractWithSigner("D17LockerFactory", factoryAddress, signer);
+      const batch = unsettledLockers.slice(0, 8);
+      if (batch.length === 0) throw new Error("Every buyer has already collected.");
+      // The factory refuses a batch without about 1M gas per locker (EIP-150 forwarding).
+      const tx = (await factory.settleAfterGraceBatch(launchAddress, batch, {
+        gasLimit: BigInt(batch.length) * 1_100_000n + 300_000n,
+      })) as ethers.ContractTransactionResponse;
+      await waitForTx(tx, "Settlement of absent buyers");
+      return tx.hash;
+    });
+  };
+
   const releaseCreatorTokens = async () => {
     await sendTx("release creator tokens", async (signer) => {
       requireAddress(liquidityVaultAddress, "Liquidity vault");
@@ -3394,7 +3416,7 @@ function ParticipantsTerminal() {
     canClose: canFinalize && !isReplay,
     canCollect: canSettleAndClaim && !isReplay,
     canOpenTrading: phase?.phaseKind === PHASE.POOL_READY && !ethers.isAddress(poolAddress) && !isReplay,
-    anyCollected: settledLockerCount > 0 || Boolean(position?.liquiditySettled),
+    uncollectedCount: unsettledLockers.length,
     canSend: canWithdrawTokens && !isReplay,
     canRecover: canFailedRefund && hasLocker && Number(position?.lockedWeth || 0) > 0 && !isReplay,
     tokenAddress,
@@ -3427,6 +3449,7 @@ function ParticipantsTerminal() {
       close: () => void finalizeLaunch(),
       collect: () => void settleAndClaim(),
       openTrading: () => void createOfficialPool(),
+      collectForOthers: () => void settleOthers(),
       send: () => void withdrawTokens(position?.withdrawableTokensExact),
       recover: () => void refundFailedLaunch(),
       sendEth: () => void withdrawEthToWallet(),
@@ -3730,10 +3753,11 @@ function ParticipantsTerminal() {
                 ethers.isAddress(poolAddress)
                   ? { status: "created" }
                   : phase?.phaseKind === PHASE.POOL_READY && !isReplay
-                    ? { status: "available", busy: Boolean(pendingAction) }
+                    ? { status: "available", busy: Boolean(pendingAction), unsettled: unsettledLockers.length }
                     : { status: "hidden" }
               }
               onCreatePool={() => void createOfficialPool()}
+              onSettleOthers={() => void settleOthers()}
               creatorVesting={creatorVesting}
               creatorReleaseBusy={Boolean(pendingAction) || isReplay}
               onReleaseCreatorTokens={() => void releaseCreatorTokens()}
@@ -5008,7 +5032,8 @@ type FactRow = { label: string; value: string; href?: string };
 /** CREATE POOL is permissionless - the button lives in the rail's POOL
  *  READY row, visible only while creation is actually available, and reads
  *  as completed the moment anyone succeeds. */
-type PoolAction = { status: "hidden" | "available" | "created"; busy?: boolean };
+// `unsettled`: buyers still to settle before the pool can open (V15.1 all-settled gate).
+type PoolAction = { status: "hidden" | "available" | "created"; busy?: boolean; unsettled?: number };
 
 /** Creator allocation held by the liquidity vault (V15). */
 type CreatorVesting = {
@@ -5199,6 +5224,7 @@ function LaunchTimeline({
   facts,
   poolAction,
   onCreatePool,
+  onSettleOthers,
   creatorVesting,
   creatorReleaseBusy,
   onReleaseCreatorTokens,
@@ -5212,6 +5238,7 @@ function LaunchTimeline({
   facts: LifecycleFacts;
   poolAction: PoolAction;
   onCreatePool: () => void;
+  onSettleOthers: () => void;
   creatorVesting: CreatorVesting | null;
   creatorReleaseBusy: boolean;
   onReleaseCreatorTokens: () => void;
@@ -5287,7 +5314,17 @@ function LaunchTimeline({
           const panel = expandable && isExpanded && (
             <div className="border-b border-faint px-4 pb-3 pt-1 sm:px-6">
               {lifecyclePanelBody}
-              {stage.id === "pool-ready" && poolAction.status === "available" && (
+              {stage.id === "pool-ready" && poolAction.status === "available" && (poolAction.unsettled ?? 0) > 0 && (
+                <button
+                  type="button"
+                  onClick={onSettleOthers}
+                  disabled={poolAction.busy}
+                  className="mt-2 w-full border border-ink px-3 py-2 text-center font-mono text-[11px] uppercase tracking-[0.04em] text-ink transition-opacity disabled:opacity-40"
+                >
+                  {poolAction.busy ? "Working…" : `Settle ${Math.min(poolAction.unsettled ?? 0, 8)} of ${poolAction.unsettled} unsettled lockers →`}
+                </button>
+              )}
+              {stage.id === "pool-ready" && poolAction.status === "available" && (poolAction.unsettled ?? 0) === 0 && (
                 <button
                   type="button"
                   onClick={onCreatePool}
@@ -7088,6 +7125,9 @@ function parseContractError(error: unknown) {
     GRACE_OPEN: "The claim window is still open.",
     UNSETTLED_LOCKERS: "Not all final commitments are settled yet, so the official pool cannot be created.",
     NO_SETTLED_LIQUIDITY: "No settled liquidity has reached the vault yet.",
+    UNSETTLED_COMMITMENTS: "Some buyers have not collected yet: settle them first, then open trading.",
+    LATE_SETTLEMENT_DISABLED: "Every buyer is settled before trading opens: there is nothing left to collect.",
+    LIQUIDITY_ACCOUNTING: "The settled liquidity does not match the launch accounting.",
     NO_LIQUIDITY_TOKENS: "There are no LP-side tokens available for the pool.",
     NO_WETH_FOR_POOL: "No WETH is available for pool creation.",
     POOL_CREATED: "The official pool has already been created.",

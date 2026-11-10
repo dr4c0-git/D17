@@ -36,6 +36,7 @@ contract D17FeeSplitter {
 
     constructor(address weth_, address[] memory recipients_, uint16[] memory sharesBps_) {
         require(weth_ != address(0), "WETH_ZERO");
+        require(weth_.code.length > 0, "WETH_NO_CODE");
         require(recipients_.length > 0 && recipients_.length <= MAX_RECIPIENTS, "RECIPIENT_COUNT");
         require(recipients_.length == sharesBps_.length, "LENGTH_MISMATCH");
         uint256 total;
@@ -60,6 +61,10 @@ contract D17FeeSplitter {
     /// @notice Forwards this contract's whole balance of `token` to the recipients. Anyone can
     /// call it. The last recipient receives the rounding remainder, so nothing is left behind.
     function distribute(address token) public nonReentrant returns (uint256 total) {
+        return _distribute(token);
+    }
+
+    function _distribute(address token) private returns (uint256 total) {
         total = _balanceOf(token);
         if (total == 0) return 0;
         uint256 paid;
@@ -75,10 +80,10 @@ contract D17FeeSplitter {
     }
 
     /// @notice Wraps any plain ETH held here into WETH, then distributes the WETH balance.
-    function distributeEth() external returns (uint256 total) {
+    function distributeEth() external nonReentrant returns (uint256 total) {
         uint256 ethBalance = address(this).balance;
         if (ethBalance > 0) IWETH(weth).deposit{value: ethBalance}();
-        return distribute(weth);
+        return _distribute(weth);
     }
 
     function _balanceOf(address token) private view returns (uint256) {

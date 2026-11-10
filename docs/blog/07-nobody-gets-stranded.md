@@ -12,13 +12,11 @@ When the five rounds complete, the launch needs finalizing - the step that snaps
 
 On D17, `finalize` is **permissionless**. Any address can call it once the rounds are done. The creator finalizing their own launch is a courtesy, not a requirement; if they vanish at the finish line, the next interested participant - or an indexer bot, or you - completes the launch. The contract doesn't care whose gas it was.
 
-## Claiming late costs you nothing extra
+## Being away costs you nothing
 
-After finalization comes settlement: each participant's locker converts its committed WETH into tokens, paying the published fees and sending the liquidity share to the pool. Here D17 makes a promise most sales don't: **late settlement gives the same outcome as on-time settlement, and it never expires.**
+After finalization comes settlement: each participant's locker converts its committed WETH into tokens, paying the published fees and sending the liquidity share to the pool. Trading opens only once every position is settled, so nobody's liquidity arrives after the market has moved.
 
-Settle the day the window opens, or settle next year - you receive the same sale-token entitlement for the same commitment and pay the same fees. Your liquidity share joins the pool at its price at that moment, alongside a reserved share of liquidity tokens that waited for you in the launch. The resulting LP tokens are minted to the vault. There is no deadline after which your position decays and no unclaimed-position sweep to anyone.
-
-One thing late settlement deliberately does *not* give you is an advantage. Whatever part of your liquidity share can't be paired at the current price is burned rather than returned, so waiting to see which way the market goes earns nothing.
+If you are away when the claim window closes, anyone can settle your position for you - typically the creator, who wants trading to open. You receive exactly the same tokens for the same commitment and pay exactly the same fees; the tokens land in your own vault, and the person who settled you gets nothing but the gas bill. There is no deadline after which your position decays and no unclaimed-position sweep to anyone.
 
 ## Even settlement itself can be done for you
 
@@ -28,7 +26,7 @@ The same philosophy runs through every other step:
 
 - **Pool creation** is permissionless once its conditions are met.
 - **Creator vesting** is released by anyone who presses the button - and the tokens can only go to the creator address fixed in the rules.
-- **Cleanup** is public too: once everyone has settled, anyone can burn the rounding dust left in the launch; if a launch fails, anyone can burn the early-refund penalties that have no pool to go to.
+- **Cleanup** is public too: once everyone has settled, anyone can burn the rounding dust left in the launch. If a launch fails, every buyer gets back everything they put in, early-refund penalties included.
 
 Every step from "rounds over" to "token trading" can be walked by the public.
 
@@ -40,4 +38,4 @@ The lifecycle has no step that requires a specific person, and no claim that exp
 
 ---
 
-*The mechanics: `finalizeLaunch` is permissionless once rounds complete; settlement is claimable forever with late claims outcome-identical in tokens and fees (reserved LP tokens, capped at the remaining reserve, are added at the pair's live ratio with the remainder burned); after the grace period anyone may run `settleAfterGrace` for any locker; `createOfficialPool`, `releaseCreatorTokens`, `burnResidualTokens` and `burnFailedLaunchPenalties` are permissionless.*
+*The mechanics: `finalizeLaunch` is permissionless once rounds complete; `createOfficialPool` requires every final commitment settled; after the grace period anyone may run `settleAfterGrace` for any locker, or `settleAfterGraceBatch` for up to 8, with outcomes identical in tokens and fees; `createOfficialPool`, `releaseCreatorTokens` and `burnResidualTokens` are permissionless; a failed launch's refund returns principal and penalties.*

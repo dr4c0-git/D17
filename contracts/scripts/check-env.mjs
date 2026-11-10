@@ -134,10 +134,8 @@ if (chainId === 1) {
   const router = address("UNISWAP_V2_ROUTER");
   if (weth && weth !== MAINNET_WETH) problems.push(`WETH_ADDRESS must be the mainnet WETH, ${MAINNET_WETH}.`);
   if (router && router !== MAINNET_ROUTER) problems.push(`UNISWAP_V2_ROUTER must be the mainnet Uniswap V2 router, ${MAINNET_ROUTER}.`);
-  if (feeOwner) {
-    const code = await provider.getCode(feeOwner).catch(() => null);
-    if (code === "0x") problems.push("FEE_CONFIG_OWNER must be the Safe (multisig) address on mainnet: this address is a plain wallet. Or leave it empty and set RENOUNCE_FEE_CONFIG_OWNER=1.");
-    else if (code) show("Fee config owner type", "contract (Safe expected)");
+  if (!renounceFeeConfig) {
+    problems.push("Set RENOUNCE_FEE_CONFIG_OWNER=1 and leave FEE_CONFIG_OWNER empty: on mainnet the factory only accepts launches once the fee config has no owner.");
   }
   if (process.env.D17_CONFIRM_MAINNET_DEPLOY !== "1") problems.push("Add D17_CONFIRM_MAINNET_DEPLOY=1 to confirm the mainnet deployment.");
   if (!process.env.ETHERSCAN_API_KEY) problems.push("ETHERSCAN_API_KEY is empty: it is needed right after the deployment (verify:etherscan).");

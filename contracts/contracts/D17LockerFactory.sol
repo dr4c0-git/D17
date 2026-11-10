@@ -5,13 +5,17 @@ import {D17Locker} from "./D17Locker.sol";
 
 interface ID17LockerRegistry {
     function weth() external view returns (address);
+    function isLocker(address locker) external view returns (bool);
     function registerLockerFor(address lockerOwner, address locker) external;
 }
 
 contract D17LockerFactory {
     address public immutable d17Factory;
+    uint256 public constant MAX_SETTLEMENT_BATCH = 8;
+    uint256 public constant SETTLEMENT_CALL_GAS = 1_000_000;
 
     event LockerCreated(address indexed owner, address indexed locker);
+    event BatchSettlementResult(address indexed launch, address indexed locker, bool success);
 
     constructor(address d17Factory_) {
         require(d17Factory_ != address(0), "FACTORY_ZERO");
@@ -26,5 +30,30 @@ contract D17LockerFactory {
         locker = address(new D17Locker(lockerOwner, d17Factory, registry.weth()));
         registry.registerLockerFor(lockerOwner, locker);
         emit LockerCreated(lockerOwner, locker);
+    }
+
+    /// @notice Optional permissionless cleanup after grace. Each canonical Locker retains
+    /// its own checks and sends claims only to its owner-controlled escrow. Bad inputs,
+    /// duplicates and already-settled positions do not block the rest of a bounded batch.
+    /// Direct Locker.settleAfterGrace remains available if future gas costs exceed the cap.
+    function settleAfterGraceBatch(address launch, address[] calldata lockers)
+        external
+        returns (uint256 completed)
+    {
+        uint256 count = lockers.length;
+        require(count > 0 && count <= MAX_SETTLEMENT_BATCH, "BATCH_SIZE");
+        // Reserve enough for every subcall plus EIP-150 forwarding and per-item overhead.
+        require(gasleft() >= count * (SETTLEMENT_CALL_GAS + 25_000) + 100_000, "BATCH_GAS");
+        for (uint256 i; i < count; i++) {
+            address locker = lockers[i];
+            bool success;
+            if (ID17LockerRegistry(d17Factory).isLocker(locker)) {
+                try D17Locker(payable(locker)).settleAfterGrace{gas: SETTLEMENT_CALL_GAS}(launch) returns (uint256) {
+                    success = true;
+                    completed++;
+                } catch {}
+            }
+            emit BatchSettlementResult(launch, locker, success);
+        }
     }
 }

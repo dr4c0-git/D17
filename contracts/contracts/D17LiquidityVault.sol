@@ -5,8 +5,8 @@ import {D17SafeTransfer} from "./lib/D17SafeTransfer.sol";
 import {ID17FactoryView, ID17Launch, IERC20BalanceView, IV2Factory, IV2PairView, IV2Router, IWETH} from "./interfaces/ID17.sol";
 
 /// @notice Owns the official pair's LP forever (there is no LP withdrawal path), pairs the
-/// launch's liquidity WETH and refund penalties with the LP token share, adds late settlers'
-/// liquidity at the pair's live ratio, and vests the creator allocation.
+/// launch's entire liquidity WETH and refund penalties with the LP token share before
+/// trading opens, and vests the creator allocation.
 contract D17LiquidityVault {
     using D17SafeTransfer for address;
 
@@ -35,6 +35,7 @@ contract D17LiquidityVault {
     uint256 public lateTokensBurned;
     uint256 public lateWethBurned;
     uint256 public failedLaunchPenaltyWethBurned;
+    uint256 public failedLaunchPenaltyWethRefunded;
     uint256 public creatorTokensReleased;
     uint256 public preseededTokenReserve;
     uint256 public preseededWethReserve;
@@ -58,6 +59,7 @@ contract D17LiquidityVault {
         uint256 wethBurned
     );
     event FailedLaunchPenaltiesBurned(uint256 amount);
+    event FailedLaunchPenaltyReturned(address indexed locker, uint256 amount);
     event CreatorTokensReleased(address indexed recipient, uint256 amount);
     event ExcessWethSwept(address indexed recipient, uint256 amount);
     event UnsupportedTokenRecovered(address indexed token, address indexed recipient, uint256 amount);
@@ -166,74 +168,10 @@ contract D17LiquidityVault {
         emit OfficialPoolCreated(pair, liquidityTokens, wethForPool, liquidity, tokenBalanceBefore, preseededWethReserve);
     }
 
-    /// @notice Adds a late settler's LP-share WETH plus its reserved LP-token share to the
-    /// official pair, minting LP to this vault (permanently locked). Called by the settling
-    /// locker in the same transaction as claimLateSettlement().
-    ///
-    /// The deposit is balanced at the pair's live reserve ratio, so it never donates a
-    /// one-sided surplus that a sandwich could capture. Whatever cannot be paired at that
-    /// ratio (tokens if the price rose since launch, WETH if it fell) is burned: no one,
-    /// including the late settler, gains from settling late or from moving the price.
-    function mintLateLiquidity(uint256 tokenAmount, uint256 wethAmount)
-        external
-        nonReentrant
-        returns (uint256 liquidity)
-    {
-        require(poolCreated, "POOL_NOT_CREATED");
-        require(
-            ID17FactoryView(ID17Launch(launch).factory()).isLocker(msg.sender),
-            "NOT_D17_LOCKER"
-        );
-        require(
-            IERC20BalanceView(token).balanceOf(address(this)) >= tokenAmount + lockedCreatorTokens(),
-            "VAULT_TOKEN_BALANCE"
-        );
-        require(IERC20BalanceView(weth).balanceOf(address(this)) >= wethAmount, "VAULT_WETH_BALANCE");
-
-        address pair = officialPair;
-        (uint256 tokenReserve, uint256 wethReserve) = _pairReserves(pair);
-        uint256 tokenUsed;
-        uint256 wethUsed;
-        if (tokenAmount > 0 && wethAmount > 0 && tokenReserve > 0 && wethReserve > 0) {
-            wethUsed = tokenAmount * wethReserve / tokenReserve;
-            if (wethUsed <= wethAmount) {
-                tokenUsed = tokenAmount;
-            } else {
-                wethUsed = wethAmount;
-                tokenUsed = wethAmount * tokenReserve / wethReserve;
-            }
-            uint256 supply = IV2PairView(pair).totalSupply();
-            uint256 tokenLp = tokenUsed * supply / tokenReserve;
-            uint256 wethLp = wethUsed * supply / wethReserve;
-            // Too small to mint even one LP wei: burn instead of reverting, so a dust-sized
-            // late position can always settle.
-            if ((tokenLp < wethLp ? tokenLp : wethLp) == 0) {
-                tokenUsed = 0;
-                wethUsed = 0;
-            }
-        }
-
-        if (tokenUsed > 0) {
-            token.safeTransfer(pair, tokenUsed);
-            weth.safeTransfer(pair, wethUsed);
-            liquidity = IV2PairView(pair).mint(address(this));
-            lateTokenUsedForLp += tokenUsed;
-            lateWethUsedForLp += wethUsed;
-            lateLpMinted += liquidity;
-        }
-
-        uint256 tokensBurned = tokenAmount - tokenUsed;
-        uint256 wethBurned = wethAmount - wethUsed;
-        if (tokensBurned > 0) {
-            token.safeBurn(tokensBurned);
-            lateTokensBurned += tokensBurned;
-        }
-        if (wethBurned > 0) {
-            weth.safeTransfer(BURN_ADDRESS, wethBurned);
-            lateWethBurned += wethBurned;
-        }
-
-        emit LateLiquidityAdded(msg.sender, pair, tokenUsed, wethUsed, liquidity, tokensBurned, wethBurned);
+    /// @notice Legacy ABI only. V15.1 has no post-open funding or surplus burning path.
+    function mintLateLiquidity(uint256, uint256) external view returns (uint256) {
+        require(ID17FactoryView(ID17Launch(launch).factory()).isLocker(msg.sender), "NOT_D17_LOCKER");
+        revert("LATE_SETTLEMENT_DISABLED");
     }
 
     /// @notice Releases the vested part of the creator allocation to the creator wallet.
@@ -247,18 +185,25 @@ contract D17LiquidityVault {
         emit CreatorTokensReleased(recipient, amount);
     }
 
-    /// @notice Refund penalties paid during a launch that then failed have no pool to go
-    /// to. They are burned rather than handed to the creator, the protocol or the refunder.
-    function burnFailedLaunchPenalties() external nonReentrant returns (uint256 amount) {
-        require(ID17Launch(launch).launchFailed(), "LAUNCH_NOT_FAILED");
-        amount = IERC20BalanceView(weth).balanceOf(address(this));
-        require(amount > 0, "NO_WETH");
-        failedLaunchPenaltyWethBurned += amount;
-        weth.safeTransfer(BURN_ADDRESS, amount);
-        emit FailedLaunchPenaltiesBurned(amount);
+    /// @notice Legacy ABI only. Failed-launch WETH must never be sent to dead.
+    function burnFailedLaunchPenalties() external pure returns (uint256) {
+        revert("FAILED_PENALTIES_REFUND_ONLY");
     }
 
-    /// @notice After pool creation every legitimate WETH flow through the vault is atomic,
+    /// @notice The bound launch consumes a recorded claim before returning its exact
+    /// penalty to that Locker. Unsolicited donations do not increase any claim.
+    function returnFailedPenalty(address locker, uint256 amount) external nonReentrant {
+        require(msg.sender == launch, "NOT_LAUNCH");
+        require(ID17Launch(launch).launchFailed(), "LAUNCH_NOT_FAILED");
+        require(!poolCreated, "POOL_CREATED");
+        require(ID17FactoryView(ID17Launch(launch).factory()).isLocker(locker), "NOT_D17_LOCKER");
+        require(amount > 0, "AMOUNT_ZERO");
+        failedLaunchPenaltyWethRefunded += amount;
+        weth.safeTransfer(locker, amount);
+        emit FailedLaunchPenaltyReturned(locker, amount);
+    }
+
+    /// @notice After pool creation every legitimate funding position has already settled,
     /// so any balance here is an unsolicited donation.
     function sweepExcessWethToTreasury() external nonReentrant returns (uint256 amount) {
         require(poolCreated, "POOL_NOT_CREATED");
