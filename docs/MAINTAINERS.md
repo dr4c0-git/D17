@@ -84,10 +84,14 @@ Creator, Test 4 and 5 Buyers.
 - Step 1 (analysis) done. Step 2 (fee + fix for every risk) done and pushed: commits
   `f3442cb` (deployer), `fd9e635` (contracts), `4a3d92e` (tooling), `b8ecb7e` (apps),
   then docs/release, creator-vesting UI (`f5aee23`), V15 docs rewrite (`f944f69`).
-- **V15 is deployed on Sepolia** (2026-10-20, start block 11958083, factory
-  `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, fee splitter
-  `0x6ad3FAF084f554aAd54A47134bf168c4FAe9Ab23` paying Test 2 to Test 5 50/12.5/12.5/25,
-  verify 45/45). Provenance in `release/deployments/sepolia.json`. **Not on mainnet**:
+- **V15.1 is deployed on Sepolia** (2026-11-10, start block 12104784, factory
+  `0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624`, fee splitter `0xdee4D77a0Bb32Aa435c0cf66EDB793A3B17eD543` paying Test 2 / Test 5 7500/2500, fee config renounced,
+  verify 45/45), a rehearsal of the mainnet settings. Provenance in
+  `release/deployments/sepolia.json`. The first V15 suite (2026-10-20, factory
+  `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, block 11958083) is superseded.
+  Commit from the Mac with the noreply address set in the repository's git config
+  (GitHub rejects pushes that expose the private email). Never run `release:checksums`
+  on the Mac: it lists the local `.env` files; regenerate it from a clean checkout. **Not on mainnet**:
   `deployments/mainnet.json` still says `"not-deployed"`. The upstream V14 addresses are
   incompatible (different ABIs/IDs).
 

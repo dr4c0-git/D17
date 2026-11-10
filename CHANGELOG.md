@@ -3,6 +3,17 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-10 - V15.1 deployed on Sepolia
+
+- **The V15.1 suite is live on Sepolia** (block 12104784, factory
+  `0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624`), deployed with the exact mainnet settings as a rehearsal: 1% protocol fee paid
+  to a fee splitter with no owner, split 75 / 25 between two test addresses, and the fee
+  settings renounced at the end of the deployment, so nobody can change them.
+  `verify:factory`: 45 checks out of 45. Addresses and transactions in
+  `release/deployments/sepolia.json`.
+- The web app now reads this suite on Sepolia. Launches of the first V15 suite are no
+  longer listed.
+
 ## 2026-11-09 - V15.1: two contract fixes
 
 Two bugs reported by the project lead after the Sepolia test launches. Both were

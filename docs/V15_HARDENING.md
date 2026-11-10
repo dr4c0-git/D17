@@ -5,14 +5,12 @@ contracts. Every launch created by the V15 factory follows the rules below; they
 enforced by the contracts, published in each launch's `rulesHash` and cannot be changed
 after the launch is created.
 
-> **Status:** V15 is **deployed on Sepolia** (2026-10-20, factory
-> `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, protocol fee 1% paid to a
-> `D17FeeSplitter`, 45/45 deployment checks). It is **not deployed on mainnet**:
-> `deployments/mainnet.json` says `"status": "not-deployed"`. The upstream V14 deployment is **not**
-> compatible with this source tree. V15 has **not** been professionally audited.
-> **V15.1** (two bug fixes, see [V15.1 fixes](#v151-fixes)) replaces it in this source
-> tree; it is redeployed on Sepolia and run through a full launch before any mainnet
-> deployment.
+> **Status:** V15.1 (V15 plus two bug fixes, see [V15.1 fixes](#v151-fixes)) is
+> **deployed on Sepolia** (2026-11-10, factory `0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624`, protocol fee 1% paid to a
+> `D17FeeSplitter`, fee settings renounced, 45/45 deployment checks). It is **not
+> deployed on mainnet**: `deployments/mainnet.json` says `"status": "not-deployed"`. The
+> upstream V14 deployment is **not** compatible with this source tree. V15 and V15.1
+> have **not** been professionally audited.
 
 ## What participants can rely on
 
