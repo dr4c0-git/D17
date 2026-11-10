@@ -142,8 +142,9 @@ suites for failed-launch refunds, callback safety and minimum liquidity are part
   not collected yet; their liquidity was then added at the moved market price and the
   unmatched part burned. In V15.1 the pool opens **only once every final commitment is
   settled** (`UNSETTLED_COMMITMENTS` otherwise). Nobody can block it: after the claim
-  window anyone can settle an absent buyer (`D17Locker.settleAfterGrace`), or up to 8 at a
-  time (`D17LockerFactory.settleAfterGraceBatch`); the tokens always go to the buyer's own
+  window anyone can settle an absent buyer (`D17Locker.settleAfterGrace`), or up to 4 at a
+  time with 3,000,000 gas each (`D17LockerFactory.settleAfterGraceBatch`; the first port
+  gave 1,000,000, which the first Sepolia test showed was too little); the tokens always go to the buyer's own
   vault. The late-settlement functions remain in the ABI but always revert.
 
 Also in V15.1:
@@ -171,7 +172,7 @@ Also in V15.1:
   wallets on the same terms as everyone else.
 - **Opening the pool costs the absent buyers' settlement gas.** Every buyer must be
   settled before trading opens. Someone (usually the creator) pays the gas to settle
-  absent buyers, 8 per transaction; a launch with many small positions costs more to
+  absent buyers, 4 per transaction; a launch with many small positions costs more to
   open. Each position needs at least the launch's minimum commitment.
 - **Opening price set by the creator's split.** The contract accepts any LP allocation
   from 1 token, so a creator can open the pool far above the average price paid. The web

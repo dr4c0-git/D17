@@ -106,7 +106,7 @@ export type SimpleModel = {
     close: () => void;
     collect: () => void;
     openTrading: () => void;
-    collectForOthers: () => void; // anyone settles up to 8 absent buyers after the claim window
+    collectForOthers: () => void; // anyone settles up to 4 absent buyers after the claim window
     send: () => void;
     recover: () => void;
     sendEth: () => void;
@@ -550,12 +550,12 @@ function ActionCard({ m }: { m: SimpleModel }) {
               <>
                 <p className="text-[15px] leading-relaxed text-dim">
                   {m.uncollectedCount} buyer{m.uncollectedCount > 1 ? "s have" : " has"} not collected yet, and trading only opens
-                  once everyone has. Anyone can collect for them (up to 8 at a time): their tokens go to their own vault, you only
+                  once everyone has. Anyone can collect for them (up to 4 at a time): their tokens go to their own vault, you only
                   pay the network fee.
                 </p>
                 <Cta
                   m={m}
-                  label={`Collect for ${Math.min(m.uncollectedCount, 8)} buyer${Math.min(m.uncollectedCount, 8) > 1 ? "s" : ""}`}
+                  label={`Collect for ${Math.min(m.uncollectedCount, 4)} buyer${Math.min(m.uncollectedCount, 4) > 1 ? "s" : ""}`}
                   onClick={m.actions.collectForOthers}
                   disabled={Boolean(m.pending)}
                   needsVault={false}

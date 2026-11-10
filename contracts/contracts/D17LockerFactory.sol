@@ -11,8 +11,11 @@ interface ID17LockerRegistry {
 
 contract D17LockerFactory {
     address public immutable d17Factory;
-    uint256 public constant MAX_SETTLEMENT_BATCH = 8;
-    uint256 public constant SETTLEMENT_CALL_GAS = 1_000_000;
+    // One settlement used about 1M gas on Sepolia (0.5-0.7M on a local chain), so each locker
+    // gets a wide margin. A full batch must also fit the 16,777,216 gas cap per transaction
+    // (EIP-7825): 4 x (3,000,000 + 25,000) + 100,000 = 12.2M.
+    uint256 public constant MAX_SETTLEMENT_BATCH = 4;
+    uint256 public constant SETTLEMENT_CALL_GAS = 3_000_000;
 
     event LockerCreated(address indexed owner, address indexed locker);
     event BatchSettlementResult(address indexed launch, address indexed locker, bool success);

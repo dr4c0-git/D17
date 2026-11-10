@@ -45,19 +45,24 @@ const MIN_COMMIT_WEI = 1_000_000_000_000_000n;
 // The start must still be in the future when the transaction is mined, after the wallet
 // prompts and the block wait: keep at least this much lead time.
 const MIN_START_LEAD_SECONDS = 5 * 60;
-// createLaunch uses about 8.2M gas, and about 17M with a maximum-size (8 KB) logo stored
-// on-chain; simulations get a budget well above that, still under a block's gas limit.
-const SIMULATION_GAS_LIMIT = 30_000_000n;
+// Since Fusaka (EIP-7825) no transaction may use more than 16,777,216 gas, on mainnet and
+// Sepolia. createLaunch uses about 8.2M gas plus about 1,070 per byte of metadata stored
+// on-chain: the contract accepts an 8 KB logo, but only about 4 KB fits under that cap, so
+// the form stops at 4 KB.
+const MAX_TRANSACTION_GAS = 16_777_216n;
+const LOGO_MAX_BYTES = 4096;
+const SIMULATION_GAS_LIMIT = MAX_TRANSACTION_GAS;
 
 /** Gas for a real createLaunch when no node could simulate it: measured 8.2M for a launch
- *  without logo and 16.9M with an 8 KB logo (about 1,070 gas per stored metadata byte),
- *  plus a safety margin. Only the gas actually used is paid. */
+ *  without logo (about 1,070 gas per stored metadata byte on top), plus a safety margin,
+ *  never above the per-transaction cap. Only the gas actually used is paid. */
 function creationGasLimit(config: { description: string; logoSvgUri: string; links: { linkType: string; url: string }[] }) {
   const metadataBytes =
     new TextEncoder().encode(config.description).length +
     new TextEncoder().encode(config.logoSvgUri).length +
     config.links.reduce((total, link) => total + link.linkType.length + link.url.length, 0);
-  return 9_500_000n + 1_400n * BigInt(metadataBytes);
+  const limit = 9_500_000n + 1_400n * BigInt(metadataBytes);
+  return limit < MAX_TRANSACTION_GAS ? limit : MAX_TRANSACTION_GAS;
 }
 
 /** A launch contract that fails to deploy inside a simulation, or a revert with no reason,
@@ -413,7 +418,7 @@ function DeployForm() {
   if (validLinks.length > linksMax) problems.push(`more than ${linksMax} links`);
   if (linkProblems.length > 0) problems.push(`links must be https:// and ≤${urlMax} bytes`);
   if (linkTypeProblems.length > 0) problems.push("link types must be lowercase a–z, 0–9, dashes");
-  if (logoSvgUri && byteLength(logoSvgUri) > 8192) problems.push("logo over 8 KB");
+  if (logoSvgUri && byteLength(logoSvgUri) > LOGO_MAX_BYTES) problems.push("logo over 4 KB");
   // This local deployer does not ask a hosted service for permission. The
   // env kill switch above is the only UI gate; the wallet and factory enforce
   // the actual transaction rules.
@@ -614,8 +619,8 @@ function DeployForm() {
     }
     const text = await file.text();
     const uri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(text)))}`;
-    if (byteLength(uri) > 8192) {
-      setLogoError(`Logo is ${byteLength(uri)} bytes - the contract caps it at 8192. Simplify the SVG.`);
+    if (byteLength(uri) > LOGO_MAX_BYTES) {
+      setLogoError(`Logo is ${byteLength(uri)} bytes - at most ${LOGO_MAX_BYTES} fit in one transaction. Simplify the SVG.`);
       return;
     }
     setLogoSvgUri(uri);
@@ -754,7 +759,7 @@ function DeployForm() {
           </label>
         </div>
         <label className="mt-4 block">
-          <span className={fieldLabel}>Logo (optional, SVG file up to 8 KB)</span>
+          <span className={fieldLabel}>Logo (optional, SVG file up to 4 KB)</span>
           <input
             type="file"
             accept=".svg,image/svg+xml"
@@ -1070,7 +1075,7 @@ function DeployForm() {
                 <input className={FIELD} value={supply} onChange={(event) => setSupply(event.target.value)} inputMode="numeric" />
               </label>
               <label className="block">
-                <span className={LABEL}>Logo (SVG, ≤8 KB on-chain)</span>
+                <span className={LABEL}>Logo (SVG, ≤4 KB on-chain)</span>
                 <input type="file" accept=".svg,image/svg+xml" onChange={(event) => void onLogoFile(event.target.files?.[0])} className="mt-1 block w-full font-mono text-[10px] text-dim file:mr-2 file:border file:border-hairline file:bg-paper file:px-2 file:py-1 file:font-mono file:text-[10px] file:uppercase file:text-dim" />
               </label>
             </div>

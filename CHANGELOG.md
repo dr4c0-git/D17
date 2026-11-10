@@ -3,6 +3,26 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-10 - Batch settlement gas fix
+
+Found by the first Sepolia test launch of V15.1: "Collect for 1 buyer" went through but
+skipped the absent buyer.
+
+- **The batch gave each buyer too little gas.** `settleAfterGraceBatch` forwarded at most
+  1,000,000 gas per locker; a settlement costs 0.5 to 0.7 million on a local chain but
+  about 1 million on Sepolia, so the call ran out of gas and the batch skipped it (by
+  design, a failing entry never blocks the others). Each locker now gets 3,000,000 gas,
+  and a batch holds at most 4 lockers so that a full batch (about 12.2 million gas) stays
+  under the 16,777,216 gas cap per transaction (EIP-7825). Settling one buyer directly
+  (`settleAfterGrace`) was never affected.
+- New checks in `v15-1-regressions-e2e`: each settlement must cost less than half of the
+  gas the batch gives it, a full batch must fit the per-transaction cap, a batch above
+  the maximum is refused.
+- **The create form stops at a 4 KB logo** (the contract accepts 8 KB, but an 8 KB logo
+  needs about 17 million gas, above the per-transaction cap), and never asks for more gas
+  than the cap.
+- The Sepolia suite must be redeployed with this fix.
+
 ## 2026-11-10 - V15.1, complete: every buyer settled before trading
 
 The project lead's own V15.1 review went further than ours. Its contract changes are now
@@ -15,7 +35,7 @@ in this repository, with the decided 1% fee instead of its fixed 2%. Details in
   gone at the root.
 - **Trading opens only once every buyer has collected.** Nobody's liquidity reaches the
   pool after the price moved, so nothing is burned anymore. Absent buyers cannot block
-  it: after the claim window anyone can collect for them, up to 8 at a time, and their
+  it: after the claim window anyone can collect for them, up to 4 at a time, and their
   tokens still go to their own vault. The site shows "Collect for N buyers" until
   everyone is settled, then "Open trading".
 - **A cancelled launch returns everything**, including the take-back fees paid in round

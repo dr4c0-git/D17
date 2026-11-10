@@ -27,7 +27,7 @@
     ]
   },
   "standardJsonInput": "solc-input.json",
-  "standardJsonInputSha256": "b2d9e8d40f967c6818d45c389b130b54bd455ae41a05c54f0d0e698adc0862b7",
+  "standardJsonInputSha256": "b87cd6f509de1cda70c051023116bebbe65a6d59752a27e40ebae01176d72e21",
   "identities": {
     "factory": {
       "literal": "D17_FACTORY_V15_HARDENED",
@@ -91,7 +91,7 @@
       "sha256": "a39cf68ae7925180ba62ac65e4e545488338a0a4f3cc86fc959a8d3b1a8ebae2"
     },
     "contracts/contracts/D17LockerFactory.sol": {
-      "sha256": "30030b60bea24aff8b70db3a328d43a9cbcbe18e1bee74ae3cab4562cfabe6e1"
+      "sha256": "943dc417eff6158e70b9d714efe77db6f62908c2e530adbeb7b4a0b0cddd6b4b"
     },
     "contracts/contracts/D17Token.sol": {
       "sha256": "cecfdd744d4ede0f014a84870d442cfa6cd6b9216174d8bde40a580d844dee14"
@@ -305,23 +305,23 @@
     "D17LockerFactory": {
       "source": "contracts/contracts/D17LockerFactory.sol",
       "abiSha256": "9dadebec3c555970cab5d8b068ea29000acf64f309e2db0d33aa20c78f04986a",
-      "creationBytecodeBytes": 11393,
-      "creationBytecodeKeccak256": "0xe8c8c84a0cdef5fa5d6dc1efacfa73eb3297513b7bfa4e36a2f4eaf1adb5cd54",
-      "deployedBytecodeBytes": 11129,
-      "deployedBytecodeKeccak256": "0x79466ac10b5cc3c1fb9156624f542d45ad3da9671c60aac6c3f3d4d88d71dab8",
+      "creationBytecodeBytes": 11392,
+      "creationBytecodeKeccak256": "0x070b72becf092ccc8b952eff7a06bcbfeb6bd3d00af23442e2ee71589bef6c16",
+      "deployedBytecodeBytes": 11128,
+      "deployedBytecodeKeccak256": "0x597669c254ddc771309301f07572082ef4c86b9cb5b0cbd7270aa0dd1403fa84",
       "immutableReferences": {
-        "8647": [
+        "1535": [
           {
             "length": 32,
             "start": 239
           },
           {
             "length": 32,
-            "start": 907
+            "start": 906
           },
           {
             "length": 32,
-            "start": 1393
+            "start": 1392
           }
         ]
       },

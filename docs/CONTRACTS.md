@@ -150,7 +150,7 @@ For a successful launch, the user-visible sequence is:
 1. **Finalize.** After round 5, anyone can finalize once. Finalization records total committed WETH, fixes the final-round token pool, and burns unsold sale tokens and the unused LP allocation.
 2. **Settle and claim.** The locker owner may settle at any time after the launch is finalizable. Settlement does not expire. It calculates the exact tokens owed and the WETH split.
 3. **Permissionless settlement after grace.** Once `poolCreationOpensAt` is reached, anyone may call `settleAfterGrace` for a known locker. The caller receives nothing; the outcome stays assigned to the locker owner.
-4. **Create the official pool.** After the fixed settlement window and scheduled trading boundary, anyone may create the pool once **every** final commitment is settled. Absent buyers do not block it: anyone can settle them (step 3), one by one or up to 8 at a time through the locker factory's `settleAfterGraceBatch`. The pool receives the exact WETH of every settled position plus every refund penalty, and the whole effective LP-token allocation.
+4. **Create the official pool.** After the fixed settlement window and scheduled trading boundary, anyone may create the pool once **every** final commitment is settled. Absent buyers do not block it: anyone can settle them (step 3), one by one or up to 4 at a time through the locker factory's `settleAfterGraceBatch`. The pool receives the exact WETH of every settled position plus every refund penalty, and the whole effective LP-token allocation.
 5. **Withdraw and trade.** Purchased tokens first sit in the locker. Only the locker owner can withdraw them, and only after the official pool has opened. Refund WETH and any residual WETH are withdrawn separately by the owner.
 
 "Claim" therefore does not always mean "tokens appear immediately in your wallet." Settlement claims them into your locker. A separate owner-only withdrawal moves them from the locker to your wallet after trading opens.
@@ -175,7 +175,7 @@ The factory checks hard safety bounds and structural consistency. It does not ju
 
 ### Opening the pool can take a few transactions
 
-Trading opens only once every buyer is settled. If some buyers never collect, someone has to settle them after the claim window and pay the gas (8 per transaction). Their tokens still go to their own locker.
+Trading opens only once every buyer is settled. If some buyers never collect, someone has to settle them after the claim window and pay the gas (4 per transaction). Their tokens still go to their own locker.
 
 ### External contracts matter
 

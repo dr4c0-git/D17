@@ -139,7 +139,7 @@ command (it kills the shell itself); run the node as a separate background task.
 | `D17LaunchFactory` | Creates token + launch (via deployer) + vault; refuses if the token/vault factory or deployer still has an owner; mints the `manual` allocation **into the vault**. |
 | `D17LaunchDeployer` | `create`s `D17Launch` from pre-encoded params (EIP-170 headroom). Pinned, then renounced. |
 | `D17TokenFactory`, `D17LiquidityVaultFactory` | Unchanged apart from IDs. |
-| `D17LockerFactory` | V15.1: `settleAfterGraceBatch(launch, lockers[])`, up to 8 absent lockers per call, junk entries skipped. |
+| `D17LockerFactory` | V15.1: `settleAfterGraceBatch(launch, lockers[])`, up to 4 absent lockers per call, junk entries skipped. |
 | `D17Token` | Unchanged apart from ID (transfer gate before the pool exists). |
 | `D17Launch` | `LaunchParams` struct. Protocol fee frozen (immutables + `rulesHash`), penalties to the pool, anchor floor on the final round, `effectiveLpTokens`, burn of unsold + unused LP, `burnResidualTokens`, ETH→WETH sweep. V15.1: `exactCommittedLiquidityWeth` (exact per-locker pool share), pool only when `allFinalCommitmentsSettled()`, `claimLateSettlement` reverts, failed-R1 penalties returned (`FAILED_REFUND_POLICY` in `rulesHash`). |
 | `D17Locker` | Penalty → vault; pays `protocolFeeWeth`; `protocolFeeWeth` field inserted in `LockerPosition` (decode by **name**, not by index). V15.1: accounting before external calls, `failedRefundDue`. |
@@ -248,6 +248,13 @@ failure launches. Mainnet only after
 an independent audit (decided 2026-11-10). `docs/CONTRACTS_TECHNICAL.md` was refreshed for
 V15.1 (every citation re-checked against the current source, test counts from a full
 `npm run test:contracts` run).
+
+Lesson (2026-11-10): gas measured on a local chain is not the gas on a real network. A
+V15.1 settlement used 0.5 to 0.7M locally and about 1M on Sepolia, so the first batch cap
+of 1M skipped every buyer. Batches now give 3M per locker, at most 4 per call, to fit the
+16,777,216 gas cap per transaction (EIP-7825, live on Sepolia and mainnet); the create
+form caps the logo at 4 KB for the same reason. `npm run inspect:batch -w @d17/contracts --
+0xTxHash` explains a batch transaction (skipped lockers and why).
 
 ## Still to do
 

@@ -6,7 +6,7 @@
 //    V15.1 keeps the exact per-buyer sum (exactCommittedLiquidityWeth).
 // 3. Late settlement added liquidity at the moved market price and burned the unmatched
 //    part. V15.1 opens the pool only once every buyer is settled; anyone can settle absent
-//    buyers after the grace period, one by one or in batches of up to 8.
+//    buyers after the grace period, one by one or in batches of up to 4.
 // 2. Token supplies above Uniswap V2's uint112 reserve limit were accepted, so the pool
 //    could never be created after participants had committed.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -161,9 +161,22 @@ async function main() {
     );
     // Anyone settles the absent buyers in one batch; junk entries do not block it.
     const outsider = lockerFactory.connect(users[5]);
-    const batch = [lockers[1].target, lockers[2].target, lockers[1].target, leaver.target, users[5].address, lockers[0].target];
+    // Each batched settlement gets SETTLEMENT_CALL_GAS: keep a 2x margin over the real cost
+    // (it was about 1M on Sepolia, where V15.1's first 1M cap skipped every buyer), and a
+    // full batch must fit the 16,777,216 gas cap per transaction (EIP-7825).
+    const callGas = await lockerFactory.SETTLEMENT_CALL_GAS();
+    const maxBatch = await lockerFactory.MAX_SETTLEMENT_BATCH();
+    const settleCost = await lockers[1].connect(users[5]).settleAfterGrace.estimateGas(l1.launch.target);
+    assertOk("batch gives each settlement at least twice its cost", settleCost * 2n <= callGas, `${settleCost} of ${callGas}`);
+    assertOk("a full batch fits the per-transaction gas cap", maxBatch * (callGas + 25_000n) + 100_000n < 16_777_216n);
+    await expectRevert(
+      "a batch above the maximum is refused",
+      () => outsider.settleAfterGraceBatch.staticCall(l1.launch.target, Array(Number(maxBatch) + 1).fill(lockers[1].target), { gasLimit: 16_000_000 }),
+      "BATCH_SIZE"
+    );
+    const batch = [lockers[1].target, lockers[2].target, lockers[1].target, users[5].address];
     const completed = await outsider.settleAfterGraceBatch.staticCall(l1.launch.target, batch);
-    await wait(await outsider.settleAfterGraceBatch(l1.launch.target, batch), "batch settle absent buyers");
+    await wait(await outsider.settleAfterGraceBatch(l1.launch.target, batch, { gasLimit: 13_000_000 }), "batch settle absent buyers");
     assertOk("batch settles exactly the two absent buyers", completed === 2n, String(completed));
     assertOk("every buyer is settled", await l1.launch.allFinalCommitmentsSettled());
     for (const [index, locker] of lockers.entries()) {

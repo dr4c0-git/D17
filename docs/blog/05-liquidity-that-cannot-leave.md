@@ -38,4 +38,4 @@ The pattern across all of it: don't ask the deployer to behave - remove the leve
 
 ---
 
-*The mechanics: the vault creates the official pool permissionlessly from settled liquidity WETH plus all refund penalties, holds all LP tokens with no withdrawal path, opens only once every final commitment is settled (anyone may settle absent lockers after the grace period, up to 8 per batch), and vests the creator allocation over 180 days; `effectiveLpTokens = lpTokens × sold ÷ saleTokens`; the token blocks transfers and burns before trading opens, excepting the launch and vault-to-pair paths.*
+*The mechanics: the vault creates the official pool permissionlessly from settled liquidity WETH plus all refund penalties, holds all LP tokens with no withdrawal path, opens only once every final commitment is settled (anyone may settle absent lockers after the grace period, up to 4 per batch), and vests the creator allocation over 180 days; `effectiveLpTokens = lpTokens × sold ÷ saleTokens`; the token blocks transfers and burns before trading opens, excepting the launch and vault-to-pair paths.*

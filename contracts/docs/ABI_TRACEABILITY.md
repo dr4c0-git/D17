@@ -34,9 +34,9 @@ reverts (penalties are returned instead). `D17LiquidityVault.BurnFailed()` is go
 | D17LiquidityVault | function | `failedLaunchPenaltyWethRefunded()` | view | api_frontend_readonly_verification | no | Total failed-launch penalties returned by the vault. |
 | D17LiquidityVault | function | `returnFailedPenalty(address,uint256)` | nonpayable | launch_factory_only | event_only | Only the bound launch: returns a recorded penalty to its locker. |
 | D17LockerFactory | event | `BatchSettlementResult(address,address,bool)` | - | indexer_api_activity | no | Per-locker outcome of a batch settlement. |
-| D17LockerFactory | function | `MAX_SETTLEMENT_BATCH()` | view | api_frontend_readonly_verification | no | At most 8 lockers per batch. |
+| D17LockerFactory | function | `MAX_SETTLEMENT_BATCH()` | view | api_frontend_readonly_verification | no | At most 4 lockers per batch. |
 | D17LockerFactory | function | `SETTLEMENT_CALL_GAS()` | view | api_frontend_readonly_verification | no | Gas forwarded to each locker settlement in a batch. |
-| D17LockerFactory | function | `settleAfterGraceBatch(address,address[])` | nonpayable | permissionless_lifecycle | event_only | Anyone settles up to 8 absent lockers after the grace period, so the pool can open. |
+| D17LockerFactory | function | `settleAfterGraceBatch(address,address[])` | nonpayable | permissionless_lifecycle | event_only | Anyone settles up to 4 absent lockers after the grace period, so the pool can open. |
 
 ## Consumer Counts
 

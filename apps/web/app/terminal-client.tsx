@@ -2929,11 +2929,12 @@ function ParticipantsTerminal() {
       const factoryAddress = schemaContracts.lockerFactory || lockerFactoryAddress;
       requireAddress(factoryAddress, "D17LockerFactory");
       const factory = await contractWithSigner("D17LockerFactory", factoryAddress, signer);
-      const batch = unsettledLockers.slice(0, 8);
+      const batch = unsettledLockers.slice(0, 4);
       if (batch.length === 0) throw new Error("Every buyer has already collected.");
-      // The factory refuses a batch without about 1M gas per locker (EIP-150 forwarding).
+      // The factory refuses a batch without 3M gas per locker plus overhead (EIP-150
+      // forwarding); 4 lockers stay under the 16,777,216 gas cap per transaction.
       const tx = (await factory.settleAfterGraceBatch(launchAddress, batch, {
-        gasLimit: BigInt(batch.length) * 1_100_000n + 300_000n,
+        gasLimit: BigInt(batch.length) * 3_100_000n + 300_000n,
       })) as ethers.ContractTransactionResponse;
       await waitForTx(tx, "Settlement of absent buyers");
       return tx.hash;
@@ -5321,7 +5322,7 @@ function LaunchTimeline({
                   disabled={poolAction.busy}
                   className="mt-2 w-full border border-ink px-3 py-2 text-center font-mono text-[11px] uppercase tracking-[0.04em] text-ink transition-opacity disabled:opacity-40"
                 >
-                  {poolAction.busy ? "Working…" : `Settle ${Math.min(poolAction.unsettled ?? 0, 8)} of ${poolAction.unsettled} unsettled lockers →`}
+                  {poolAction.busy ? "Working…" : `Settle ${Math.min(poolAction.unsettled ?? 0, 4)} of ${poolAction.unsettled} unsettled lockers →`}
                 </button>
               )}
               {stage.id === "pool-ready" && poolAction.status === "available" && (poolAction.unsettled ?? 0) === 0 && (

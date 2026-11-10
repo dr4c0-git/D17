@@ -38,4 +38,4 @@ The lifecycle has no step that requires a specific person, and no claim that exp
 
 ---
 
-*The mechanics: `finalizeLaunch` is permissionless once rounds complete; `createOfficialPool` requires every final commitment settled; after the grace period anyone may run `settleAfterGrace` for any locker, or `settleAfterGraceBatch` for up to 8, with outcomes identical in tokens and fees; `createOfficialPool`, `releaseCreatorTokens` and `burnResidualTokens` are permissionless; a failed launch's refund returns principal and penalties.*
+*The mechanics: `finalizeLaunch` is permissionless once rounds complete; `createOfficialPool` requires every final commitment settled; after the grace period anyone may run `settleAfterGrace` for any locker, or `settleAfterGraceBatch` for up to 4, with outcomes identical in tokens and fees; `createOfficialPool`, `releaseCreatorTokens` and `burnResidualTokens` are permissionless; a failed launch's refund returns principal and penalties.*

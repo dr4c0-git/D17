@@ -26,7 +26,7 @@ anchor price and every later round sells at or above it; refund windows follow r
 locker settles - sale tokens to the buyer, a treasury fee, a protocol fee, and the
 remainder into the liquidity vault. Pool creation is permissionless once every final
 commitment is settled; anyone can settle absent users after the grace period, one locker
-at a time or up to 8 per call through `D17LockerFactory.settleAfterGraceBatch`, so nobody
+at a time or up to 4 per call through `D17LockerFactory.settleAfterGraceBatch`, so nobody
 can block it. The pool pairs the exact sum of every locker's pool share plus all refund
 penalties with the whole (sale-scaled) LP token allocation, in one deposit; no liquidity
 is ever added after trading opens. If round 0 misses its minimum the launch fails and
@@ -209,7 +209,7 @@ Key storage: `owner`, immutable `weth`/`router`/`feeConfig` (:52-55),
 
 `_validateConfig` (:211-265) enforces: name/symbol length + JSON-safety; metadata bounds
 (description ≤ 512B, ≤ 8 links, link type `[a-z0-9-]` ≤ 32B, link URL https + ≤ 128B +
-JSON-safe, logo ≤ 8192B base64-SVG data URI, :267-304); `tokenSupply > 0`;
+JSON-safe, logo ≤ 8192B base64-SVG data URI, :267-304; the web app stops at 4096B so the creation fits the 16,777,216 gas cap per transaction); `tokenSupply > 0`;
 **`tokenSupply ≤ MAX_TOKEN_SUPPLY`** (`SUPPLY_ABOVE_V2_RESERVE`, :218); `saleTokens > 0`;
 `lpTokens ≥ 1e18`; **`saleTokens + lpTokens + manualDistributionTokens + deadTokens ==
 tokenSupply`** (`SUPPLY_SPLIT`, :221-225); **`manualDistributionTokens * BPS ≤ tokenSupply *
@@ -480,16 +480,16 @@ the pin (:37-41), `deployToken` (D17TokenFactory.sol:43-50) / `deployVault`
 (D17LiquidityVaultFactory.sol:43-50) callable only by the pinned launch factory. IDs at
 :7. Events at :13-15. Their owners must be zero before any launch (§3).
 
-### 5.9 D17LockerFactory (D17LockerFactory.sol, 59 lines)
+### 5.9 D17LockerFactory (D17LockerFactory.sol, 62 lines)
 
-Immutable `d17Factory` (:13); constants `MAX_SETTLEMENT_BATCH = 8` (:14) and
-`SETTLEMENT_CALL_GAS = 1_000_000` (:15). Events `LockerCreated(owner idx, locker idx)` and
-`BatchSettlementResult(launch idx, locker idx, success)` (:17-18).
+Immutable `d17Factory` (:13); constants `MAX_SETTLEMENT_BATCH = 4` (:17) and
+`SETTLEMENT_CALL_GAS = 3_000_000` (:18). Events `LockerCreated(owner idx, locker idx)` and
+`BatchSettlementResult(launch idx, locker idx, success)` (:20-21).
 
 | Signature | Semantics | AC | Key reverts |
 |---|---|---|---|
-| `createLockerFor(address lockerOwner) external returns (address locker)` (:26) | Deploys `D17Locker(lockerOwner, d17Factory, registry.weth())` and registers it; multiple lockers per owner are allowed | **`msg.sender == lockerOwner`** (`ONLY_SELF`, :28) | `OWNER_ZERO`, `ONLY_SELF` |
-| `settleAfterGraceBatch(address launch, address[] calldata lockers) external returns (uint256 completed)` (:39) | Calls `settleAfterGrace(launch)` on up to 8 lockers, each with a fixed 1,000,000 gas stipend in a `try` (:47-57); entries that are not registered lockers, duplicates, already-settled or failing positions are skipped and reported in `BatchSettlementResult` instead of reverting the batch; returns the number settled | **permissionless** | `BATCH_SIZE` (0 or more than 8, :44), `BATCH_GAS` (not enough gas forwarded for every item, :46) |
+| `createLockerFor(address lockerOwner) external returns (address locker)` (:29) | Deploys `D17Locker(lockerOwner, d17Factory, registry.weth())` and registers it; multiple lockers per owner are allowed | **`msg.sender == lockerOwner`** (`ONLY_SELF`, :31) | `OWNER_ZERO`, `ONLY_SELF` |
+| `settleAfterGraceBatch(address launch, address[] calldata lockers) external returns (uint256 completed)` (:42) | Calls `settleAfterGrace(launch)` on up to 4 lockers, each with a fixed 3,000,000 gas stipend in a `try` (:50-60); entries that are not registered lockers, duplicates, already-settled or failing positions are skipped and reported in `BatchSettlementResult` instead of reverting the batch; returns the number settled | **permissionless** | `BATCH_SIZE` (0 or more than 8, :44), `BATCH_GAS` (not enough gas forwarded for every item, :46) |
 
 The batch adds no authority: each locker re-runs its own checks (stored rules hash,
 finalization, grace boundary) and the sale tokens stay in that locker for its owner.
@@ -627,7 +627,7 @@ mainnet there is no fee owner at all: `createLaunch` requires the fee config's `
 `pendingOwner` to be zero (:173-179).
 
 Self-registration: `createLockerFor` requires `msg.sender == lockerOwner`
-(D17LockerFactory.sol:28); registration is restricted to the pinned locker factory
+(D17LockerFactory.sol:31); registration is restricted to the pinned locker factory
 (D17Factory.sol:114-123) - `isLocker` contains only canonical locker bytecode, which is
 the basis for `onlyLocker` on the launch and the `NOT_D17_LOCKER` check of
 `returnFailedPenalty` on the vault. The vault pays a failed-launch penalty only when its
@@ -639,7 +639,7 @@ Deliberately permissionless entry points and why they are safe:
 |---|---|
 | `finalizeLaunch()` (D17Launch.sol:693) | Pure state transition from immutable timing + committed totals; one-shot |
 | `settleAfterGrace(launch)` (D17Locker.sol:237) | Only after the fixed grace boundary; outcome identical to owner settlement; tokens stay in the owner's locker; stored-rules-hash verification |
-| `settleAfterGraceBatch(launch, lockers)` (D17LockerFactory.sol:39) | Only calls `settleAfterGrace` on registered lockers; bounded to 8 items with a fixed gas stipend; failures are skipped, never forwarded |
+| `settleAfterGraceBatch(launch, lockers)` (D17LockerFactory.sol:42) | Only calls `settleAfterGrace` on registered lockers; bounded to 4 items with a fixed gas stipend; failures are skipped, never forwarded |
 | `createOfficialPool(minLp, deadline)` (D17LiquidityVault.sol:119) | Time-gated; requires every commitment settled; virgin-pair + preseed checks; amounts come from launch accounting |
 | `releaseCreatorTokens()` (D17LiquidityVault.sol:179) | Amount from a deterministic schedule; recipient fixed in the rules |
 | `burnResidualTokens()` (D17Launch.sol:750) | Only burns the launch's own token balance; only once the pool exists and every commitment settled |
@@ -660,7 +660,7 @@ Deliberately permissionless entry points and why they are safe:
 | 9 | Custody isolation: user WETH lives in the user's locker until refund/settlement | D17Locker.sol:158 (wrap-and-hold); no WETH inflow path in D17Launch |
 | 10 | Exact pool ledger: `exactCommittedLiquidityWeth == Σ_lockers wethForVault` at all times | delta updates (D17Launch.sol:567-571, 591-596, 630); `LIQUIDITY_ACCOUNTING` at pool creation (:708) |
 | 11 | Complete funding before trading: the pool opens only once every final commitment is settled; no liquidity is added afterwards | `UNSETTLED_COMMITMENTS` (D17Launch.sol:707); `claimVaultSettlement` reverts after the pool (:650); `claimLateSettlement` / `mintLateLiquidity` revert (D17Launch.sol:655-657; D17LiquidityVault.sol:172-175) |
-| 12 | No hostage: absent buyers cannot block the pool; claims never expire before it | permissionless `settleAfterGrace` (D17Locker.sol:237-244) and `settleAfterGraceBatch` (D17LockerFactory.sol:39-58); no deadline on settlement |
+| 12 | No hostage: absent buyers cannot block the pool; claims never expire before it | permissionless `settleAfterGrace` (D17Locker.sol:237-244) and `settleAfterGraceBatch` (D17LockerFactory.sol:42-61); no deadline on settlement |
 | 13 | One-time pool creation; write-once pool records; pool takes exactly `L` tokens and `E + P` WETH | D17Launch.sol:704-705, 713-714, 734-743; D17LiquidityVault.sol:124 |
 | 14 | Failed launch returns everything: principal plus recorded penalties to their payer; nothing burned | D17Launch.sol:611-642; D17Locker.sol:199-230; D17LiquidityVault.sol:189-204 |
 | 15 | LP permanence | no LP-moving function; recovery excludes `officialPair` (D17LiquidityVault.sol:221) |
@@ -792,7 +792,7 @@ Indexing rule (product-level): D17 pipelines ingest only the events above - neve
    attractive. The contract accepts any LP allocation from 1 token, so a creator can set
    an opening price far above the average price paid.
 7. **Settlement gas before trading**: every buyer must be settled before the pool can
-   open. Someone (usually the creator) pays the gas to settle absent buyers, up to 8 per
+   open. Someone (usually the creator) pays the gas to settle absent buyers, up to 4 per
    `settleAfterGraceBatch`; each position needs at least the launch's minimum commitment,
    which bounds the count.
 8. **Donation edge cases**: post-open D17-token donations to the vault are stuck; WETH
