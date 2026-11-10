@@ -4,15 +4,15 @@
   "network": "sepolia",
   "protocolVersion": "V15_HARDENED",
   "status": "deployed",
-  "startBlock": 11958083,
+  "startBlock": 12104784,
   "contracts": {
-    "d17Factory": "0xF02Ab7326c4212693a7a53Aa7BBa635213749C07",
-    "feeConfig": "0xd4dD5C6787C47E04525E2d39EC1652105CdACe4A",
-    "tokenFactory": "0xb34f23b0dE9331827177b1BCC6562DFD006E43d7",
-    "launchDeployer": "0x652d79bA88369122911493B4b9c0AfD100d08518",
-    "launchFactory": "0xAc1bD96Ead44D344DCb6A7b3b8B0BE4e626f62bc",
-    "liquidityVaultFactory": "0x1C29D022F70ece490CFFaD930E7F734958850918",
-    "lockerFactory": "0x5C00A92815dC63B0fff63F48D95493A33D363110"
+    "d17Factory": "0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624",
+    "feeConfig": "0x0699458e9b6D02d0353f91914c2EC38548485EE2",
+    "tokenFactory": "0xD628cBeB899EC1B89E8229c115f0a54832B2C603",
+    "launchDeployer": "0x993d87714d48E4f5D85f77b56837D304feBB4AF0",
+    "launchFactory": "0x0780e6873C00dfb8CA65A5feEe0a588B088282cA",
+    "liquidityVaultFactory": "0xc09D8dDC6FAC17b3C95C4aDDA23550E94eE668BC",
+    "lockerFactory": "0xD859Fb737778426282a808541038050925B3b48F"
   },
   "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
   "router": "0xeE567Fe1712Faf6149d80dA1E6934E354124CfE3"
