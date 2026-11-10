@@ -29,7 +29,8 @@ in this repository, with the decided 1% fee instead of its fixed 2%. Details in
   hostile callbacks, minimum liquidity and the rounding model, against the real Uniswap
   V2 contracts. Fuzz campaigns pass.
 - **Redeployed on Sepolia** (block 12105659, factory `0x21ae6ae63526B9874A98e1B7C1eeC6AE8A90Fd79`) with the mainnet settings:
-  1% fee split 75 / 25, fee settings renounced, 45 checks out of 45. It replaces the
+  1% fee split 75 / 25, fee settings renounced, 45 checks out of 45, source code
+  verified on Etherscan (8 of 8). It replaces the
   first V15.1 draft deployed earlier the same day. Mainnet comes only after an
   independent audit.
 

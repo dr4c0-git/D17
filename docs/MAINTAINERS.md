@@ -86,7 +86,7 @@ Creator, Test 4 and 5 Buyers.
   then docs/release, creator-vesting UI (`f5aee23`), V15 docs rewrite (`f944f69`).
 - **V15.1 is deployed on Sepolia** (2026-11-10 16:01 UTC, start block 12105659, factory
   `0x21ae6ae63526B9874A98e1B7C1eeC6AE8A90Fd79`, fee splitter `0x4016C2b17d614292Cc184c5f2d383a0F3541025e` paying Test 2 / Test 5 7500/2500, fee config renounced,
-  verify 45/45), a rehearsal of the mainnet settings. An earlier V15.1 draft
+  verify 45/45, Etherscan 8/8), a rehearsal of the mainnet settings. An earlier V15.1 draft
   (factory `0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624`, block 12104784, fixes 1 and 2
   only) is superseded. Provenance in
   `release/deployments/sepolia.json`. The first V15 suite (2026-10-20, factory
