@@ -28,19 +28,19 @@ The platform earns when a launch works, and only then. That's the incentive we w
 
 ## Why it can't change under you
 
-The fee lives in one small contract, controlled by a multisig. That multisig can do exactly two things: change the fee (within 0–2%) and its recipient, **for launches created afterwards**, or give up control entirely.
+The fee lives in one small contract, and nobody controls it. Its owner gave up control as the last step of the deployment, so the rate (1%) and its recipient are fixed for good; on mainnet the factory refuses to create any launch until that is the case. A different fee would mean deploying a whole new version of D17, which can never change launches already created.
 
 At the moment a launch is created, the factory copies the current fee and recipient into the launch itself, as permanent values that are part of its rules hash - the fingerprint your locker checks before every commitment. From then on, nothing anyone does to the fee contract can reach that launch. No upgrade, no "temporary adjustment," no new recipient.
 
 The creator is protected too. Their deploy transaction states the highest fee they accept. If the fee were raised between the moment they reviewed it and the moment their transaction landed, the deploy simply fails, and they can review it again.
 
-## What the fee owner cannot do
+## What even an owner could not do
 
-It's worth listing, because this is where fees usually hide their teeth:
+Before it was renounced, the fee contract's owner could only change the fee (within 0-2%) and its recipient for launches created afterwards. It's worth listing what it could never do, because this is where fees usually hide their teeth:
 
-- It **cannot** touch any participant's WETH or tokens. The fee contract holds nothing and is never called by a launch, a locker or a vault.
-- It **cannot** change the fee of any existing launch.
-- It **cannot** pause, upgrade or redirect anything. It is the only owner left in the whole system, and that is all it can do.
+- It **could not** touch any participant's WETH or tokens. The fee contract holds nothing and is never called by a launch, a locker or a vault.
+- It **could not** change the fee of any existing launch.
+- It **could not** pause, upgrade or redirect anything. It was the last owner left in the whole system, and now there is none.
 
 A fee you can read, that can't move, that's only paid when you get what you came for. That's the whole arrangement.
 

@@ -12,7 +12,7 @@ Short essays on the ideas inside the D17 V15 launch mechanism - one per topic, e
 | 06 | [Supply math that cannot lie](./06-supply-math-that-cannot-lie.md) | The split must sum exactly, the caps are `require` statements, and unsold tokens are always burned. |
 | 07 | [Nobody gets stranded](./07-nobody-gets-stranded.md) | Every mandatory step is permissionless; every personal claim waits forever. Absence strands no one. |
 | 08 | [One signature](./08-one-signature.md) | A launch is born complete in one transaction - no admin keys, fee consented, minted, ownership renounced - or not at all. |
-| 09 | [The fee, in the open](./09-the-fee-in-the-open.md) | At most 2%, only on success, frozen per launch, and the fee owner can't touch anyone's funds. |
+| 09 | [The fee, in the open](./09-the-fee-in-the-open.md) | 1% (at most 2%), only on success, frozen per launch, and nobody can change it anymore. |
 
 ## Reading order
 

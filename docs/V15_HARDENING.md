@@ -51,11 +51,14 @@ redirect its tokens.
 - **When it is charged.** Only when a successful commitment is settled:
   `gross = pool share + treasury share + protocol fee` (each fee rounded down, the pool
   gets the remainder). Refunds, refund penalties and failed launches never pay it.
-- **Who controls it.** The `D17FeeConfig` owner (use a multisig; the deploy script
-  refuses an EOA on mainnet). Ownership moves in two steps (`transferOwnership` then
-  `acceptOwnership`) and can be renounced, which freezes the fee forever. The owner
-  cannot touch any existing launch or any participant's funds: the fee config holds
-  nothing and is only read at launch creation.
+- **Who controls it.** Nobody, on the D17 deployments. The deployment renounces the
+  `D17FeeConfig` ownership as its last transaction (`RENOUNCE_FEE_CONFIG_OWNER=1`), which
+  freezes the rate and the recipient forever; on mainnet the factory even refuses to
+  create a launch while the fee config still has an owner (`MAINNET_FEE_NOT_FROZEN`).
+  Changing the fee means deploying a new suite. While an owner exists (possible on test
+  networks), ownership moves in two steps (`transferOwnership` then `acceptOwnership`),
+  and the owner still cannot touch any existing launch or any participant's funds: the
+  fee config holds nothing and is only read at launch creation.
 
 - **Split between several recipients (optional).** The fee recipient can be a
   `D17FeeSplitter`, deployed with the suite when `FEE_SPLIT_RECIPIENTS` and
