@@ -19,6 +19,7 @@ const files = [
   "docs/CONTRACTS_TECHNICAL.md",
   "docs/V15_HARDENING.md",
   "docs/SELF_HOSTING.md",
+  "docs/AUDIT.md",
   "docs/PROGRESS.md",
   "CHANGELOG.md",
   "docs/blog/README.md",

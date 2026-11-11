@@ -15,6 +15,7 @@ export const DOC_PAGES: Page[] = [
   { file: "docs/CONTRACTS_TECHNICAL.md", route: "/docs/technical", nav: "Technical reference" },
   { file: "docs/V15_HARDENING.md", route: "/docs/v15-changes", nav: "V15 changes" },
   { file: "docs/SELF_HOSTING.md", route: "/docs/self-hosting", nav: "Self-hosting" },
+  { file: "docs/AUDIT.md", route: "/docs/audit", nav: "Audit package" },
 ];
 
 export const BLOG_POSTS: Page[] = Object.keys(files)

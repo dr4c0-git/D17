@@ -28,7 +28,8 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
 ## Next
 
 
-- **External security audit** of the contracts: mainnet comes only after it.
+- **External security audit** of the contracts: mainnet comes only after it. The
+  [audit package](./AUDIT.md) is ready for the reviewer.
 - **Mainnet deployment** on V15, with the protocol fee settings renounced at deployment:
   the 1% fee and its split (75% D17 buybacks, 25% development fund) are then final, with
   no admin key.

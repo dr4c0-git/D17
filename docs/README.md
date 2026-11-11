@@ -10,6 +10,7 @@ Documentation for the D17 open-source experiment.
 - [V15 changes and protocol fee](./V15_HARDENING.md)
 - [Self-hosting](./SELF_HOSTING.md)
 - [Progress](./PROGRESS.md)
+- [Audit package](./AUDIT.md)
 - [Short essays](./blog/README.md)
 
 ## Repository map

@@ -264,6 +264,12 @@ of 1M skipped every buyer. Batches now give 3M per locker, at most 4 per call, t
 form caps the logo at 4 KB for the same reason. `npm run inspect:batch -w @d17/contracts --
 0xTxHash` explains a batch transaction (skipped lockers and why).
 
+Audit package: `docs/AUDIT.md` (also /docs/audit). Keep its scope table, fixed-issues
+table and Sepolia addresses current after any contract change or redeployment. Open
+question listed there for the reviewer: V15.1 kept the `*_V15_HARDENED` identity
+constants although the bytecode changed (contracts/SECURITY.md says to bump them); decide
+before mainnet.
+
 ## Still to do
 
 - External audit.

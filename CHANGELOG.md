@@ -3,6 +3,14 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-11 - Audit package
+
+- **`docs/AUDIT.md`**, also on the site at /docs/audit: what a reviewer needs to audit
+  V15.1. Scope (12 contracts, about 2,360 lines of Solidity), compiler settings, how to
+  build and run every test suite, how the system works and who can do what, the
+  behaviour that is deliberate, the known limitations, every issue already found and
+  fixed, the areas we most want reviewed, and the Sepolia deployment to test against.
+
 ## 2026-11-11 - V15.1 tested end to end on Sepolia
 
 On the suite with the batch gas fix (factory
