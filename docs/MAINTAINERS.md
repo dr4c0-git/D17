@@ -54,7 +54,10 @@ Creator, Test 4 and 5 Buyers.
   repo, root directory `apps/web`, Tenderly gateway RPCs in the `NEXT_PUBLIC_*` variables,
   no key; PublicNode was replaced because it prunes old logs). Every push to `main` redeploys it. The link was sent to the project lead only and
   is kept out of the repo until the launch is announced.
-- Next: add the project lead on GitHub (waiting for the username), then the external audit.
+- The project lead (GitHub `xbt2027`) is a collaborator on the repository since 2026-11-11.
+  Mainnet plan agreed with them: their review of V15.1, deployer and split addresses,
+  domain, RPC and Vercel Pro on their side, then the announcement, a 24 h countdown and a
+  test launch; V16 (pool liquidity) soon after, then eth.limo and Dune.
 - Etherscan: the 8 suite contracts are verified on Sepolia (2026-10-26, `verify:etherscan`,
   needs `ETHERSCAN_API_KEY` in `contracts/.env`; `-- --dry-run` checks without sending).
   Redo it on mainnet with `-- --network mainnet` right after the mainnet deployment.
@@ -76,8 +79,8 @@ Creator, Test 4 and 5 Buyers.
   open trading far above what buyers paid. Until a contract rule (V16), the web app flags a
   launch whose opening price is at least 2x the average price paid as PREDATORY (simple and
   expert views, `apps/web/lib/opening-price.ts`), and the create form asks "Are you sure this
-  token deserves to exist?" plus an explicit consent for a predatory split. The project lead is creating a dedicated
-  GitHub account to be added as a collaborator. Never ask for a key or the content of a `.env`.
+  token deserves to exist?" plus an explicit consent for a predatory split.
+  Never ask for a key or the content of a `.env`.
 
 ## Status (2026-10-06)
 
