@@ -3,6 +3,24 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-11 - V15.1 tested end to end on Sepolia
+
+On the suite with the batch gas fix (factory
+`0xF93a425c0a2DDd4b57b57C6304AEB09ED2Dcb7cB`):
+
+- **Successful launch with an absent buyer (ABS4).** Two buyers in round 1 with odd wei
+  amounts (0.123456789012345678 and 0.050000000000000007 ETH). One collected, the other
+  stayed away. Trading stayed closed until "Collect for 1 buyer" settled the absent
+  buyer, then the pool opened. The absent buyer sent all of their tokens to their
+  wallet. The 1% fee, 0.001734567890123456 WETH, was split 75 / 25 to the wei, nothing
+  left in the splitter.
+- **Cancelled launch (CNL1, previous suite).** Round 1 missed its minimum; one buyer had
+  taken their ETH back for the 1% fee. At cancellation both got everything back, the
+  take-back fee included.
+- Two more launches were cancelled by the contract as designed, because of settings
+  left at the form's defaults (a 1 ETH minimum, then the advanced form's price floor);
+  the second case led to the fix below.
+
 ## 2026-11-11 - Round 1 threshold shown right
 
 Found by a Sepolia test launch created with the advanced form: round 1 raised 0.1735 ETH

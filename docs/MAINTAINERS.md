@@ -250,6 +250,13 @@ an independent audit (decided 2026-11-10). `docs/CONTRACTS_TECHNICAL.md` was ref
 V15.1 (every citation re-checked against the current source, test counts from a full
 `npm run test:contracts` run).
 
+Sepolia evidence for V15.1 (2026-11-11, suite `0xF93a425c...`): ABS4 success with an
+absent buyer settled by `settleAfterGraceBatch` (pool opened, absent buyer withdrew their
+tokens, fee 0.001734567890123456 WETH split 75/25 exactly); CNL1 cancelled with a full
+refund including a take-back penalty (on the previous suite, same failed-refund code).
+Testing tip: the guided form keeps a 1 ETH round 1 minimum by default; set it (0.1) and
+leave the advanced price floor empty.
+
 Lesson (2026-11-10): gas measured on a local chain is not the gas on a real network. A
 V15.1 settlement used 0.5 to 0.7M locally and about 1M on Sepolia, so the first batch cap
 of 1M skipped every buyer. Batches now give 3M per locker, at most 4 per call, to fit the
