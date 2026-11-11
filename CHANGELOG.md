@@ -3,6 +3,21 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-11 - Round 1 threshold shown right
+
+Found by a Sepolia test launch created with the advanced form: round 1 raised 0.1735 ETH
+against a 0.1 ETH minimum and the launch was still cancelled, while the page said "It
+raised 0.1735 of the 0.1 ETH it needed".
+
+- Round 1 has two floors: the minimum raise and a minimum price per token. The advanced
+  form kept a fixed default price floor (0.00000005 ETH per token), which on that launch
+  meant about 0.9 ETH. The contract did its job; the site misled.
+- **The advanced form's price floor now follows the round 1 minimum** until it is edited,
+  and the form says how much ETH round 1 really needs, in red when the price floor asks
+  for more than the minimum.
+- **The launch page shows the real round 1 threshold**: the larger of the minimum raise
+  and what the price floor requires.
+
 ## 2026-11-11 - V15.1 redeployed on Sepolia with the batch gas fix
 
 - **The V15.1 suite with the batch gas fix is live on Sepolia** (block 12108022, factory

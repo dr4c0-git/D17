@@ -244,7 +244,8 @@ function DeployForm() {
   const [customStart, setCustomStart] = useState("");
 
   const [minPhase1Weth, setMinPhase1Weth] = useState("1");
-  const [minAnchorPrice, setMinAnchorPrice] = useState("0.00000005");
+  // Advanced form: the price floor follows the round-1 minimum until it is edited by hand.
+  const [minAnchorPrice, setMinAnchorPrice] = useState("");
   // Protocol fee read from D17FeeConfig; the creator consents to exactly this rate
   // (maxProtocolFeeBps), so a fee raised before the transaction lands reverts it.
   const [protocolFeeBps, setProtocolFeeBps] = useState<number | null>(null);
@@ -330,7 +331,10 @@ function DeployForm() {
     const floor = (decimalToWei(minPhase1Weth) * 1_000_000_000_000_000_000n) / roundOneAllocationWei;
     return floor > MIN_ANCHOR_PRICE_WAD ? floor : MIN_ANCHOR_PRICE_WAD;
   })();
-  const anchorFloorWei = advanced ? decimalToWei(minAnchorPrice) : autoAnchorWei;
+  const anchorFloorWei = advanced && minAnchorPrice.trim() ? decimalToWei(minAnchorPrice) : autoAnchorWei;
+  // ETH round 1 really needs: the price floor applies to round 1's whole token allocation.
+  const priceFloorRaiseWei = (anchorFloorWei * roundOneAllocationWei + 10n ** 18n - 1n) / 10n ** 18n;
+  const roundOneNeedsWei = priceFloorRaiseWei > decimalToWei(minPhase1Weth) ? priceFloorRaiseWei : decimalToWei(minPhase1Weth);
 
   const applyDuration = (preset: DurationPreset) => {
     setDurationPreset(preset);
@@ -1235,13 +1239,25 @@ function DeployForm() {
               </label>
               <label className="block">
                 <span className={LABEL}>Anchor price floor (ETH/token)</span>
-                <input className={FIELD} value={minAnchorPrice} onChange={(event) => setMinAnchorPrice(event.target.value)} inputMode="decimal" />
+                <input
+                  className={FIELD}
+                  value={minAnchorPrice}
+                  placeholder={ethers.formatUnits(autoAnchorWei, 18)}
+                  onChange={(event) => setMinAnchorPrice(event.target.value)}
+                  inputMode="decimal"
+                />
               </label>
               <label className="block">
                 <span className={LABEL}>Factory</span>
                 <input className={FIELD} value={factoryAddress} readOnly aria-readonly="true" />
               </label>
             </div>
+            <p className={`${HINT} ${priceFloorRaiseWei > decimalToWei(minPhase1Weth) ? "text-alert" : ""}`}>
+              Round 1 really needs at least {ethers.formatEther(roundOneNeedsWei)} ETH
+              {priceFloorRaiseWei > decimalToWei(minPhase1Weth)
+                ? ": the anchor price floor asks for more than the round 1 floor. Lower it, or leave it empty to follow the round 1 floor."
+                : "."}
+            </p>
             <p className={HINT}>
               Round 1 sets the anchor price (raised ÷ its allocation). If it raises less than the floor - or the price lands
               below the anchor floor - the launch fails and every remaining commitment refunds in full. No round, including the

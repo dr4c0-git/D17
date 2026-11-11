@@ -1976,6 +1976,8 @@ function ParticipantsTerminal() {
         loadedTreasuryBps,
         loadedSettlementSeconds,
         loadedProtocolFeeBps,
+        loadedMinAnchorPriceWad,
+        loadedRoundOneAllocation,
       ] = await Promise.all([
         launch.rulesHash() as Promise<string>,
         launch.token() as Promise<string>,
@@ -1997,7 +1999,13 @@ function ParticipantsTerminal() {
         launch.treasuryBps().catch(() => 0n) as Promise<bigint>,
         launch.settlementSeconds().catch(() => 0n) as Promise<bigint>,
         launch.protocolFeeBps().catch(() => 0n) as Promise<bigint>,
+        launch.minAnchorPriceWad().catch(() => 0n) as Promise<bigint>,
+        launch.roundBaseTokenAllocation(0).catch(() => 0n) as Promise<bigint>,
       ]);
+      // Round 1 must reach two floors: minPhase1Weth, and minAnchorPriceWad on its token
+      // allocation. Show whichever asks for more ETH, so "X of Y ETH needed" is the real bar.
+      const priceFloorWeth = (loadedMinAnchorPriceWad * loadedRoundOneAllocation + 10n ** 18n - 1n) / 10n ** 18n;
+      const roundOneTarget = priceFloorWeth > loadedAnchorTarget ? priceFloorWeth : loadedAnchorTarget;
       if (isStale()) return;
 
       // Same masthead/tokenomics surface as api mode - straight contract
@@ -2080,7 +2088,7 @@ function ParticipantsTerminal() {
         minCommitLabel: formatEth(loadedMinCommit),
         anchorReady: loadedAnchorReady,
         // RPC reads occasionally fail to 0; keep the last known target.
-        anchorTargetWeth: loadedAnchorTarget > 0n ? formatEth(loadedAnchorTarget) : previous?.anchorTargetWeth ?? "0",
+        anchorTargetWeth: roundOneTarget > 0n ? formatEth(roundOneTarget) : previous?.anchorTargetWeth ?? "0",
       }));
       setPhase({
         phaseKind: Number(loadedPhase[0]),
