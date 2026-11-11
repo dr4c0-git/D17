@@ -74,6 +74,7 @@ const publicText = collectTextFiles(root, new Set([
   "node_modules",
   ".git",
   ".next",
+  "out",
   "artifacts",
   "cache",
   "runs",

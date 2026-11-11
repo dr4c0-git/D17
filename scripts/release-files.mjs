@@ -14,6 +14,7 @@ export const RELEASE_MANIFEST_NAME = "RELEASE_SHA256SUMS.txt";
 const ignoredDirectories = new Set([
   ".git",
   ".next",
+  "out",
   ".vercel",
   "artifacts",
   "cache",

@@ -6,6 +6,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ignoredDirectories = new Set([
   ".git",
   ".next",
+  "out",
   "artifacts",
   "cache",
   "node_modules",

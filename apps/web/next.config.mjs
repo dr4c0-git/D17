@@ -3,6 +3,25 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// `npm run build:ipfs` exports the whole site as static files (apps/web/out) for an IPFS
+// mirror served through an ENS name and eth.limo. The Vercel build is unchanged.
+const staticExport = process.env.D17_STATIC_EXPORT === '1'
+
+async function securityHeaders() {
+  return [
+    {
+      source: '/:path*',
+      headers: [
+        { key: 'Content-Security-Policy', value: "base-uri 'self'; frame-ancestors 'none'; object-src 'none'" },
+        { key: 'Referrer-Policy', value: 'no-referrer' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+      ],
+    },
+  ]
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   devIndicators: false,
@@ -13,20 +32,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'Content-Security-Policy', value: "base-uri 'self'; frame-ancestors 'none'; object-src 'none'" },
-          { key: 'Referrer-Policy', value: 'no-referrer' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-        ],
-      },
-    ]
-  },
+  // Static hosts serve folders: /docs/guide/ maps to docs/guide/index.html.
+  ...(staticExport ? { output: 'export', trailingSlash: true } : {}),
+  // Response headers need a server; an IPFS gateway sets its own.
+  ...(staticExport ? {} : { headers: securityHeaders }),
 }
 
 export default nextConfig

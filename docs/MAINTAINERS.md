@@ -274,6 +274,10 @@ V16 discussion note: `docs/V16_POOL_LIQUIDITY.md` (not on the site). Proposes op
 (dormancy read from the pair's `blockTimestampLast`, then pro-rata redemption by holders)
 for the permanently locked liquidity; nothing implemented until the project lead picks.
 
+IPFS mirror: `npm run build:ipfs -w @d17/web` (static export to `apps/web/out`, ignored
+by git and the release checks); publishing steps in `docs/IPFS_MIRROR.md`. Only works at
+the root of a domain (eth.limo or a subdomain gateway), not on path gateways.
+
 ## Still to do
 
 - External audit.

@@ -3,6 +3,16 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-11 - Static export for an IPFS mirror
+
+- `npm run build:ipfs -w @d17/web` exports the whole site as static files
+  (`apps/web/out`), for a mirror on IPFS reached through an ENS name and eth.limo. Every
+  page works there as on Vercel: the launch list, launch pages, the expert view, the
+  create form, the docs and the blog (checked by serving the export locally).
+- [docs/IPFS_MIRROR.md](./docs/IPFS_MIRROR.md): how to build it, pin it, point the ENS
+  name to it and allow it on the RPC.
+- The Vercel build is unchanged.
+
 ## 2026-11-11 - V15.1 redeployed on Sepolia with its own identity
 
 - **The V15.1 suite with the `V15_1` identity constants is live on Sepolia** (block

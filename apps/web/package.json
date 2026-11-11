@@ -12,6 +12,7 @@
     "dev:rpc": "node scripts/run-mode.mjs rpc",
     "dev:api": "node scripts/run-mode.mjs api",
     "build": "next build --webpack",
+    "build:ipfs": "D17_STATIC_EXPORT=1 next build --webpack",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:rpc": "node scripts/smoke-rpc.mjs",
