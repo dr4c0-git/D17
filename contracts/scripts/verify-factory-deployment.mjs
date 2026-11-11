@@ -65,15 +65,15 @@ if (chainId === MAINNET_CHAIN_ID) {
   check("deployment has startBlock", Number.isInteger(deployment.startBlock) && deployment.startBlock >= 0, String(deployment.startBlock));
 }
 
-check("D17Factory identity matches", await factory.D17_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V15_HARDENED")));
-check("D17TokenFactory identity matches", await tokenFactory.D17_TOKEN_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_TOKEN_FACTORY_V15_HARDENED")));
+check("D17Factory identity matches", await factory.D17_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V15_1")));
+check("D17TokenFactory identity matches", await tokenFactory.D17_TOKEN_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_TOKEN_FACTORY_V15_1")));
 check(
   "D17LiquidityVaultFactory identity matches",
-  await vaultFactory.D17_LIQUIDITY_VAULT_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_LIQUIDITY_VAULT_FACTORY_V15_HARDENED"))
+  await vaultFactory.D17_LIQUIDITY_VAULT_FACTORY_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_LIQUIDITY_VAULT_FACTORY_V15_1"))
 );
 
-check("D17FeeConfig identity matches", await feeConfig.D17_FEE_CONFIG_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_FEE_CONFIG_V15_HARDENED")));
-check("D17LaunchDeployer identity matches", await launchDeployer.D17_LAUNCH_DEPLOYER_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_DEPLOYER_V15_HARDENED")));
+check("D17FeeConfig identity matches", await feeConfig.D17_FEE_CONFIG_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_FEE_CONFIG_V15_1")));
+check("D17LaunchDeployer identity matches", await launchDeployer.D17_LAUNCH_DEPLOYER_ID() === ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_DEPLOYER_V15_1")));
 check("factory points to fee config", sameAddress(await factory.feeConfig(), deployment.feeConfig));
 check("fee config hard cap is 2%", Number(await feeConfig.MAX_PROTOCOL_FEE_BPS()) === 200);
 check(

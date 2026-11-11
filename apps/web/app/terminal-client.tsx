@@ -38,7 +38,7 @@ import {
 } from "@/lib/d17Api";
 import { NetworkSwitch } from "@/components/network-switch";
 import { ACTIVE_NETWORK, d17Href } from "@/lib/d17Network";
-import { PROTOCOL_DEPLOYED, PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
+import { PROTOCOL_DEPLOYED, PROTOCOL_ID_SUFFIX, PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
 import { commitIfCurrentGeneration, isCurrentGeneration } from "@/lib/refresh-guard.mjs";
 import { dedupeActivityActions, dedupeActivityForDisplay } from "@/lib/activity-dedupe.mjs";
 import { loadActivityHistory } from "@/lib/activity-history.mjs";
@@ -264,7 +264,7 @@ async function discoverRpcLaunches(): Promise<KnownLaunch[]> {
 // LaunchMetadataPublished event and the contractURI JSON must all agree with
 // the hash recomputed from the on-chain fields. Any disagreement → unverified.
 
-const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V15_HARDENED"));
+const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes(`D17_LAUNCH_${PROTOCOL_ID_SUFFIX}`));
 
 function parseContractUriJson(uri: string): Record<string, unknown> | null {
   const prefixes = ["data:application/json;charset=utf-8,", "data:application/json;utf8,"];

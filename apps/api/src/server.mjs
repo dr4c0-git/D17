@@ -127,7 +127,7 @@ const REFRESH_SNAPSHOTS_ON_REQUEST = process.env.REFRESH_SNAPSHOTS_ON_REQUEST ==
 const REFRESH_LOCKER_BALANCES_ON_REQUEST = process.env.REFRESH_LOCKER_BALANCES_ON_REQUEST === "1";
 
 // This exact string is the immutable identity of the deployed contract family.
-const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V15_HARDENED"));
+const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V15_1"));
 
 const ABI_DIR = path.join(root, "abi");
 const ABI = {
@@ -1419,7 +1419,7 @@ function deployerSchema() {
     },
     refundPolicy: {
       source: "contract-fixed",
-      contractVersion: "D17_V15_HARDENED",
+      contractVersion: "D17_V15_1",
       appliesRefundPenaltyField: "refundPenaltyBps",
       configurableByDeployer: false,
       note: "Display rounds 1-2 charge the fixed 1% early penalty, display rounds 3-4 charge refundPenaltyBps, display round 5 has no normal refund window. Every penalty is paid into the official pool (burned if the launch fails), never to the creator.",

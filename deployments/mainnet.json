@@ -2,7 +2,7 @@
   "schema": "d17-public-deployment-v2",
   "chainId": 1,
   "network": "mainnet",
-  "protocolVersion": "V15_HARDENED",
+  "protocolVersion": "V15_1",
   "status": "not-deployed",
   "startBlock": 0,
   "contracts": {

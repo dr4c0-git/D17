@@ -18,6 +18,6 @@ npm run release:protocol
 ```
 
 The generator rejects ABI or creation-bytecode drift from the published
-artifacts. Identity literals end in `V15_HARDENED`. The deployment records in
+artifacts. Identity literals end in `V15_1` (V15.1; the first V15 suites used `V15_HARDENED`). The deployment records in
 `deployments/` stay at `"status": "not-deployed"` until
 `npm run publish:deployment -w @d17/contracts` writes a verified deployment.

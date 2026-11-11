@@ -30,7 +30,7 @@ export type PublicDeployment = {
 const localDeployment: PublicDeployment = {
   chainId: 31337,
   network: "local",
-  protocolVersion: "V15_HARDENED",
+  protocolVersion: "V15_1",
   status: process.env.NEXT_PUBLIC_D17_LOCAL_D17_FACTORY ? "deployed" : "not-deployed",
   startBlock: 0,
   contracts: {
@@ -58,6 +58,10 @@ if (!PUBLIC_DEPLOYMENT) {
   throw new Error(`D17 has no bundled deployment for chain ${CHAIN_ID}`);
 }
 
+/** Suffix of the contract identity constants (`D17_LAUNCH_<suffix>`, ...) of the suite
+ *  published for this network: V15.1 renamed them, the first V15 suites keep the old one. */
+export const PROTOCOL_ID_SUFFIX = PUBLIC_DEPLOYMENT.protocolVersion === "V15_1" ? "V15_1" : "V15_HARDENED";
+
 /** False until the V15 suite for this network is deployed and its manifest published. */
 export const PROTOCOL_DEPLOYED = PUBLIC_DEPLOYMENT.status === "deployed";
 const IS_MAINNET_CHAIN = PUBLIC_DEPLOYMENT.chainId === 1;
@@ -65,7 +69,7 @@ const IS_MAINNET_CHAIN = PUBLIC_DEPLOYMENT.chainId === 1;
 export const LOCAL_DEPLOYER_SCHEMA = {
   profile: PUBLIC_DEPLOYMENT.network,
   chainId: CHAIN_ID,
-  contractVersion: "D17_V15_HARDENED",
+  contractVersion: `D17_${PROTOCOL_ID_SUFFIX}`,
   contracts: PUBLIC_DEPLOYMENT.contracts,
   manualDistribution: {
     supportedByCurrentContract: true,

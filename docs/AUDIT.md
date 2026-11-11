@@ -124,8 +124,8 @@ The complete reference, with a citation for every rule, is
 - **Late-settlement entry points** (`D17Launch.claimLateSettlement`,
   `D17LiquidityVault.mintLateLiquidity`) and `burnFailedLaunchPenalties` remain in the ABI
   for compatibility and always revert.
-- **Contract identities** (`*_V15_HARDENED` constants) are the same as V15: V15.1 kept the
-  ABI-level identity. Each suite only accepts lockers and launches it registered itself.
+- **Contract identities** end in `V15_1` (`D17_LAUNCH_V15_1`, ...), distinct from V15's
+  `V15_HARDENED`. Each suite only accepts lockers and launches it registered itself.
 
 ## 5. Known limitations
 
@@ -173,8 +173,7 @@ The complete reference, with a citation for every rule, is
 5. **Pool creation.** Pre-seeding or donating to the pair before it is created, the
    vault's checks on reserves, and the `minLpMinted` and deadline arguments.
 6. **Deployment and identity.** The pin and renounce flow, the mainnet guards in
-   `D17Factory`, and whether keeping the V15 identity constants is safe or should change
-   before mainnet.
+   `D17Factory`, and the identity checks between lockers, launches and factories.
 7. **Fee splitter.** Rounding, any token or ETH left behind, and behaviour with
    non-standard tokens sent to it.
 
@@ -201,7 +200,14 @@ wei), and two launches cancelled by their round-1 floors (for example
 `0x4f7aACa17878244056EF6003D1D55fC95c18931e`). A cancelled launch
 with a take-back fee returned in full ran on the previous V15.1 suite.
 
-## 9. Reporting
+## 9. Reviews of later versions
+
+Every contract change makes a new version with new identity constants, and each version
+gets its own review before mainnet: V16 (planned changes to the pool liquidity, see
+`docs/V16_POOL_LIQUIDITY.md`) will need one too. A review of a later version can focus on
+the diff from the last reviewed commit, plus the invariants it touches.
+
+## 10. Reporting
 
 Please share findings privately with the maintainers before any publication (see
 `SECURITY.md`), with the affected contract, the invariant, the call sequence and a minimal

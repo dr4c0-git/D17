@@ -13,8 +13,8 @@ cd contracts
 shasum -a 256 -c SHA256SUMS.txt
 ```
 
-Protocol identity strings containing `V15_HARDENED` are immutable on-chain
-identity values. Applications and deployment checks intentionally verify those
+Protocol identity strings ending in `V15_1` (`V15_HARDENED` for the first V15
+suites) are immutable on-chain identity values. Applications and deployment checks intentionally verify those
 exact hashes.
 
 ## Reproducible compiler output

@@ -10,7 +10,7 @@ import {ID17FactoryView, ID17Launch, IERC20BalanceView, IV2Factory, IV2PairView,
 contract D17LiquidityVault {
     using D17SafeTransfer for address;
 
-    bytes32 public constant D17_LIQUIDITY_VAULT_ID = keccak256("D17_LIQUIDITY_VAULT_V15_HARDENED");
+    bytes32 public constant D17_LIQUIDITY_VAULT_ID = keccak256("D17_LIQUIDITY_VAULT_V15_1");
     /// @notice The creator allocation unlocks linearly over this period, starting when the
     /// official pool is created (= when trading opens).
     uint256 public constant CREATOR_VESTING_SECONDS = 180 days;

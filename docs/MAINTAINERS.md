@@ -146,7 +146,7 @@ command (it kills the shell itself); run the node as a separate background task.
 | `D17Locker` | Penalty → vault; pays `protocolFeeWeth`; `protocolFeeWeth` field inserted in `LockerPosition` (decode by **name**, not by index). V15.1: accounting before external calls, `failedRefundDue`. |
 | `D17LiquidityVault` | Pool = every settled WETH + penalties with all effective LP tokens; 180-day creator vesting (`releaseCreatorTokens`, callable by anyone); ETH→WETH sweep. V15.1: `mintLateLiquidity` and `burnFailedLaunchPenalties` revert, `returnFailedPenalty` (launch only). |
 
-IDs: `*_V15_HARDENED` everywhere (contracts, `scripts/lib.mjs`, apps, release).
+IDs: `*_V15_1` everywhere (contracts, `scripts/lib.mjs`, apps, release); manifests say `"protocolVersion": "V15_1"`. The web app picks the identity suffix from the published manifest (`PROTOCOL_ID_SUFFIX` in `apps/web/lib/d17Manifest.ts`), so a manifest still saying `V15_HARDENED` keeps working until it is republished. Bump the suffix for every contract version.
 Sizes (V15.1, `release/protocol-build.json`): `D17LaunchDeployer` 22,910 bytes (1.6 KB headroom:
 any growth of `D17Launch` consumes it), `D17Launch` 17,722 bytes, `D17Factory` 11,538 bytes,
 `D17LaunchFactory` 5,129 bytes.
@@ -265,10 +265,9 @@ form caps the logo at 4 KB for the same reason. `npm run inspect:batch -w @d17/c
 0xTxHash` explains a batch transaction (skipped lockers and why).
 
 Audit package: `docs/AUDIT.md` (also /docs/audit). Keep its scope table, fixed-issues
-table and Sepolia addresses current after any contract change or redeployment. Open
-question listed there for the reviewer: V15.1 kept the `*_V15_HARDENED` identity
-constants although the bytecode changed (contracts/SECURITY.md says to bump them); decide
-before mainnet.
+table and Sepolia addresses current after any contract change or redeployment. Every
+contract version gets its own review before mainnet (agreed with the project lead,
+2026-11-11), V16 included.
 
 V16 discussion note: `docs/V16_POOL_LIQUIDITY.md` (not on the site). Proposes option C
 (dormancy read from the pair's `blockTimestampLast`, then pro-rata redemption by holders)

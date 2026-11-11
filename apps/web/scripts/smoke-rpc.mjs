@@ -19,7 +19,7 @@ if (deployment.status !== "deployed") {
 }
 const abi = JSON.parse(readFileSync(path.resolve("public/abi/D17Factory.abi.json"), "utf8"));
 const provider = new ethers.JsonRpcProvider(rpcUrl, requestedChainId, { batchMaxCount: 1 });
-const expectedFactoryId = ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V15_HARDENED"));
+const expectedFactoryId = ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V15_1"));
 const expectedConfigFields = [
   "tokenName", "tokenSymbol", "description", "logoSvgUri", "links",
   "tokenSupply", "saleTokens", "lpTokens", "manualDistributionTokens", "deadTokens",

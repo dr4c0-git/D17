@@ -5,7 +5,7 @@ import { ethers } from "ethers";
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // This exact string is the immutable identity of the deployed contract family.
-export const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V15_HARDENED"));
+export const CURRENT_LAUNCH_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_LAUNCH_V15_1"));
 
 loadDotEnv(path.join(root, ".env"));
 

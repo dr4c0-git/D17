@@ -7,7 +7,7 @@ import {ID17FactoryView, ID17VaultFailedRefund, IERC20BalanceView, IWETH} from "
 contract D17Launch {
     using D17SafeTransfer for address;
 
-    bytes32 public constant D17_LAUNCH_ID = keccak256("D17_LAUNCH_V15_HARDENED");
+    bytes32 public constant D17_LAUNCH_ID = keccak256("D17_LAUNCH_V15_1");
     bytes32 public constant FAILED_REFUND_POLICY = keccak256("D17_FAILED_R1_FULL_REFUND_V1");
     uint8 public constant ROUND_COUNT = 5;
     uint8 public constant FINAL_ROUND = 4;

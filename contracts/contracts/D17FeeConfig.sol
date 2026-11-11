@@ -14,7 +14,7 @@ pragma solidity ^0.8.24;
 /// The fee is charged only on successful settlement (a share of each settled commitment).
 /// Refunds, refund penalties and failed launches never pay it.
 contract D17FeeConfig {
-    bytes32 public constant D17_FEE_CONFIG_ID = keccak256("D17_FEE_CONFIG_V15_HARDENED");
+    bytes32 public constant D17_FEE_CONFIG_ID = keccak256("D17_FEE_CONFIG_V15_1");
     uint16 public constant MAX_PROTOCOL_FEE_BPS = 200;
 
     address public owner;

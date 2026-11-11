@@ -20,7 +20,7 @@ import {
   READ_RPC_URL,
   SITE_MODE,
 } from "@/lib/d17Api";
-import { LOCAL_DEPLOYER_SCHEMA, PROTOCOL_DEPLOYED, PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
+import { LOCAL_DEPLOYER_SCHEMA, PROTOCOL_DEPLOYED, PROTOCOL_ID_SUFFIX, PUBLIC_DEPLOYMENT } from "@/lib/d17Manifest";
 import { d17Href } from "@/lib/d17Network";
 import { ensureWalletChain } from "@/lib/walletChain";
 import { createReadProvider } from "@/lib/readProvider";
@@ -37,7 +37,7 @@ const CHAIN_ID_BIG = BigInt(CHAIN_ID);
 // Writes are pinned to the public deployment manifest bundled with this build.
 const DEFAULT_FACTORY = PUBLIC_DEPLOYMENT?.contracts.d17Factory || "";
 const DEAD_RECIPIENT = "0x000000000000000000000000000000000000dEaD";
-const EXPECTED_FACTORY_ID = ethers.keccak256(ethers.toUtf8Bytes("D17_FACTORY_V15_HARDENED"));
+const EXPECTED_FACTORY_ID = ethers.keccak256(ethers.toUtf8Bytes(`D17_FACTORY_${PROTOCOL_ID_SUFFIX}`));
 const MAX_START_DELAY_SECONDS = 365 * 24 * 60 * 60;
 const MAX_REFUND_SECONDS = 30 * 24 * 60 * 60;
 const MAX_SETTLEMENT_SECONDS = 30 * 24 * 60 * 60;

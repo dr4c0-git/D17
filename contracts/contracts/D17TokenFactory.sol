@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {D17Token} from "./D17Token.sol";
 
 contract D17TokenFactory {
-    bytes32 public constant D17_TOKEN_FACTORY_ID = keccak256("D17_TOKEN_FACTORY_V15_HARDENED");
+    bytes32 public constant D17_TOKEN_FACTORY_ID = keccak256("D17_TOKEN_FACTORY_V15_1");
 
     address public owner;
     address public launchFactory;

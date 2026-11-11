@@ -3,6 +3,18 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-11 - V15.1 identity constants
+
+- **The contracts now identify themselves as V15.1**: every identity constant ends in
+  `V15_1` (`D17_LAUNCH_V15_1`, `D17_FACTORY_V15_1`, ...) instead of V15's `V15_HARDENED`,
+  so V15 and V15.1 contracts can never be mistaken for each other, and the reviewed
+  bytecode is the one that goes to mainnet. Deployment manifests say
+  `"protocolVersion": "V15_1"`.
+- The site checks the identity announced by the published manifest, so it keeps working
+  with the current Sepolia suite until the V15.1 one is redeployed.
+- Requires one more Sepolia deployment. Every later contract version (V16 included) gets
+  its own review before mainnet.
+
 ## 2026-11-11 - Audit package
 
 - **`docs/AUDIT.md`**, also on the site at /docs/audit: what a reviewer needs to audit

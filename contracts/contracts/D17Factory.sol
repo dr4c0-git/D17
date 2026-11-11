@@ -15,7 +15,7 @@ interface ID17FeeConfigView {
 }
 
 contract D17Factory {
-    bytes32 public constant D17_FACTORY_ID = keccak256("D17_FACTORY_V15_HARDENED");
+    bytes32 public constant D17_FACTORY_ID = keccak256("D17_FACTORY_V15_1");
     uint16 public constant BPS = 10_000;
     // Creator treasury fee cap (V14: 20%). Every successful commitment keeps at least
     // BPS - MAX_TREASURY_BPS - D17FeeConfig.MAX_PROTOCOL_FEE_BPS = 88% for the locked pool.

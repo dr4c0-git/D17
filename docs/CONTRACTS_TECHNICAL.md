@@ -388,7 +388,7 @@ still declared for ABI compatibility but is never emitted in V15.1. V14's
 
 One locker per (user, deployment); registered in D17Factory; holds the user's WETH until
 refund/settlement and claimed sale tokens until withdrawal. `EXPECTED_LAUNCH_ID` (:10)
-pins the accepted launch version (`D17_LAUNCH_V15_HARDENED`). Immutables: `owner`,
+pins the accepted launch version (`D17_LAUNCH_V15_1`). Immutables: `owner`,
 `factory`, `weth` (:13-15). Global ledgers: `withdrawableWeth`, `accountedWeth` (:17-18).
 Per-launch `LockerPosition` struct (:21-43); V15 inserted **`protocolFeeWeth` after
 `treasuryWeth`** (:34-35), shifting every later field of the public `positions` getter
@@ -606,7 +606,8 @@ exists and the allocation stays in the vault forever.
 ## 7. Access control & authenticity
 
 Compatibility constants (all `keccak256` values fixed in deployed bytecode, all ending in
-`V15_HARDENED`): `D17_FACTORY_ID` (D17Factory.sol:18), `D17_FEE_CONFIG_ID`
+`V15_1`; the first V15 suites used `V15_HARDENED`, which the web app still recognises when
+the published manifest says so): `D17_FACTORY_ID` (D17Factory.sol:18), `D17_FEE_CONFIG_ID`
 (D17FeeConfig.sol:17), `D17_LAUNCH_DEPLOYER_ID` (D17LaunchDeployer.sol:11),
 `D17_LAUNCH_ID` (D17Launch.sol:10), `D17_TOKEN_ID` (D17Token.sol:15),
 `D17_TOKEN_FACTORY_ID` (D17TokenFactory.sol:7), `D17_LIQUIDITY_VAULT_ID`

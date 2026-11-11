@@ -54,14 +54,14 @@ for (const name of contracts) {
 }
 
 const identityLiterals = {
-  factory: "D17_FACTORY_V15_HARDENED",
-  feeConfig: "D17_FEE_CONFIG_V15_HARDENED",
-  tokenFactory: "D17_TOKEN_FACTORY_V15_HARDENED",
-  liquidityVaultFactory: "D17_LIQUIDITY_VAULT_FACTORY_V15_HARDENED",
-  launchDeployer: "D17_LAUNCH_DEPLOYER_V15_HARDENED",
-  launch: "D17_LAUNCH_V15_HARDENED",
-  liquidityVault: "D17_LIQUIDITY_VAULT_V15_HARDENED",
-  token: "D17_TOKEN_V15_HARDENED",
+  factory: "D17_FACTORY_V15_1",
+  feeConfig: "D17_FEE_CONFIG_V15_1",
+  tokenFactory: "D17_TOKEN_FACTORY_V15_1",
+  liquidityVaultFactory: "D17_LIQUIDITY_VAULT_FACTORY_V15_1",
+  launchDeployer: "D17_LAUNCH_DEPLOYER_V15_1",
+  launch: "D17_LAUNCH_V15_1",
+  liquidityVault: "D17_LIQUIDITY_VAULT_V15_1",
+  token: "D17_TOKEN_V15_1",
 };
 
 // Reference hashes from the compiler artifacts used for this release build.

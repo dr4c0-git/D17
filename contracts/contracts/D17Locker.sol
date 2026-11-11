@@ -7,7 +7,7 @@ import {ID17FactoryView, ID17Launch, IWETH} from "./interfaces/ID17.sol";
 contract D17Locker {
     using D17SafeTransfer for address;
 
-    bytes32 public constant EXPECTED_LAUNCH_ID = keccak256("D17_LAUNCH_V15_HARDENED");
+    bytes32 public constant EXPECTED_LAUNCH_ID = keccak256("D17_LAUNCH_V15_1");
     uint8 public constant ROUND_COUNT = 5;
 
     address public immutable owner;

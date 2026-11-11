@@ -8,7 +8,7 @@ import {D17Launch} from "./D17Launch.sol";
 /// launch factory's EIP-170 runtime size limit. Same owner-pin-renounce lifecycle as
 /// D17TokenFactory and D17LiquidityVaultFactory.
 contract D17LaunchDeployer {
-    bytes32 public constant D17_LAUNCH_DEPLOYER_ID = keccak256("D17_LAUNCH_DEPLOYER_V15_HARDENED");
+    bytes32 public constant D17_LAUNCH_DEPLOYER_ID = keccak256("D17_LAUNCH_DEPLOYER_V15_1");
 
     address public owner;
     address public launchFactory;
