@@ -180,24 +180,26 @@ The complete reference, with a citation for every rule, is
 ## 8. Public test deployment
 
 The exact source of this package (with the mainnet settings: 1% fee, a 75 / 25 fee split,
-fee config renounced) is deployed on **Sepolia**, start block 12108022, with every contract
-verified on Etherscan. Addresses and transactions: `release/deployments/sepolia.json`.
+fee config renounced) is deployed on **Sepolia**, start block 12112991; its source
+verification on Etherscan is in progress. Addresses and transactions: `release/deployments/sepolia.json`.
 
 | Contract | Address |
 |---|---|
-| D17Factory | `0xF93a425c0a2DDd4b57b57C6304AEB09ED2Dcb7cB` |
-| D17FeeConfig | `0xc14944366Eb2cebc768063591ADB58873C9531f0` |
-| D17FeeSplitter | `0x5D31d29910419d6103Ae75fA2f319aEcEFAeAfa2` |
-| D17LaunchFactory | `0x1A26087e8D6aA874e6119D1244504E0a6a61c5aA` |
-| D17LaunchDeployer | `0x1Ab86c31cf52842F3723247dD8963E9315cfCe5A` |
-| D17TokenFactory | `0xD6Fd57719Dae51bc113496133F2CB47644c618D8` |
-| D17LiquidityVaultFactory | `0x463d630e377CAfb690e6fe3D298532ed082202B2` |
-| D17LockerFactory | `0xE8248052E0848E5dF6B056E82083c2cDBb7A4fB3` |
+| D17Factory | `0x260cbEA5Af1669446353d2B80D75a145016C1228` |
+| D17FeeConfig | `0xcB917eaAd0DaDB3E483212e4a9452dD1b73d270c` |
+| D17FeeSplitter | `0x6E6F46d2DdA1E0c70A467148bB43B7b76e59FeF7` |
+| D17LaunchFactory | `0xd1730399468d40ef9Dff8f91653D4f83E889Ef4E` |
+| D17LaunchDeployer | `0xB4bcE65b6C5ecFd0ADeB7DaE32a2B9036B96d556` |
+| D17TokenFactory | `0x778e49CB1e24fE4ae31111Ba4283cd5061B57b6f` |
+| D17LiquidityVaultFactory | `0x9C663fCE0049423b9c53f55993E41b7b41D2CcE1` |
+| D17LockerFactory | `0x613F3B7406Eb59385502b123026229B57c2E9D75` |
 
-Test launches on it: a successful launch with one buyer left absent and settled by a third
-party through the batch (the pool then opened and the 1% fee was split 75 / 25 to the
-wei), and two launches cancelled by their round-1 floors (for example
-`0x4f7aACa17878244056EF6003D1D55fC95c18931e`). A cancelled launch
+This suite (2026-11-11) differs from the previous Sepolia suite only by its identity
+constants (`*_V15_1`). The test launches ran on that previous suite: a successful launch
+with one buyer left absent and settled by a third party through the batch (the pool then
+opened and the 1% fee was split 75 / 25 to the wei), two launches cancelled by their
+round-1 floors, and, one suite earlier, a cancelled launch that returned a take-back fee
+in full. A cancelled launch
 with a take-back fee returned in full ran on the previous V15.1 suite.
 
 ## 9. Reviews of later versions

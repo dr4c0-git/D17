@@ -3,6 +3,13 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-11 - V15.1 redeployed on Sepolia with its own identity
+
+- **The V15.1 suite with the `V15_1` identity constants is live on Sepolia** (block
+  12112991, factory `0x260cbEA5Af1669446353d2B80D75a145016C1228`), with the mainnet settings: 1% fee
+  split 75 / 25, fee settings renounced, 45 checks out of 45. It is the exact source of
+  the audit package. The site now reads it.
+
 ## 2026-11-11 - V15.1 identity constants
 
 - **The contracts now identify themselves as V15.1**: every identity constant ends in

@@ -84,11 +84,12 @@ Creator, Test 4 and 5 Buyers.
 - Step 1 (analysis) done. Step 2 (fee + fix for every risk) done and pushed: commits
   `f3442cb` (deployer), `fd9e635` (contracts), `4a3d92e` (tooling), `b8ecb7e` (apps),
   then docs/release, creator-vesting UI (`f5aee23`), V15 docs rewrite (`f944f69`).
-- **V15.1 is deployed on Sepolia** (2026-11-10 23:57 UTC, start block 12108022, factory
-  `0xF93a425c0a2DDd4b57b57C6304AEB09ED2Dcb7cB`, locker factory `0xE8248052E0848E5dF6B056E82083c2cDBb7A4fB3`, fee splitter
-  `0x5D31d29910419d6103Ae75fA2f319aEcEFAeAfa2` paying Test 2 / Test 5 7500/2500, fee config renounced, verify 45/45, Etherscan 8/8, batch gas
-  fix included), a rehearsal of the mainnet settings. Superseded the same day: the
-  ported V15.1 with the 1M batch cap (factory `0x21ae6ae63526B9874A98e1B7C1eeC6AE8A90Fd79`, block 12105659, where ABS1 and
+- **V15.1 is deployed on Sepolia** (2026-11-11 16:50 UTC, start block 12112991, factory
+  `0x260cbEA5Af1669446353d2B80D75a145016C1228`, locker factory `0x613F3B7406Eb59385502b123026229B57c2E9D75`, fee splitter
+  `0x6E6F46d2DdA1E0c70A467148bB43B7b76e59FeF7` paying Test 2 / Test 5 7500/2500, fee config renounced, verify 45/45,
+  identity constants `*_V15_1`), a rehearsal of the mainnet settings. Superseded: the suite
+  with the old identities (factory `0xF93a425c0a2DDd4b57b57C6304AEB09ED2Dcb7cB`, block 12108022,
+  where ABS4 ran), the ported V15.1 with the 1M batch cap (factory `0x21ae6ae63526B9874A98e1B7C1eeC6AE8A90Fd79`, where ABS1 and
   CNL1 ran) and the first draft (factory `0x8E9aC0baf0a6A59F35dEcDd3B25335979bad0624`). Provenance in
   `release/deployments/sepolia.json`. The first V15 suite (2026-10-20, factory
   `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, block 11958083) is superseded.

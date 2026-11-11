@@ -4,7 +4,7 @@
 > [0xlocker/D17](https://github.com/0xlocker/D17) (MIT, original copyright kept in
 > `LICENSE`). It ships hardened V15 contracts with a published protocol fee (at most
 > 2%, charged only on successful settlement). V15.1 is **deployed on Sepolia**
-> (testnet, factory `0xF93a425c0a2DDd4b57b57C6304AEB09ED2Dcb7cB`, all 45 deployment
+> (testnet, factory `0x260cbEA5Af1669446353d2B80D75a145016C1228`, all 45 deployment
 > checks passed) and **not on mainnet** yet: `deployments/mainnet.json` reads
 > `"not-deployed"` until an audit is done. The upstream V14 addresses are not
 > compatible with this tree. Every rule change is listed in

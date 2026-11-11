@@ -5,7 +5,7 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
 
 ## Done
 
-- **V15.1 contracts deployed on Sepolia** (Ethereum testnet), block 12108022, with the
+- **V15.1 contracts deployed on Sepolia** (Ethereum testnet), block 12112991, with the
   mainnet settings: 1% fee split 75 / 25 by a fee splitter with no owner, and the fee
   settings renounced, so nobody can change them. Checked by `verify:factory` (45 checks
   out of 45), every owner key renounced. The first V15 suite (block 11958083) ran the
@@ -19,9 +19,9 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
   take-back fee one of them had paid).
 - **Protocol fee in the open**: 1% (hard cap 2%), frozen per launch, paid only on a
   successful sale to a fee splitter with no owner. Distributed for real on Sepolia.
-- **Source code verified on Etherscan** for the 8 contracts of the V15.1 suite, so
-  anyone can read the code behind each address, for example the
-  [fee splitter](https://sepolia.etherscan.io/address/0x5D31d29910419d6103Ae75fA2f319aEcEFAeAfa2#code).
+- **Source code verified on Etherscan** for the 8 contracts of the earlier V15.1 suites;
+  the current one (with its own V15.1 identity) is being verified the same way, for example its
+  [fee splitter](https://sepolia.etherscan.io/address/0x6E6F46d2DdA1E0c70A467148bB43B7b76e59FeF7#code).
 - **Web app**: a plain-language simple view, the full expert view, a guided
   create-a-launch form, and this documentation.
 
