@@ -7,7 +7,7 @@ newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
 - **The V15.1 suite with the batch gas fix is live on Sepolia** (block 12108022, factory
   `0xF93a425c0a2DDd4b57b57C6304AEB09ED2Dcb7cB`), with the mainnet settings: 1% fee split 75 / 25, fee settings renounced,
-  45 checks out of 45.
+  45 checks out of 45, source code verified on Etherscan (8 of 8).
 - Test results on the previous suite: the **cancelled launch** returned everything to
   both buyers, including the 1% take-back fee one of them had paid; the **successful
   launch** kept trading closed while one buyer had not collected (the all-settled rule
