@@ -180,8 +180,8 @@ The complete reference, with a citation for every rule, is
 ## 8. Public test deployment
 
 The exact source of this package (with the mainnet settings: 1% fee, a 75 / 25 fee split,
-fee config renounced) is deployed on **Sepolia**, start block 12112991; its source
-verification on Etherscan is in progress. Addresses and transactions: `release/deployments/sepolia.json`.
+fee config renounced) is deployed on **Sepolia**, start block 12112991, with every contract
+verified on Etherscan. Addresses and transactions: `release/deployments/sepolia.json`.
 
 | Contract | Address |
 |---|---|
