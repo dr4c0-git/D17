@@ -63,7 +63,7 @@ then fill `contracts/.env` with:
 | `UNISWAP_V2_ROUTER` | `0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D` |
 | `RENOUNCE_FEE_CONFIG_OWNER` | `1` (nobody controls the fee afterwards) |
 | `FEE_CONFIG_OWNER` | empty |
-| `PROTOCOL_FEE_BPS` | `100` (1%) |
+| `PROTOCOL_FEE_BPS` | `200` (2%, decided 2026-11-12) |
 | `PROTOCOL_FEE_RECIPIENT` | empty (the fee splitter becomes the recipient) |
 | `FEE_SPLIT_RECIPIENTS` | the 2 fee addresses, comma separated, no spaces: D17 buybacks, then the development fund |
 | `FEE_SPLIT_BPS` | `7500,2500` (same order) |

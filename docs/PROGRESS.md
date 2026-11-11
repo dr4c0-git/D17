@@ -6,7 +6,7 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
 ## Done
 
 - **V15.1 contracts deployed on Sepolia** (Ethereum testnet), block 12112991, with the
-  mainnet settings: 1% fee split 75 / 25 by a fee splitter with no owner, and the fee
+  mainnet settings (at a 1% fee; mainnet uses 2%): the fee is split 75 / 25 by a fee splitter with no owner, and the fee
   settings renounced, so nobody can change them. Checked by `verify:factory` (45 checks
   out of 45), every owner key renounced. The first V15 suite (block 11958083) ran the
   earlier test launches. Addresses and transactions: [release/deployments/sepolia.json](../release/deployments/sepolia.json).
@@ -31,7 +31,7 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
 - **External security audit** of the contracts: mainnet comes only after it. The
   [audit package](./AUDIT.md) is ready for the reviewer.
 - **Mainnet deployment** on V15, with the protocol fee settings renounced at deployment:
-  the 1% fee and its split (75% D17 buybacks, 25% development fund) are then final, with
+  the 2% fee and its split (75% D17 buybacks, 25% development fund) are then final, with
   no admin key.
 - **V16**, after the mainnet launch: what happens to the liquidity left in a pool once a
   token is no longer traded, and contract rules for how a pool opens.

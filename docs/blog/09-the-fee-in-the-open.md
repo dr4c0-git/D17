@@ -28,7 +28,7 @@ The platform earns when a launch works, and only then. That's the incentive we w
 
 ## Why it can't change under you
 
-The fee lives in one small contract, and nobody controls it. Its owner gave up control as the last step of the deployment, so the rate (1%) and its recipient are fixed for good; on mainnet the factory refuses to create any launch until that is the case. A different fee would mean deploying a whole new version of D17, which can never change launches already created.
+The fee lives in one small contract, and nobody controls it. Its owner gave up control as the last step of the deployment, so the rate (2%) and its recipient are fixed for good; on mainnet the factory refuses to create any launch until that is the case. A different fee would mean deploying a whole new version of D17, which can never change launches already created.
 
 At the moment a launch is created, the factory copies the current fee and recipient into the launch itself, as permanent values that are part of its rules hash - the fingerprint your locker checks before every commitment. From then on, nothing anyone does to the fee contract can reach that launch. No upgrade, no "temporary adjustment," no new recipient.
 

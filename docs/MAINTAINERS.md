@@ -72,7 +72,11 @@ Creator, Test 4 and 5 Buyers.
   7500,2500` with `FEE_SPLIT_RECIPIENTS` in that order. The addresses were provided by the
   project lead and are kept off the repo until the mainnet deployment (the owner has them).
 - Mainnet fee settings: renounced at deployment (`RENOUNCE_FEE_CONFIG_OWNER=1`, option A,
-  decided 2026-11-09): no multisig, the 1% fee and the splitter are final for the suite.
+  decided 2026-11-09): no multisig, the fee and the splitter are final for the suite. Mainnet
+  fee: 2% (`PROTOCOL_FEE_BPS=200`), decided by the project lead on 2026-11-12 after weighing
+  1% (more of the raise goes to the ecosystem; the pool gets 1 point less). Sepolia ran at 1%.
+  Project lead's V15.1 review (2026-11-12): no blocking issue; the pool residue, pools opened
+  with too few tokens and two smaller points are kept for V16.
   Mainnet goes out on V15 (2026-11-11); a V16 is planned after launch (permanently
   locked liquidity residue, pool opening rules).
 - Predatory launches: the contract accepts any LP allocation from 1 token, so a creator can

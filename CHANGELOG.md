@@ -3,6 +3,16 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-12 - Mainnet protocol fee: 2%
+
+- **The mainnet protocol fee is 2%**, the contract's maximum, decided by the project lead:
+  more of every successful raise goes to the ecosystem (75% to D17 buybacks, 25% to the
+  development fund), for one point less in the pool (93 instead of 94 ETH per 100 raised
+  with a 5% creator share). It is frozen at deployment, like before. The Sepolia test
+  suite keeps 1%; nothing else changes.
+- The project lead's review of V15.1 found no blocking issue. The liquidity left in pools,
+  pools opened with too few tokens, and two smaller points are kept for V16.
+
 ## 2026-11-11 - Static export for an IPFS mirror
 
 - `npm run build:ipfs -w @d17/web` exports the whole site as static files

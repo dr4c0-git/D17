@@ -118,7 +118,7 @@ The complete reference, with a citation for every rule, is
   what it cannot sell is burned.
 - **The pool waits for every buyer.** Pool creation reverts while a final commitment is
   unsettled; whoever opens trading pays the gas to settle absent buyers.
-- **Fees.** Protocol fee at most 2% (1% on the D17 deployments), charged only on
+- **Fees.** Protocol fee at most 2% (2% on mainnet, 1% on the Sepolia test suite), charged only on
   settlement of a successful commitment, frozen per launch. Each fee is rounded down per
   locker; the pool receives the remainder.
 - **Late-settlement entry points** (`D17Launch.claimLateSettlement`,
@@ -179,8 +179,8 @@ The complete reference, with a citation for every rule, is
 
 ## 8. Public test deployment
 
-The exact source of this package (with the mainnet settings: 1% fee, a 75 / 25 fee split,
-fee config renounced) is deployed on **Sepolia**, start block 12112991, with every contract
+The exact source of this package (with a 1% fee, a 75 / 25 fee split,
+fee config renounced; mainnet will use 2%, the only difference) is deployed on **Sepolia**, start block 12112991, with every contract
 verified on Etherscan. Addresses and transactions: `release/deployments/sepolia.json`.
 
 | Contract | Address |

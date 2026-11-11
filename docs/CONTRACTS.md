@@ -139,7 +139,7 @@ Neither check means the token, creator, website, economics, or market value has 
 
 ### The launch cannot be upgraded in place
 
-These contracts are not proxies. After deployment there is no function for replacing a launch's code or changing its immutable rules. The deployment process pins the component factories once and renounces their setup ownership; V15 refuses to create any launch while one of those owner keys still exists. The last owner, `D17FeeConfig`'s, is renounced at the end of the deployment, so the fee (1%, at most 2%) and its recipient can no longer change; on mainnet the factory refuses to create a launch until it is. A future D17 version requires a new factory suite; existing launches continue under their original code.
+These contracts are not proxies. After deployment there is no function for replacing a launch's code or changing its immutable rules. The deployment process pins the component factories once and renounces their setup ownership; V15 refuses to create any launch while one of those owner keys still exists. The last owner, `D17FeeConfig`'s, is renounced at the end of the deployment, so the fee (2%, the maximum) and its recipient can no longer change; on mainnet the factory refuses to create a launch until it is. A future D17 version requires a new factory suite; existing launches continue under their original code.
 
 This removes an administrator's ability to change the mechanism later. It also removes the ability to patch an existing launch if a defect is discovered.
 

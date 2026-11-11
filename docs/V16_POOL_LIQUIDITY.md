@@ -20,7 +20,7 @@ WETH left = W x L / (L + S)
 
 With the default split (45% of supply for buyers, 45% in the pool, 5% for the creator)
 and a sale that sold out, `L = 45`, `S = 45 + 5`: **47% of the pool's WETH stays in the
-pair**. The pool receives about 94% of the raise (after the creator's 5% and the 1% fee),
+pair**. The pool receives about 93% of the raise (after the creator's 5% and the 2% fee),
 so that is **about 44% of the raise**. The ratio does not depend on how much of the sale
 sold (the LP allocation is scaled to it), only on the split.
 
