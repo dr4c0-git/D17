@@ -16,7 +16,7 @@ in `test/fee-splitter-e2e.mjs`, **17/17** in `test/v15-1-regressions-e2e.mjs`, a
 V15.1 review suites (`failed-refund-remediation` 80 checks, `adversarial-callbacks` 32,
 `minimum-liquidity` 4, `rounding-reference-model` 84,000), see §10. Stateful fuzz `test/fuzz-invariants.mjs` passes on
 V15.1. Slither 0.11.6 reports no exploitable finding. V15.1 is **not deployed on mainnet**
-(it is deployed on Sepolia, factory `0x21ae6ae63526B9874A98e1B7C1eeC6AE8A90Fd79`) and has **not** received a
+(it is deployed on Sepolia, factory `0xF93a425c0a2DDd4b57b57C6304AEB09ED2Dcb7cB`) and has **not** received a
 formal professional third-party audit.
 
 D17 is a five-round fair-launch protocol on a Uniswap-V2-style AMM. Users commit ETH

@@ -6,7 +6,7 @@ enforced by the contracts, published in each launch's `rulesHash` and cannot be 
 after the launch is created.
 
 > **Status:** this source tree is **V15.1** (see [V15.1 fixes](#v151-fixes)). It is
-> **deployed on Sepolia** (2026-11-10, factory `0x21ae6ae63526B9874A98e1B7C1eeC6AE8A90Fd79`, protocol fee 1% to a fee splitter
+> **deployed on Sepolia** (2026-11-11, factory `0xF93a425c0a2DDd4b57b57C6304AEB09ED2Dcb7cB`, protocol fee 1% to a fee splitter
 > with no owner, fee settings renounced, 45/45 deployment checks), where it runs
 > complete successful and cancelled test launches before anything else.
 > It is **not deployed on mainnet** (`deployments/mainnet.json` says `"not-deployed"`),

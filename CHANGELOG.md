@@ -3,6 +3,17 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-11 - V15.1 redeployed on Sepolia with the batch gas fix
+
+- **The V15.1 suite with the batch gas fix is live on Sepolia** (block 12108022, factory
+  `0xF93a425c0a2DDd4b57b57C6304AEB09ED2Dcb7cB`), with the mainnet settings: 1% fee split 75 / 25, fee settings renounced,
+  45 checks out of 45.
+- Test results on the previous suite: the **cancelled launch** returned everything to
+  both buyers, including the 1% take-back fee one of them had paid; the **successful
+  launch** kept trading closed while one buyer had not collected (the all-settled rule
+  works), but its batch settlement skipped that buyer for lack of gas, which led to the
+  fix above.
+
 ## 2026-11-10 - Batch settlement gas fix
 
 Found by the first Sepolia test launch of V15.1: "Collect for 1 buyer" went through but
