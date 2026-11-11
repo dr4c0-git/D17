@@ -270,6 +270,10 @@ question listed there for the reviewer: V15.1 kept the `*_V15_HARDENED` identity
 constants although the bytecode changed (contracts/SECURITY.md says to bump them); decide
 before mainnet.
 
+V16 discussion note: `docs/V16_POOL_LIQUIDITY.md` (not on the site). Proposes option C
+(dormancy read from the pair's `blockTimestampLast`, then pro-rata redemption by holders)
+for the permanently locked liquidity; nothing implemented until the project lead picks.
+
 ## Still to do
 
 - External audit.
