@@ -48,6 +48,17 @@ show("Settled (collected)", eth(settledCommitted));
 show("Protocol fee rate", feeBps === null ? "unknown" : `${Number(feeBps) / 100}%`);
 show("Protocol fee recipient", feeRecipient ?? "unknown");
 show("Protocol fee paid so far", eth(feePaid));
+// Round 1 decides whether the launch goes on: its raise must reach minPhase1Weth and its
+// price must reach minAnchorPriceWad, otherwise the launch is cancelled after round 1's
+// take-back window.
+const [minRaise, raised0, anchorPrice, minAnchorPrice, anchorReady, round0End] = await Promise.all([
+  read("minPhase1Weth"), read("roundRaised", 0), read("anchorPriceWad"), read("minAnchorPriceWad"), read("anchorReady"), read("roundEnd", 0),
+]);
+show("Round 1 raised", `${eth(raised0)} (minimum ${eth(minRaise)})`);
+show("Round 1 price (wad)", `${anchorPrice ?? "unknown"} (minimum ${minAnchorPrice ?? "unknown"})`);
+show("Round 1 conditions met", String(anchorReady));
+if (round0End !== null) show("Round 1 ended at", new Date(Number(round0End) * 1000).toISOString());
+
 if (feeRecipient && weth) {
   const held = await new ethers.Contract(weth, ERC20, provider).balanceOf(feeRecipient);
   show("WETH held by the recipient", eth(held));
