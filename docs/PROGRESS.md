@@ -28,12 +28,13 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
 - **Source code verified on Etherscan** for the 8 contracts of the Sepolia V15.1 suite, so
   anyone can read the code behind each address, for example the
   [fee splitter](https://sepolia.etherscan.io/address/0x6E6F46d2DdA1E0c70A467148bB43B7b76e59FeF7#code).
+- **Site on mainnet** (2026-11-12): hosted on Cloudflare Pages with its own domain and a
+  dedicated paid RPC; it opens on Ethereum mainnet by default, Sepolia stays available.
 - **Web app**: a plain-language simple view, the full expert view, a guided
   create-a-launch form, and this documentation.
 
 ## Next
 
-- The **site switched to mainnet** with its own domain and a dedicated RPC.
 - **Announcement**, a 24-hour countdown and a first test launch on mainnet.
 - **V16**: what happens to the liquidity left in a pool once a token is no longer traded,
   and contract rules for how a pool opens.

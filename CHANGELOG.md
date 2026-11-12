@@ -19,8 +19,11 @@ newest first. V15.1 is live on Ethereum mainnet and on Sepolia (testnet).
   `verify:etherscan` has a new `--direct` mode (the Etherscan API without Hardhat: every
   contract sent at once, each answer printed, the rate limit respected) and a
   `--print-args` option for a manual verification on etherscan.io.
-- Next: the site switched to mainnet with its domain and RPC, then the announcement, a
-  24-hour countdown and a first test launch.
+- **The site runs on mainnet**: hosted on Cloudflare Pages (static build, security
+  headers in `apps/web/public/_headers`), with its own domain and a dedicated paid RPC
+  restricted to that domain. It opens on Ethereum mainnet by default; Sepolia stays
+  available. Every mainnet launch opens at least 24 hours after its creation.
+- Next: a first test launch on mainnet, then the announcement.
 
 ## 2026-11-12 - Mainnet protocol fee: 2%
 
