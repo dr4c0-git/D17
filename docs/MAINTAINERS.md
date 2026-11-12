@@ -54,6 +54,19 @@ Creator, Test 4 and 5 Buyers.
   repo, root directory `apps/web`, Tenderly gateway RPCs in the `NEXT_PUBLIC_*` variables,
   no key; PublicNode was replaced because it prunes old logs). Every push to `main` redeploys it. The link was sent to the project lead only and
   is kept out of the repo until the launch is announced.
+- Hosting moved to Cloudflare Pages (2026-11-12), on the owner's own Cloudflare account
+  (Vercel Hobby forbids commercial use, and Vercel invites never reached the owner). Pages
+  project `d17`, connected to this repo, branch `main`, framework preset None, build
+  command `npm run build:ipfs -w @d17/web`, output `apps/web/out`, the same `NEXT_PUBLIC_*`
+  variables plus `NODE_VERSION=22`. Security headers come from `apps/web/public/_headers`.
+  The mainnet RPC is the project lead's paid dRPC key (pay as you go), set only in the
+  Cloudflare variables, never in the repo; restrict it to the site's domain. The domain
+  is the project lead's, on their own Cloudflare account: the site is on its `www`
+  subdomain (CNAME to the Pages project, DNS only) and the bare domain redirects to it
+  (proxied root record plus a redirect rule; the target URL must start with `https://`,
+  or it loops). Cloudflare only attaches a bare domain to a project on the same account.
+  The domain stays out of the repo until the launch is announced. `wrangler.jsonc` is a
+  spare config for a Workers deploy of the same files.
 - The project lead (GitHub `xbt2027`) is a collaborator on the repository since 2026-11-11.
   Mainnet plan agreed with them: their review of V15.1, deployer and split addresses,
   domain, RPC and Vercel Pro on their side, then the announcement, a 24 h countdown and a
