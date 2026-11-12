@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // mirror served through an ENS name and eth.limo. The Vercel build is unchanged.
 const staticExport = process.env.D17_STATIC_EXPORT === '1'
 
+// Keep in sync with public/_headers, which static hosts such as Cloudflare Pages read.
 async function securityHeaders() {
   return [
     {
