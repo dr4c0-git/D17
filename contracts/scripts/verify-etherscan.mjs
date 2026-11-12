@@ -4,6 +4,8 @@
 //   npm run verify:etherscan -w @d17/contracts                     Sepolia
 //   npm run verify:etherscan -w @d17/contracts -- --network mainnet
 //   npm run verify:etherscan -w @d17/contracts -- --dry-run         check only, sends nothing
+//   add --print-args to print each contract's ABI-encoded constructor arguments, for a manual
+//   verification on etherscan.io when the API queue is stuck
 //
 // Needs RPC_URL and ETHERSCAN_API_KEY in contracts/.env (a free key from
 // etherscan.io > My Account > API Keys, valid on every network). No private key: it
@@ -68,6 +70,9 @@ for (const item of SUITE) {
   const constructorArgs = constructor.inputs.length ? [...ethers.AbiCoder.defaultAbiCoder().decode(constructor.inputs, encoded)] : [];
   targets.push({ ...item, address, constructorArgs: normalize(constructorArgs) });
   console.log(`OK   ${item.name.padEnd(26)} ${address}  build matches, ${constructorArgs.length} constructor argument(s)`);
+  // For a manual verification on etherscan.io (Standard-Json-Input with release/solc-input.json),
+  // the form asks for these ABI-encoded constructor arguments, without the 0x prefix.
+  if (args.includes("--print-args")) console.log(`     constructor arguments: ${encoded.slice(2) || "(none)"}`);
 }
 provider.destroy?.();
 
