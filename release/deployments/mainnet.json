@@ -3,20 +3,59 @@
   "network": "ethereum-mainnet",
   "chainId": 1,
   "protocolVersion": "V15_1",
-  "status": "not-deployed",
-  "startBlock": 0,
-  "deployedAt": null,
+  "status": "deployed",
+  "startBlock": 26397656,
+  "deployedAt": "2026-11-12T08:32:03.519Z",
   "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
   "router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
   "contracts": {
-    "d17Factory": "0x0000000000000000000000000000000000000000",
-    "feeConfig": "0x0000000000000000000000000000000000000000",
-    "tokenFactory": "0x0000000000000000000000000000000000000000",
-    "launchDeployer": "0x0000000000000000000000000000000000000000",
-    "launchFactory": "0x0000000000000000000000000000000000000000",
-    "liquidityVaultFactory": "0x0000000000000000000000000000000000000000",
-    "lockerFactory": "0x0000000000000000000000000000000000000000"
+    "d17Factory": "0xB46eb48f982b63B879E00592880D12d1741fDB02",
+    "feeConfig": "0x02fD320b3517903C08633Ba324f7252FA77ce3e1",
+    "tokenFactory": "0xAe7c3DcDe678431228d243b3D8549a85e4C28C17",
+    "launchDeployer": "0x3Cb0A749Db43660a8e30509064b6c930d1e97928",
+    "launchFactory": "0x46372d1915b08ad209f786Ba7D1c86835eB1EbB8",
+    "liquidityVaultFactory": "0xA04D2C7Bb49321fEa1e060cCf85a6AF4B1fF0C18",
+    "lockerFactory": "0x08EEc39ADB5739A10FD37C1BE58cb94d25690D27"
   },
-  "transactions": {},
-  "note": "V15 is not deployed yet. Run deploy:factory, verify:factory, then publish:deployment (see contracts/README.md). The upstream V14 deployment is not compatible with this source tree."
+  "protocolFee": {
+    "recipient": "0xAefA3a5A469d89Aa100b80628aE604BBA25eA22B",
+    "bps": 200
+  },
+  "feeConfigOwner": "0x0000000000000000000000000000000000000000",
+  "feeSplitter": {
+    "address": "0xAefA3a5A469d89Aa100b80628aE604BBA25eA22B",
+    "recipients": [
+      "0x3ec5c5F8b5d4F7c96E4b6a06f63c9425B49f2228",
+      "0x48C5d8977dF7B270ed435B81af6461972e41D378"
+    ],
+    "sharesBps": [
+      7500,
+      2500
+    ]
+  },
+  "transactions": {
+    "feeSplitterTransaction": "0x2ed0d6a934ea7ca343719a94f12c2f73c7c3305be84187cfcaea8fc48ba7fc5c",
+    "feeConfigTransaction": "0xd14a6ffdf3e457766a05bf51d3dd1b8bff14084757d36a0094eadf1cdc967c3f",
+    "factoryTransaction": "0x40bfcee34283953bcdf0dbe6d2b8588feea96603cfac301128aa6a8c0fd3f60e",
+    "tokenFactoryTransaction": "0x000d2f7250665b56fc62f663d7e46632dd82d015960aaf69427e61cc125d9748",
+    "liquidityVaultFactoryTransaction": "0x575e17d9f5dc7a65492fc8d870ada553d876bf7d3576d81f4c82be7a99076cd3",
+    "launchDeployerTransaction": "0xce08cef68744b1b7aa25675ad7879c916a2adf80d26da1706e01bafaeb5e82df",
+    "launchFactoryTransaction": "0x74f67648e24e7f092ebf767de7d5ba2b3f671bddd5228837a06bffb733be84f9",
+    "pinLaunchDeployerTransaction": "0xfc06d98fa929030027cc51819f44e31bb27f4eee924887ec6924dfdce8b4451d",
+    "pinTokenFactoryTransaction": "0xb91467cd1355d2f7ca95605a6d646b8d0c7e1911fe514a5779a3399470fff4b8",
+    "pinLiquidityVaultFactoryTransaction": "0xd5e737b799e7048f0afa5e4f922a9b73c8a7307943c6f4f134c35908e681b252",
+    "pinLaunchFactoryTransaction": "0x91acbe26186b929dfe9de26e76ddf68ab9d575cb7f5809f3ca778a4172dcb176",
+    "lockerFactoryTransaction": "0x63f0250887698e3353f689e3333aca594a3d6c49ef8057be43c49cc70d1d4f1a",
+    "pinLockerFactoryTransaction": "0x982c81d7e500b02703186f26444a64fed0f1c9ccc4b02508869507c36e7819ec",
+    "renounceTransaction": "0x0b81966c6ae146b643a14c79fad563be8e87c277aff986da99ce8cdf400c2c5f",
+    "tokenFactoryRenounceTransaction": "0x0a3b0bee89a5fbe74801846b7e19715675c96589a8670b2fd9db560e8cc50086",
+    "vaultFactoryRenounceTransaction": "0xa475fbeabd4c3fb9a3a3a8bd3b9cf02fd711a2fc7c89c74cb4748b170357370e",
+    "launchDeployerRenounceTransaction": "0x9408b372557b3d4995526c931b61b9c9b8f8059bddecb457a86d0ee3bd474def",
+    "feeConfigRenounceTransaction": "0x6cef85aacd659252e5c8f99ce93b7bb03432f6eb68bc005b5b0412d00d2b9591"
+  },
+  "verification": {
+    "report": "factory-verification.json",
+    "checks": 48,
+    "ok": true
+  }
 }

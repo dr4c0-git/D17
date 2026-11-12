@@ -3,16 +3,16 @@
   "chainId": 1,
   "network": "mainnet",
   "protocolVersion": "V15_1",
-  "status": "not-deployed",
-  "startBlock": 0,
+  "status": "deployed",
+  "startBlock": 26397656,
   "contracts": {
-    "d17Factory": "0x0000000000000000000000000000000000000000",
-    "feeConfig": "0x0000000000000000000000000000000000000000",
-    "tokenFactory": "0x0000000000000000000000000000000000000000",
-    "launchDeployer": "0x0000000000000000000000000000000000000000",
-    "launchFactory": "0x0000000000000000000000000000000000000000",
-    "liquidityVaultFactory": "0x0000000000000000000000000000000000000000",
-    "lockerFactory": "0x0000000000000000000000000000000000000000"
+    "d17Factory": "0xB46eb48f982b63B879E00592880D12d1741fDB02",
+    "feeConfig": "0x02fD320b3517903C08633Ba324f7252FA77ce3e1",
+    "tokenFactory": "0xAe7c3DcDe678431228d243b3D8549a85e4C28C17",
+    "launchDeployer": "0x3Cb0A749Db43660a8e30509064b6c930d1e97928",
+    "launchFactory": "0x46372d1915b08ad209f786Ba7D1c86835eB1EbB8",
+    "liquidityVaultFactory": "0xA04D2C7Bb49321fEa1e060cCf85a6AF4B1fF0C18",
+    "lockerFactory": "0x08EEc39ADB5739A10FD37C1BE58cb94d25690D27"
   },
   "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
   "router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
