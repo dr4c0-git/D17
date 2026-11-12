@@ -131,10 +131,16 @@ async function verifyDirect() {
   const api = `https://api.etherscan.io/v2/api?chainid=${provenance.chainId}`;
   const explorer = network === "mainnet" ? "https://etherscan.io" : "https://sepolia.etherscan.io";
   const sourceCode = JSON.stringify(readJson(path.join(root, "..", "release", "solc-input.json")));
+  // The free Etherscan key allows 3 calls per second: wait between calls, and try again when
+  // Etherscan still answers with its rate limit message.
   const call = async (fields, post = false) => {
     const body = new URLSearchParams({ ...fields, apikey: process.env.ETHERSCAN_API_KEY });
-    const response = post ? await fetch(api, { method: "POST", body }) : await fetch(`${api}&${body}`);
-    return response.json();
+    for (let attempt = 0; ; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 500 + attempt * 1_000));
+      const response = post ? await fetch(api, { method: "POST", body }) : await fetch(`${api}&${body}`);
+      const json = await response.json();
+      if (!/rate limit/i.test(String(json.result)) || attempt >= 5) return json;
+    }
   };
 
   const pending = [];
