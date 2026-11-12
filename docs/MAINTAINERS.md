@@ -24,6 +24,11 @@ with a protocol fee. Repository: `dr4c0-git/D17`. Work directly on
   commits, PRs or GitHub comments.
 - **No em dash for the owner**: in everything written for the owner (documents, notes,
   messages, drafts to send), never use the em dash (U+2014); use a plain hyphen "-" instead.
+- **Preview before production**: no change reaches the live site first. Work on a
+  branch other than `main`: Cloudflare Pages builds every other branch as a preview
+  (its own `*.d17-0bz.pages.dev` address), checked on Sepolia, and only then merged to
+  `main`, which redeploys the live site. Product changes also need the project lead's
+  agreement before they ship.
 
 ## Sepolia deployment progress (2026-10-20)
 
@@ -309,5 +314,8 @@ the root of a domain (eth.limo or a subdomain gateway), not on path gateways.
 
 ## Still to do
 
+- Homepage (owner's idea, 2026-11-12, waiting for the project lead's agreement): a very
+  simple, clean landing page instead of opening straight on the launch list, with the
+  launches one click away. Built on a preview branch first.
 - External audit.
 - Optional: add a fork copyright line to `LICENSE` (without removing the existing one).
