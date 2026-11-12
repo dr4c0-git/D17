@@ -6,6 +6,8 @@
 //   npm run verify:etherscan -w @d17/contracts -- --dry-run         check only, sends nothing
 //   add --print-args to print each contract's ABI-encoded constructor arguments, for a manual
 //   verification on etherscan.io when the API queue is stuck
+//   add --direct to skip Hardhat and call the Etherscan API itself: all contracts are sent
+//   at once and every Etherscan answer is printed
 //
 // Needs RPC_URL and ETHERSCAN_API_KEY in contracts/.env (a free key from
 // etherscan.io > My Account > API Keys, valid on every network). No private key: it
@@ -68,7 +70,7 @@ for (const item of SUITE) {
   const encoded = `0x${tx.data.slice(build.bytecode.length)}`;
   const constructor = new ethers.Interface(build.abi).deploy;
   const constructorArgs = constructor.inputs.length ? [...ethers.AbiCoder.defaultAbiCoder().decode(constructor.inputs, encoded)] : [];
-  targets.push({ ...item, address, constructorArgs: normalize(constructorArgs) });
+  targets.push({ ...item, address, encoded: encoded.slice(2), constructorArgs: normalize(constructorArgs) });
   console.log(`OK   ${item.name.padEnd(26)} ${address}  build matches, ${constructorArgs.length} constructor argument(s)`);
   // For a manual verification on etherscan.io (Standard-Json-Input with release/solc-input.json),
   // the form asks for these ABI-encoded constructor arguments, without the 0x prefix.
@@ -78,6 +80,11 @@ provider.destroy?.();
 
 if (dryRun) {
   console.log(`\nDry run: ${targets.length} contracts ready to verify on ${network}. Nothing was sent.`);
+  process.exit(0);
+}
+
+if (args.includes("--direct")) {
+  await verifyDirect();
   process.exit(0);
 }
 
@@ -112,6 +119,66 @@ console.log(`\n${targets.length - failed.length} of ${targets.length} contracts 
 if (failed.length) {
   console.error(`Not verified: ${failed.join(", ")}. Run the command again: contracts already verified are skipped.`);
   process.exit(1);
+}
+
+/**
+ * --direct: talks to the Etherscan API itself instead of going through Hardhat, and prints
+ * every answer. It sends all the contracts first, then waits for all of them together, so a
+ * slow Etherscan queue is waited on once instead of once per contract. Same files as the
+ * manual form: release/solc-input.json and the constructor arguments read above.
+ */
+async function verifyDirect() {
+  const api = `https://api.etherscan.io/v2/api?chainid=${provenance.chainId}`;
+  const explorer = network === "mainnet" ? "https://etherscan.io" : "https://sepolia.etherscan.io";
+  const sourceCode = JSON.stringify(readJson(path.join(root, "..", "release", "solc-input.json")));
+  const call = async (fields, post = false) => {
+    const body = new URLSearchParams({ ...fields, apikey: process.env.ETHERSCAN_API_KEY });
+    const response = post ? await fetch(api, { method: "POST", body }) : await fetch(`${api}&${body}`);
+    return response.json();
+  };
+
+  const pending = [];
+  for (const target of targets) {
+    const current = await call({ module: "contract", action: "getsourcecode", address: target.address });
+    if (current.result?.[0]?.SourceCode) {
+      console.log(`DONE ${target.name.padEnd(26)} already verified`);
+      continue;
+    }
+    const sent = await call(
+      {
+        module: "contract",
+        action: "verifysourcecode",
+        codeformat: "solidity-standard-json-input",
+        sourceCode,
+        contractaddress: target.address,
+        contractname: `project/contracts/${target.name}.sol:${target.name}`,
+        compilerversion: "v0.8.24+commit.e11b9ed9",
+        constructorArguements: target.encoded, // Etherscan's own spelling
+      },
+      true
+    );
+    if (sent.status === "1") {
+      console.log(`SENT ${target.name.padEnd(26)} Etherscan ticket ${sent.result}`);
+      pending.push({ ...target, guid: sent.result });
+    } else {
+      console.log(`NO   ${target.name.padEnd(26)} Etherscan refused: ${sent.result}`);
+    }
+  }
+
+  // Etherscan answers "Pending in queue" until its compiler has run; ask every 15 s, up to 20 min.
+  for (let round = 0; pending.length && round < 80; round++) {
+    await new Promise((resolve) => setTimeout(resolve, 15_000));
+    for (const target of [...pending]) {
+      const status = await call({ module: "contract", action: "checkverifystatus", guid: target.guid });
+      if (/pending/i.test(status.result)) continue;
+      pending.splice(pending.indexOf(target), 1);
+      const ok = status.status === "1" || /already verified/i.test(status.result);
+      console.log(`${ok ? "DONE" : "NO  "} ${target.name.padEnd(26)} ${status.result}`);
+    }
+    if (pending.length) console.log(`     still waiting in Etherscan's queue: ${pending.map((t) => t.name).join(", ")}`);
+  }
+  if (pending.length) console.log("Etherscan has not answered after 20 minutes. Run the same command later: verified contracts are skipped.");
+  console.log(`Check: ${explorer}/address/${targets[0].address}#code`);
 }
 
 /** Decoded ABI values (ethers Result, bigint) → plain values Hardhat can re-encode. */
