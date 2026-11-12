@@ -60,7 +60,11 @@ Creator, Test 4 and 5 Buyers.
   test launch; V16 (pool liquidity) soon after, then eth.limo and Dune.
 - Etherscan: the 8 suite contracts are verified on Sepolia (2026-10-26, `verify:etherscan`,
   needs `ETHERSCAN_API_KEY` in `contracts/.env`; `-- --dry-run` checks without sending).
-  Redo it on mainnet with `-- --network mainnet` right after the mainnet deployment.
+  Mainnet: 8 of 8 verified on 2026-11-12 with `-- --network mainnet --direct` (the Hardhat
+  path hung on Etherscan's mainnet queue; `--direct` calls the Etherscan API itself, sends
+  every contract at once, prints each answer and respects the 3 calls per second limit).
+  Manual fallback: `--dry-run --print-args`, then etherscan.io/verifyContract with
+  Standard-Json-Input and `release/solc-input.json`.
 - Mainnet: follow [MAINNET_CHECKLIST.md](./MAINNET_CHECKLIST.md) step by step (Safe, two fresh
   deployer keys, gas budget, commands in order, checks, site switch). Deploy at least 2 days
   before the first launch opens: mainnet launches start at least 24 hours after creation.

@@ -5,7 +5,8 @@ build and test it, how the system is meant to work, what is deliberate, what is 
 known, and where we would most like a second pair of eyes.
 
 Status: V15.1 was reviewed by the project lead's Solidity reviewer (no blocking issue)
-and deployed on Ethereum mainnet on 2026-11-12 (factory `0xB46eb48f982b63B879E00592880D12d1741fDB02`, 2% fee). A formal
+and deployed on Ethereum mainnet on 2026-11-12 (factory `0xB46eb48f982b63B879E00592880D12d1741fDB02`, 2% fee), with the source code of its 8 contracts
+verified on Etherscan (addresses in `release/deployments/mainnet.json`). A formal
 professional audit is still welcome; findings go into V16.
 
 ## 1. Scope

@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
-newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
+newest first. V15.1 is live on Ethereum mainnet and on Sepolia (testnet).
 
 ## 2026-11-12 - V15.1 live on Ethereum mainnet
 
@@ -13,8 +13,14 @@ newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
   transactions in `release/deployments/mainnet.json`.
 - Reviewed beforehand by the project lead's Solidity reviewer (no blocking issue); no
   formal professional audit yet.
-- Next: Etherscan verification, the site switched to mainnet with its domain and RPC,
-  then the announcement, a 24-hour countdown and a first test launch.
+- **Source code verified on Etherscan for the 8 mainnet contracts**, so anyone can read
+  the code behind each address, for example the
+  [factory](https://etherscan.io/address/0xB46eb48f982b63B879E00592880D12d1741fDB02#code).
+  `verify:etherscan` has a new `--direct` mode (the Etherscan API without Hardhat: every
+  contract sent at once, each answer printed, the rate limit respected) and a
+  `--print-args` option for a manual verification on etherscan.io.
+- Next: the site switched to mainnet with its domain and RPC, then the announcement, a
+  24-hour countdown and a first test launch.
 
 ## 2026-11-12 - Mainnet protocol fee: 2%
 

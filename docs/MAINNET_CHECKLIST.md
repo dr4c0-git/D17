@@ -136,7 +136,9 @@ npm run verify:etherscan -w @d17/contracts -- --network mainnet
 ```
 
 The dry run must show 8 lines "OK"; the real run must end with "8 of 8 contracts
-verified".
+verified". If it hangs on Etherscan's queue, add `--direct` instead: it calls the Etherscan
+API itself, sends every contract at once and prints each answer (used for the mainnet
+suite on 2026-11-12). Run it again until every line says "verified".
 
 ### 10. Switch the site
 
