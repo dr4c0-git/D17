@@ -1,0 +1,12 @@
+// Cloudflare Workers hosting of the web app as static files (no server code).
+// Build: npm run build:ipfs -w @d17/web  ->  apps/web/out
+// Deploy: npx wrangler deploy
+// The security headers come from apps/web/public/_headers.
+{
+  "name": "d17",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./apps/web/out",
+    "not_found_handling": "404-page"
+  }
+}
