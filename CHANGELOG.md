@@ -3,6 +3,19 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15 is deployed on Sepolia (testnet) and not on mainnet yet.
 
+## 2026-11-12 - V15.1 live on Ethereum mainnet
+
+- **D17 V15.1 is deployed on Ethereum mainnet** (block 26397656, factory
+  `0xB46eb48f982b63B879E00592880D12d1741fDB02`). Protocol fee 2%, paid to a fee splitter with no owner
+  (`0xAefA3a5A469d89Aa100b80628aE604BBA25eA22B`) that splits it 75 / 25 between D17 buybacks and the
+  development fund; the fee settings and every factory owner key are renounced, so
+  nobody can change the rules. `verify:factory`: 48 checks out of 48. Addresses and
+  transactions in `release/deployments/mainnet.json`.
+- Reviewed beforehand by the project lead's Solidity reviewer (no blocking issue); no
+  formal professional audit yet.
+- Next: Etherscan verification, the site switched to mainnet with its domain and RPC,
+  then the announcement, a 24-hour countdown and a first test launch.
+
 ## 2026-11-12 - Mainnet protocol fee: 2%
 
 - **The mainnet protocol fee is 2%**, the contract's maximum, decided by the project lead:

@@ -3,10 +3,11 @@
 > **Fork notice - D17 V15.** This repository is a fork of
 > [0xlocker/D17](https://github.com/0xlocker/D17) (MIT, original copyright kept in
 > `LICENSE`). It ships hardened V15 contracts with a published protocol fee (at most
-> 2%, charged only on successful settlement). V15.1 is **deployed on Sepolia**
-> (testnet, factory `0x260cbEA5Af1669446353d2B80D75a145016C1228`, all 45 deployment
-> checks passed) and **not on mainnet** yet: `deployments/mainnet.json` reads
-> `"not-deployed"` until an audit is done. The upstream V14 addresses are not
+> 2%, charged only on successful settlement). V15.1 is **deployed on Ethereum mainnet**
+> (2026-11-12, factory `0xB46eb48f982b63B879E00592880D12d1741fDB02`, 2% protocol fee, all 48 deployment checks passed) and on
+> Sepolia for testing (factory `0x260cbEA5Af1669446353d2B80D75a145016C1228`). It was
+> reviewed by the project lead's Solidity reviewer but has no formal professional
+> third-party audit. The upstream V14 addresses are not
 > compatible with this tree. Every rule change is listed in
 > [docs/V15_HARDENING.md](./docs/V15_HARDENING.md); the history of the fork is in
 > [CHANGELOG.md](./CHANGELOG.md).

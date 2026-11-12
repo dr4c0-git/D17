@@ -15,9 +15,10 @@ rule-level changes from the upstream V14 suite, and the V15.1 fixes, are summari
 in `test/fee-splitter-e2e.mjs`, **17/17** in `test/v15-1-regressions-e2e.mjs`, and the four
 V15.1 review suites (`failed-refund-remediation` 80 checks, `adversarial-callbacks` 32,
 `minimum-liquidity` 4, `rounding-reference-model` 84,000), see §10. Stateful fuzz `test/fuzz-invariants.mjs` passes on
-V15.1. Slither 0.11.6 reports no exploitable finding. V15.1 is **not deployed on mainnet**
-(it is deployed on Sepolia, factory `0x260cbEA5Af1669446353d2B80D75a145016C1228`) and has **not** received a
-formal professional third-party audit.
+V15.1. Slither 0.11.6 reports no exploitable finding. V15.1 is **deployed on Ethereum mainnet**
+(factory `0xB46eb48f982b63B879E00592880D12d1741fDB02`) and on Sepolia (factory `0x260cbEA5Af1669446353d2B80D75a145016C1228`). It was
+reviewed by the project lead's Solidity reviewer and has **not** received a formal
+professional third-party audit.
 
 D17 is a five-round fair-launch protocol on a Uniswap-V2-style AMM. Users commit ETH
 (wrapped to WETH) through personal escrow contracts ("lockers"); round 0 discovers an

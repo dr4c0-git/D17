@@ -18,7 +18,7 @@ Documentation for the D17 open-source experiment.
 - `apps/web` - one Sepolia/mainnet participant terminal and deployer.
 - `apps/api` - optional provider-neutral RPC indexer and read API.
 - `contracts` - Solidity source, tests, ABIs, and deployment tools.
-- `deployments` - public Sepolia and mainnet factory manifests (V15: deployed on Sepolia, not on mainnet).
+- `deployments` - public Sepolia and mainnet factory manifests (V15.1: deployed on Ethereum mainnet and on Sepolia).
 - `release` - reproducible contract build and public deployment provenance.
 
 ## Status

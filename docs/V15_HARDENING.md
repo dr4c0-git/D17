@@ -9,8 +9,9 @@ after the launch is created.
 > **deployed on Sepolia** (2026-11-11, factory `0x260cbEA5Af1669446353d2B80D75a145016C1228`, protocol fee 1% on this test suite, 2% on mainnet, to a fee splitter
 > with no owner, fee settings renounced, 45/45 deployment checks), where it runs
 > complete successful and cancelled test launches before anything else.
-> It is **not deployed on mainnet** (`deployments/mainnet.json` says `"not-deployed"`),
-> and it goes to mainnet only after an independent audit. The upstream V14 deployment is
+> It is **deployed on Ethereum mainnet** since 2026-11-12 (factory `0xB46eb48f982b63B879E00592880D12d1741fDB02`, protocol fee
+> 2%, fee settings renounced, 48/48 deployment checks), after a review by the project
+> lead's Solidity reviewer; no formal professional audit. The upstream V14 deployment is
 > **not** compatible with this source tree.
 
 ## What participants can rely on

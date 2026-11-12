@@ -38,7 +38,7 @@ export function ContentShell({ section, aside, children }: { section: Section; a
         <main className="min-w-0 flex-1">{children}</main>
       </div>
       <footer className="mx-auto w-full max-w-5xl border-t border-hairline px-4 py-6 text-[13px] text-quiet sm:px-6">
-        D17 V15 runs on Sepolia (testnet), not on mainnet yet. Open source under the MIT license:{" "}
+        D17 V15.1 runs on Ethereum mainnet. No formal third-party audit: use at your own risk. Open source under the MIT license:{" "}
         <a href="https://github.com/dr4c0-git/D17" rel="noopener noreferrer" target="_blank" className="underline underline-offset-2 hover:text-ink">
           source code
         </a>

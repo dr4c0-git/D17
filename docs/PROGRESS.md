@@ -5,6 +5,11 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
 
 ## Done
 
+- **V15.1 deployed on Ethereum mainnet** (2026-11-12, block 26397656): factory
+  `0xB46eb48f982b63B879E00592880D12d1741fDB02`, 2% protocol fee split 75 / 25 (D17 buybacks / development fund) by the fee
+  splitter `0xAefA3a5A469d89Aa100b80628aE604BBA25eA22B`, fee settings renounced, every owner key renounced, 48 checks out of
+  48. Reviewed beforehand by the project lead's Solidity reviewer, with no blocking issue.
+  Addresses and transactions: [release/deployments/mainnet.json](../release/deployments/mainnet.json).
 - **V15.1 contracts deployed on Sepolia** (Ethereum testnet), block 12112991, with the
   mainnet settings (at a 1% fee; mainnet uses 2%): the fee is split 75 / 25 by a fee splitter with no owner, and the fee
   settings renounced, so nobody can change them. Checked by `verify:factory` (45 checks
@@ -27,17 +32,17 @@ Where D17 V15 stands today, and what comes next. Every change is listed in the
 
 ## Next
 
-
-- **External security audit** of the contracts: mainnet comes only after it. The
-  [audit package](./AUDIT.md) is ready for the reviewer.
-- **Mainnet deployment** on V15, with the protocol fee settings renounced at deployment:
-  the 2% fee and its split (75% D17 buybacks, 25% development fund) are then final, with
-  no admin key.
-- **V16**, after the mainnet launch: what happens to the liquidity left in a pool once a
-  token is no longer traded, and contract rules for how a pool opens.
-- **Own domain and dedicated RPC** for the site.
+- **Etherscan verification** of the mainnet contracts, then the **site switched to
+  mainnet** with its own domain and a dedicated RPC.
+- **Announcement**, a 24-hour countdown and a first test launch on mainnet.
+- **V16**: what happens to the liquidity left in a pool once a token is no longer traded,
+  and contract rules for how a pool opens.
+- **Formal audit**: the [audit package](./AUDIT.md) is ready for a professional reviewer.
+- Later: an IPFS mirror through ENS and eth.limo, and public analytics on Dune.
 
 ## Status
 
-D17 V15 runs on Sepolia only: test ETH, no real value. It is not on mainnet yet and has
-no professional third-party audit. Nothing here is investment advice.
+D17 V15.1 is live on Ethereum mainnet since 2026-11-12 (factory `0xB46eb48f982b63B879E00592880D12d1741fDB02`), and on Sepolia
+for testing. It was reviewed by the project lead's Solidity reviewer and has no formal
+professional third-party audit: launches use real ETH, at your own risk. Nothing here is
+investment advice.

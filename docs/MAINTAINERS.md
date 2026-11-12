@@ -102,9 +102,14 @@ Creator, Test 4 and 5 Buyers.
   `0xF02Ab7326c4212693a7a53Aa7BBa635213749C07`, block 11958083) is superseded.
   Commit from the Mac with the noreply address set in the repository's git config
   (GitHub rejects pushes that expose the private email). Never run `release:checksums`
-  on the Mac: it lists the local `.env` files; regenerate it from a clean checkout. **Not on mainnet**:
-  `deployments/mainnet.json` still says `"not-deployed"`. The upstream V14 addresses are
-  incompatible (different ABIs/IDs).
+  on the Mac: it lists the local `.env` files; regenerate it from a clean checkout. 
+- **V15.1 is deployed on Ethereum mainnet** (2026-11-12 08:32 UTC, start block 26397656,
+  factory `0xB46eb48f982b63B879E00592880D12d1741fDB02`, fee splitter `0xAefA3a5A469d89Aa100b80628aE604BBA25eA22B` paying D17 buybacks / development fund 7500/2500,
+  protocol fee 2%, fee config renounced, verify 48/48). Deployer keys: two fresh wallets
+  in the owner's "D17 Mainnet" browser profile, funded by the project lead; they own
+  nothing after the deployment (send the leftover ETH back). Provenance in
+  `release/deployments/mainnet.json`. The upstream V14 addresses are incompatible
+  (different ABIs/IDs).
 
 ## Commands
 
