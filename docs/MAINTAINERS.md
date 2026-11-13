@@ -330,11 +330,15 @@ the root of a domain (eth.limo or a subdomain gateway), not on path gateways.
   3. The ecosystem token is not rushed: value can accrue, the design can improve and
      familiarity can grow first.
 
+## Welcome page (live 2026-11-13)
+
+- `/` is a simple welcome page (Godspel, then D17 as its first project); the launch
+  terminal moved to `/launches`, and old links (`/?launch=`, `/?view=`, `/?network=`) are
+  forwarded there. Dark mode toggle on the welcome and docs pages (`components/theme-toggle.tsx`,
+  same `d17-theme` setting as the terminal). Built on the `preview-welcome` branch,
+  approved by the project lead, then merged into `main`.
+
 ## Still to do
 
-- Welcome page (owner's idea, 2026-11-12, agreed by the project lead): a very simple,
-  clean page presenting Godspel and D17 as its first project, instead of opening
-  straight on the launch list, with the launches one click away. Built on a preview
-  branch first, live only after the project lead's approval.
 - External audit.
 - Optional: add a fork copyright line to `LICENSE` (without removing the existing one).

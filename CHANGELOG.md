@@ -3,6 +3,17 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15.1 is live on Ethereum mainnet and on Sepolia (testnet).
 
+
+## 2026-11-13 - Welcome page
+
+- **The site opens on a simple welcome page**: Godspel, then D17 as its first project
+  with its key guarantees, and a button to the launches. The launch terminal moved to
+  `/launches`; old links still work, they are forwarded there.
+- A dark mode toggle on the welcome and documentation pages, and a link back home from
+  the terminal.
+- The user guide now says D17 runs on Ethereum mainnet, with Sepolia for testing.
+- Built and checked on a preview link first, then approved by the project lead.
+
 ## 2026-11-12 - V15.1 live on Ethereum mainnet
 
 - **D17 V15.1 is deployed on Ethereum mainnet** (block 26397656, factory
