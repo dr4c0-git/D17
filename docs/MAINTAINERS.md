@@ -315,7 +315,7 @@ the root of a domain (eth.limo or a subdomain gateway), not on path gateways.
 ## Godspel and the plan after the mainnet launch (agreed 2026-11-13)
 
 - **Godspel** is the umbrella (the "roof"); D17 is its first project. More projects,
-  variations and experiments can come under it, tied to one ecosystem token. The name
+  variations and experiments can come under it. The name
   comes from Old English "good news". Godspel has its own X account, `@godspelxyz`, so the
   attention goes to what is built, not to people.
 - Vision, in the project lead's words: protocolization (the system generates its own
@@ -329,11 +329,6 @@ the root of a domain (eth.limo or a subdomain gateway), not on path gateways.
      [V16_POOL_LIQUIDITY.md](./V16_POOL_LIQUIDITY.md)).
   3. The ecosystem token is not rushed: value can accrue, the design can improve and
      familiarity can grow first.
-- The ecosystem token (project lead, 2026-11-13): it will **not** be raised through a D17
-  launch (no sale with allocations through this mechanism), so the first mainnet launch
-  is a different token. Meanwhile the fee splitter collects the protocol fees, to be used
-  once the token is live. Say nothing public about the token beyond that until it is
-  decided.
 
 ## Welcome page (live 2026-11-13)
 
