@@ -2,7 +2,7 @@
 
 ## What this document is
 
-This is a plain-language explanation of the D17 V15 contracts for someone considering a launch. It describes what the code does with participant funds, which rules are fixed, and which risks remain. The source passes 619 local assertions across two end-to-end suites. It has not received a formal professional third-party audit, and V15 is not deployed on any network yet. The full list of V15 changes, including the protocol fee, is in [V15_HARDENING.md](./V15_HARDENING.md).
+This is a plain-language explanation of the D17 V15 contracts for someone considering a launch. It describes what the code does with participant funds, which rules are fixed, and which risks remain. The test suites pass (see [CONTRACTS_TECHNICAL.md](./CONTRACTS_TECHNICAL.md) for the figures). It was reviewed by the project lead's Solidity reviewer but has not received a formal professional third-party audit. V15.1 is deployed on Ethereum mainnet (factory `0xB46eb48f982b63B879E00592880D12d1741fDB02`) and on Sepolia for testing. The full list of V15 changes, including the protocol fee, is in [V15_HARDENING.md](./V15_HARDENING.md).
 
 ## The pieces
 
@@ -105,7 +105,7 @@ Finalization is permissionless after round 5. The official pool can only be crea
 
 The official pool mints its LP position to `D17LiquidityVault`. The vault has no function for withdrawing the official LP token. Recovery functions explicitly refuse the D17 token, WETH, and official LP token. The LP position is therefore held permanently by the vault. *Enforced by `D17LiquidityVault`.*
 
-If some lockers settle after the pool has opened, their WETH and reserved token share are added to the same pair in one transaction, at the pair's current price. The new LP tokens are also minted to the vault; whatever cannot be paired at that price is burned.
+Since V15.1 there are no late additions: the pool is created only once every position is settled, with all of the WETH and the whole effective LP-token allocation in one single deposit.
 
 ### The supply split must balance exactly
 
