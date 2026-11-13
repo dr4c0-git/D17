@@ -42,7 +42,7 @@ fcc3ec00553560a879345dcd96ff6ec13509d0009a14307b4d654f5296ef6a0d  apps/api/src/s
 f4ed4d8b9dd9d69bc70446784dbefd427e1bcd52c5d4699dc067ad8967ac614e  apps/web/app/globals.css
 4175b80e7919522f50273c3865f320fea82edca8fcd5c549da1986988987a196  apps/web/app/launches/page.tsx
 1e518753d6bad95b62295ab59f52b95c45e7211f57d66ec1c4fc644cadbd19aa  apps/web/app/layout.tsx
-a04fa4a4d403edced146368df669a3f097fb973b2da9bfc63b7cddbf24f518d6  apps/web/app/page.tsx
+bbc3be16f574c3d0ac4932f480357bd62929eb78f0234f5dde0166c5b868560d  apps/web/app/page.tsx
 eee14512ee3b7d492edb81456b8c3b8eb9ae102cecf94c02cc31d5401fd35851  apps/web/app/progress/page.tsx
 fddd766827700964d01f7eb272b340d587d516de34b368359f495953d4c113e9  apps/web/app/simple-view.tsx
 a56ddc25eb2392ce4f52b7f552489381ee386e70199c0a325bf343cd378b84d9  apps/web/app/terminal-client.tsx
