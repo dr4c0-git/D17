@@ -50,7 +50,7 @@ export default function Welcome() {
 
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 sm:px-6">
         <section className="py-20 sm:py-28">
-          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-quiet">Godspel: Old English for good news</p>
+          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-quiet">Godspel</p>
           <h1 className="mt-5 max-w-2xl text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[52px]">
             Good news, enforced by code.
           </h1>
