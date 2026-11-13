@@ -329,6 +329,11 @@ the root of a domain (eth.limo or a subdomain gateway), not on path gateways.
      [V16_POOL_LIQUIDITY.md](./V16_POOL_LIQUIDITY.md)).
   3. The ecosystem token is not rushed: value can accrue, the design can improve and
      familiarity can grow first.
+- The ecosystem token (project lead, 2026-11-13): it will **not** be raised through a D17
+  launch (no sale with allocations through this mechanism), so the first mainnet launch
+  is a different token. Meanwhile the fee splitter collects the protocol fees, to be used
+  once the token is live. Say nothing public about the token beyond that until it is
+  decided.
 
 ## Welcome page (live 2026-11-13)
 
