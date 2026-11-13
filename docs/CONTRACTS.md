@@ -99,7 +99,7 @@ Refunds, owner settlement, and withdrawals are owner-only. After the grace perio
 
 ### One participant cannot hold the launch hostage
 
-Finalization is permissionless after round 5. Pool creation does not wait for every locker to settle. After the fixed settlement grace period, anyone may settle a known locker, and this permissionless settlement remains available without an expiry. A pool needs at least one settled position before it can be created; after grace, any known funded locker can be settled to satisfy that condition. *Enforced by `D17Launch`, `D17Locker`, and `D17LiquidityVault`.*
+Finalization is permissionless after round 5. The official pool can only be created once every final commitment has been settled, so no buyer's liquidity is ever added after the price has moved. An absent buyer cannot block it: after the fixed settlement grace period, anyone may settle a known locker (one at a time, or up to 4 per transaction through the locker factory), the caller gains nothing, and this permissionless settlement remains available without an expiry. *Enforced by `D17Launch`, `D17Locker`, and `D17LiquidityVault`.*
 
 ### The seeded liquidity cannot be pulled by the creator
 
