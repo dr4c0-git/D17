@@ -3,7 +3,6 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15.1 is live on Ethereum mainnet and on Sepolia (testnet).
 
-
 ## 2026-11-13 - Welcome page
 
 - **The site opens on a simple welcome page**: Godspel, then D17 as its first project
