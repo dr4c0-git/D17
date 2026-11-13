@@ -312,10 +312,29 @@ IPFS mirror: `npm run build:ipfs -w @d17/web` (static export to `apps/web/out`, 
 by git and the release checks); publishing steps in `docs/IPFS_MIRROR.md`. Only works at
 the root of a domain (eth.limo or a subdomain gateway), not on path gateways.
 
+## Godspel and the plan after the mainnet launch (agreed 2026-11-13)
+
+- **Godspel** is the umbrella (the "roof"); D17 is its first project. More projects,
+  variations and experiments can come under it, tied to one ecosystem token. The name
+  comes from Old English "good news". Godspel has its own X account, `@godspelxyz`, so the
+  attention goes to what is built, not to people.
+- Vision, in the project lead's words: protocolization (the system generates its own
+  revenue and funds itself), tokens distributed fairly to the community so the incentives
+  of the ecosystem align with its users and owners, everything transparent and verifiable,
+  an environment that does not assume but imposes high trust.
+- Next steps:
+  1. The project lead introduces the site on X once the account's profile picture is up.
+  2. Then two fronts in parallel: the site (a welcome page, then public Dune dashboards)
+     and V16 (pool liquidity residue, opening price rule; see
+     [V16_POOL_LIQUIDITY.md](./V16_POOL_LIQUIDITY.md)).
+  3. The ecosystem token is not rushed: value can accrue, the design can improve and
+     familiarity can grow first.
+
 ## Still to do
 
-- Homepage (owner's idea, 2026-11-12, waiting for the project lead's agreement): a very
-  simple, clean landing page instead of opening straight on the launch list, with the
-  launches one click away. Built on a preview branch first.
+- Welcome page (owner's idea, 2026-11-12, agreed by the project lead): a very simple,
+  clean page presenting Godspel and D17 as its first project, instead of opening
+  straight on the launch list, with the launches one click away. Built on a preview
+  branch first, live only after the project lead's approval.
 - External audit.
 - Optional: add a fork copyright line to `LICENSE` (without removing the existing one).
