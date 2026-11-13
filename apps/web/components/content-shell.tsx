@@ -16,9 +16,9 @@ export function ContentShell({ section, aside, children }: { section: Section; a
       <header className="border-b border-hairline">
         <nav className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.04em] sm:px-6">
           <a href="/" className="font-semibold text-ink hover:underline">
-            D17
+            Godspel
           </a>
-          <a href="/" className="text-quiet transition-colors hover:text-ink">
+          <a href="/launches" className="text-quiet transition-colors hover:text-ink">
             Launches
           </a>
           {SECTIONS.map((item) => (

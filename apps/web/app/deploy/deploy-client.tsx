@@ -141,7 +141,7 @@ function DeployElsewhere() {
     <main className="flex min-h-dvh flex-col bg-paper text-ink">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-4 py-3 sm:px-6">
         <p className="font-mono text-[12px] uppercase tracking-[0.04em]">
-          <a href={d17Href("/")} className="font-semibold text-ink hover:underline">
+          <a href={d17Href("/launches")} className="font-semibold text-ink hover:underline">
             D17
           </a>{" "}
           <span className="text-dim">Launch terminal</span> <span className="text-quiet">· Deploy</span>{" "}
@@ -149,7 +149,7 @@ function DeployElsewhere() {
         </p>
         <div className="flex items-center gap-3">
           <NetworkSwitch />
-          <a href={d17Href("/")} className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink">
+          <a href={d17Href("/launches")} className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink">
             Terminal
           </a>
         </div>
@@ -161,7 +161,7 @@ function DeployElsewhere() {
             This site is the participant terminal. Launch deployment runs on the dedicated deploy site.
           </p>
           <p className="mt-3 font-mono text-[10px] uppercase leading-relaxed tracking-[0.02em] text-quiet">
-            <a href={d17Href("/")} className="text-electric hover:text-ink">
+            <a href={d17Href("/launches")} className="text-electric hover:text-ink">
               Back to the terminal →
             </a>
           </p>
@@ -176,7 +176,7 @@ function DeployPaused() {
     <main className="flex min-h-dvh flex-col bg-paper text-ink">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-4 py-3 sm:px-6">
         <p className="font-mono text-[12px] uppercase tracking-[0.04em]">
-          <a href={d17Href("/")} className="font-semibold text-ink hover:underline">
+          <a href={d17Href("/launches")} className="font-semibold text-ink hover:underline">
             D17
           </a>{" "}
           <span className="text-dim">Launch terminal</span> <span className="text-alert">· Deploy paused</span>{" "}
@@ -184,7 +184,7 @@ function DeployPaused() {
         </p>
         <div className="flex items-center gap-3">
           <NetworkSwitch />
-          <a href={d17Href("/")} className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink">
+          <a href={d17Href("/launches")} className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink">
             Terminal
           </a>
         </div>
@@ -197,7 +197,7 @@ function DeployPaused() {
           </p>
           <p className="mt-3 font-mono text-[10px] uppercase leading-relaxed tracking-[0.02em] text-quiet">
             Live launches are unaffected -{" "}
-            <a href={d17Href("/")} className="text-electric hover:text-ink">
+            <a href={d17Href("/launches")} className="text-electric hover:text-ink">
               back to the terminal →
             </a>
           </p>
@@ -985,7 +985,7 @@ function DeployForm() {
             <p className="text-[18px] font-semibold text-live">Your launch is created ✓</p>
             <p className={help}>Share the link of your launch page so people can join when round 1 opens.</p>
             <a
-              href={d17Href("/", { launch: result.launch })}
+              href={d17Href("/launches", { launch: result.launch })}
               className="mt-3 block w-full bg-ink px-4 py-3 text-center text-[15px] font-semibold text-paper hover:opacity-90"
             >
               Open my launch page
@@ -1024,7 +1024,7 @@ function DeployForm() {
     <main className="min-h-dvh bg-paper text-ink">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline px-4 py-3 sm:px-6">
         <p className="font-mono text-[12px] uppercase tracking-[0.04em]">
-          <a href={d17Href("/")} className="font-semibold text-ink hover:underline">
+          <a href={d17Href("/launches")} className="font-semibold text-ink hover:underline">
             D17
           </a>{" "}
           {advanced && <span className="text-dim">Launch terminal</span>}{" "}
@@ -1039,7 +1039,7 @@ function DeployForm() {
           >
             {advanced ? "Guided form" : "Advanced settings"}
           </button>
-          <a href={d17Href("/")} className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink">
+          <a href={d17Href("/launches")} className="font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink">
             {advanced ? "Terminal" : "All launches"}
           </a>
           <button type="button" onClick={connectWallet} className="border border-ink bg-ink px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.02em] text-paper">
@@ -1282,7 +1282,7 @@ function DeployForm() {
             {result ? (
               <>
                 <a
-                  href={d17Href("/", { launch: result.launch })}
+                  href={d17Href("/launches", { launch: result.launch })}
                   className="mt-3 block w-full border border-live px-3 py-2.5 text-center font-mono text-[12px] uppercase tracking-[0.04em] text-live transition-colors hover:bg-faint"
                 >
                   Launch deployed ✓ - open your launch page →
@@ -1400,7 +1400,7 @@ function DeployForm() {
               <li>
                 <span className="text-live">3</span>{" "}
                 {result ? (
-                  <a href={d17Href("/", { launch: result.launch })} className="text-electric hover:text-ink">
+                  <a href={d17Href("/launches", { launch: result.launch })} className="text-electric hover:text-ink">
                     Open your launch page →
                   </a>
                 ) : (

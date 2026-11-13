@@ -1260,7 +1260,7 @@ function ParticipantsTerminal() {
   const phaseText = phase ? describePhase(phase) : "Not loaded";
   const rulesHashForTx = expectedRulesHash.trim() || ZERO_HASH;
   const averageWalletPriceLabel = formatPriceNumber(averageWalletPrice);
-  const participantLink = launchAddress ? d17Href("/", { launch: launchAddress }) : "";
+  const participantLink = launchAddress ? d17Href("/launches", { launch: launchAddress }) : "";
   const displayActivityItems = useMemo(() => dedupeActivityForDisplay(activityItems), [activityItems]);
   const filteredActivity = selectedLockerForFeed
     ? displayActivityItems.filter((item) => item.locker?.toLowerCase() === selectedLockerForFeed.toLowerCase())
