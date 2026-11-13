@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 // Welcome page. The launch terminal lives at /launches. Old links such as
 // /?launch=0x... or /?network=mainnet are forwarded there before the page paints.
@@ -43,6 +44,7 @@ export default function Welcome() {
           <a href="https://x.com/godspelxyz" rel="noopener noreferrer" target="_blank" className="text-quiet transition-colors hover:text-ink">
             X
           </a>
+          <ThemeToggle />
         </nav>
       </header>
 

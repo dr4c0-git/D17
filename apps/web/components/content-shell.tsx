@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ThemeToggle } from "./theme-toggle";
 
 // Frame of the documentation pages (/docs, /blog, /progress): the site's header with
 // links back to the launches, then one readable column.
@@ -31,6 +32,8 @@ export function ContentShell({ section, aside, children }: { section: Section; a
               {item.label}
             </a>
           ))}
+          <span className="flex-1" />
+          <ThemeToggle />
         </nav>
       </header>
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 sm:px-6 lg:flex-row lg:gap-12">

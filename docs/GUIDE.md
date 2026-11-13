@@ -2,7 +2,7 @@
 
 > A fair-launch terminal for tokens. Commit over timed rounds, leave during refund windows, and - if the sale clears its floor - watch the launch finalize into a live pool you can trade. No accounts, no custody, no private keys held by the app.
 
-**Status:** D17 V15 runs on Ethereum **Sepolia** (testnet) - use a testnet wallet only.
+**Status:** D17 V15.1 runs on **Ethereum mainnet** with real ETH, and on **Sepolia** (testnet) for testing. It has no formal third-party audit: use it at your own risk, and check the network label before you sign.
 
 ---
 
@@ -40,7 +40,7 @@ The terminal is **read-mostly**. It shows you every launch, its live phase, the 
 
 1. **Find a launch.** Open the terminal; it opens on the newest launch. Switch between launches from the top bar or the **LAUNCHES** list.
 2. **Read the rules.** The masthead shows the token, the supply split (sale / LP / deployer / dead address), the treasury cut, the protocol fee, and the round schedule. **RULES · DETAILS** expands the full terms.
-3. **Connect & commit.** Connect a Sepolia wallet, create your **locker**, and commit WETH while a round is **OPEN**. You must meet the round's floor.
+3. **Connect & commit.** Connect a wallet on the network shown, create your **locker**, and commit WETH while a round is **OPEN**. You must meet the round's floor.
 4. **Change your mind?** During a **refund window** you can withdraw. Rounds 1–2 cost 1%; rounds 3–4 charge the published defection %; round 5 has no window.
 5. **Settle & claim.** When the rounds end the launch **finalizes** and **settles**. You **claim** your tokens; your share of the raise seeds the pool.
 6. **Trade.** Once **POOL READY → TRADING OPEN**, the token is live on a pool. Your leftover balances are always withdrawable from your locker.
@@ -142,7 +142,7 @@ The screen is three columns under a top bar. Nothing is hidden behind menus - th
 
 > Check the network label before connecting. Sepolia uses test assets; Ethereum mainnet uses real ETH and WETH.
 
-1. **Set up your wallet.** Network **Sepolia**, chain id **11155111**. You commit **WETH** (wrapped ETH), not raw ETH.
+1. **Set up your wallet.** Pick the network the terminal shows: **Ethereum mainnet** (chain id **1**, real ETH) or **Sepolia** (chain id **11155111**, test ETH). You commit **WETH** (wrapped ETH), not raw ETH.
 2. **Connect.** Click **CONNECT WALLET** and pick your wallet. The app connects via wallet announcements and never redefines your wallet - it holds no keys.
 3. **Create your locker.** On the launch page, create your locker. This is your personal contract; it can hold positions for more than one launch. Your committed WETH lives here.
 4. **Commit.** While a round is **OPEN**, enter an amount at or above the round floor and confirm. The flow walks a short ladder - *wallet ✓ → locker ✓ → commit* - and the feed shows your commit when it lands.
@@ -210,7 +210,8 @@ The app has two data modes under the hood: **API mode** (reads the hosted indexe
 - **You can leave.** Refund windows exist on every round but the last; failed launches refund in full.
 - **The numbers can't hide.** The supply split sums to 100% with **DEAD ADDRESS** computed as the remainder; concentration is shown; every commit and refund is in the public feed.
 - **Display reads never touch your wallet.** In hosted mode the terminal reads only the indexed API - RPC is reserved for wallet signing and the deploy dry-run.
-- **Testnet is testnet.** Use a throwaway Sepolia wallet. Sepolia ETH has no monetary value; any USD figure shown is a mainnet reference only.
+- **Mainnet is real money.** On Ethereum mainnet every commit uses real ETH; only commit what you can afford to lose.
+- **Testnet is testnet.** On Sepolia, use a throwaway wallet. Sepolia ETH has no monetary value; any USD figure shown is a mainnet reference only.
 
 ---
 
