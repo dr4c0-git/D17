@@ -27,6 +27,13 @@ includes:
 - double-claim, unauthorized-caller and malformed-action reverts;
 - a zero-late-settlement control launch.
 
+## Locker clones and gas
+
+`test/locker-clone.mjs` (part of `npm test`) checks the exact code of a locker
+clone, that its owner cannot be set or spoofed, that the shared `D17Locker` cannot
+be used directly, and that the Locker ABI is unchanged. `npm run gas:locker` prints
+the gas used to create a locker and by each locker action.
+
 ## Additional checks
 
 ```bash

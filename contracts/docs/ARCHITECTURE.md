@@ -29,6 +29,14 @@ leaving no administrator able to replace the mechanism for existing launches.
 - `D17Locker` holds one participant's WETH and claimed tokens. A locker can
   contain positions across multiple canonical launches.
 
+Each locker is a 105-byte clone: the standard EIP-1167 forwarding stub followed by
+the locker's owner, the D17 factory and WETH. It runs the one shared `D17Locker`
+that `D17LockerFactory` deploys in its constructor (`lockerImplementation`), on its
+own storage. The three addresses are part of the clone's code, so they are fixed at
+creation like immutables and there is no initializer. The shared contract itself is
+not a registered locker and reverts `NOT_A_LOCKER` when used directly. This makes
+creating a locker cost about 152,000 gas instead of about 1,970,000.
+
 ## Lifecycle
 
 1. A creator submits one immutable five-round launch configuration.
