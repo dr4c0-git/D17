@@ -3,6 +3,16 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15.1 is live on Ethereum mainnet and on Sepolia (testnet).
 
+## 2026-11-15 - Creator wallet on the launch page
+
+- **Every launch page shows who created it**: the creator's wallet (it receives the
+  creator allocation) and, when it is a different address, the treasury (it receives the
+  treasury fee). Both are read from the launch contract and link to the explorer.
+  Requested by the project lead after the first mainnet launches; checked on a Sepolia
+  test launch through a preview link, then approved.
+- A running list of improvement ideas, split between site-only changes and changes
+  that need a new contract version: [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md).
+
 ## 2026-11-13 - Welcome page
 
 - **The site opens on a simple welcome page**: Godspel, then D17 as its first project

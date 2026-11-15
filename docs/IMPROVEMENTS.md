@@ -16,7 +16,7 @@ Split in two, because the process is different:
 - **Show who created the launch** (project lead, 2026-11-15). The launch page shows the
   creator's wallet (it receives the creator allocation) and, when it is a different
   address, the treasury (it receives the treasury fee), each linked to the explorer.
-  Status: on a preview link.
+  Status: live since 2026-11-15.
 - **Alerts for new launches** (suggested by a user, 2026-11-15). People without time to
   watch the site would like to be told when a launch is created, opens or opens trading:
   for example an X or Telegram bot, or alerts on the site.
