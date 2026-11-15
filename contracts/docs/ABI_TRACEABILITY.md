@@ -172,6 +172,7 @@ reverts (penalties are returned instead). `D17LiquidityVault.BurnFailed()` is go
 | D17LaunchFactory | function | `tokenFactory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17LockerFactory | constructor | `constructor(address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
 | D17LockerFactory | event | `LockerCreated(address,address)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
+| D17LockerFactory | function | `lockerImplementation()` | view | api_frontend_readonly_verification | no | The shared D17Locker that every locker clone runs. |
 | D17LockerFactory | function | `createLockerFor(address)` | nonpayable | frontend_participant_wallet | event_only | Participant creates canonical personal locker. |
 | D17LockerFactory | function | `d17Factory()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | constructor | `constructor(tuple)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
@@ -309,7 +310,6 @@ reverts (penalties are returned instead). `D17LiquidityVault.BurnFailed()` is go
 | D17Launch | function | `vaultLiquidityTokensClaimed()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | function | `weth()` | view | api_frontend_readonly_verification | no | Read-only getter used by API schema/detail, frontend display, scripts, or verification. |
 | D17Launch | receive | `receive` | payable | safety_revert_surface | no | Rejects unsupported ETH/calls or exists as Solidity ABI surface. |
-| D17Locker | constructor | `constructor(address,address,address)` | nonpayable | deployment | no | Constructor used by deploy scripts only. |
 | D17Locker | error | `TransferFailed()` | - | tests_and_error_mapping | no | Custom revert surface for tests, API/user error handling, and review. |
 | D17Locker | event | `ClaimedTokensWithdrawn(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |
 | D17Locker | event | `ExcessWethRecovered(address,uint256)` | - | indexer_api_activity | yes | D17 lifecycle event consumed by indexer/API/WS or deployment verification. |

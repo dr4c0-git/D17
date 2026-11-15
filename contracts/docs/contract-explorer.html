@@ -124,11 +124,11 @@
     <div class="grid">
       <div class="stat"><strong>12</strong>contracts</div>
       <div class="stat"><strong>389</strong>ABI entries</div>
-      <div class="stat"><strong>12</strong>constructor</div>
+      <div class="stat"><strong>11</strong>constructor</div>
       <div class="stat"><strong>5</strong>error</div>
       <div class="stat"><strong>59</strong>event</div>
       <div class="stat"><strong>3</strong>fallback</div>
-      <div class="stat"><strong>306</strong>function</div>
+      <div class="stat"><strong>307</strong>function</div>
       <div class="stat"><strong>4</strong>receive</div>
     </div>
     <nav>
@@ -1221,7 +1221,7 @@
 <section id="d17lockerfactory">
     <h2>D17LockerFactory</h2>
     <p>Source: <code>abi/D17LockerFactory.abi.json</code></p>
-    <p><span class="pill">constructor: 1</span><span class="pill">event: 2</span><span class="pill">function: 5</span></p>
+    <p><span class="pill">constructor: 1</span><span class="pill">event: 2</span><span class="pill">function: 6</span></p>
     <table>
       <thead>
         <tr>
@@ -1292,6 +1292,14 @@
   </tr>
         <tr>
     <td>7</td>
+    <td><span class="type-function">function</span><br><code>view</code></td>
+    <td>lockerImplementation</td>
+    <td class="sig">lockerImplementation()</td>
+    <td><span class="sig">none</span></td>
+    <td><div><span class="sig">address</span> arg0</div></td>
+  </tr>
+        <tr>
+    <td>8</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>settleAfterGraceBatch</td>
     <td class="sig">settleAfterGraceBatch(address,address[])</td>
@@ -2443,7 +2451,7 @@
 <section id="d17locker">
     <h2>D17Locker</h2>
     <p>Source: <code>abi/D17Locker.abi.json</code></p>
-    <p><span class="pill">constructor: 1</span><span class="pill">error: 1</span><span class="pill">event: 8</span><span class="pill">fallback: 1</span><span class="pill">function: 22</span><span class="pill">receive: 1</span></p>
+    <p><span class="pill">error: 1</span><span class="pill">event: 8</span><span class="pill">fallback: 1</span><span class="pill">function: 22</span><span class="pill">receive: 1</span></p>
     <table>
       <thead>
         <tr>
@@ -2458,14 +2466,6 @@
       <tbody>
         <tr>
     <td>0</td>
-    <td><span class="type-constructor">constructor</span><br><code>nonpayable</code></td>
-    <td>constructor</td>
-    <td class="sig">constructor(address,address,address)</td>
-    <td><div><span class="sig">address</span> owner_</div><div><span class="sig">address</span> factory_</div><div><span class="sig">address</span> weth_</div></td>
-    <td><span class="sig">none</span></td>
-  </tr>
-        <tr>
-    <td>1</td>
     <td><span class="type-error">error</span></td>
     <td>TransferFailed</td>
     <td class="sig">TransferFailed()</td>
@@ -2473,7 +2473,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>2</td>
+    <td>1</td>
     <td><span class="type-event">event</span></td>
     <td>ClaimedTokensWithdrawn</td>
     <td class="sig">ClaimedTokensWithdrawn(address,uint256)</td>
@@ -2481,7 +2481,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>3</td>
+    <td>2</td>
     <td><span class="type-event">event</span></td>
     <td>ExcessWethRecovered</td>
     <td class="sig">ExcessWethRecovered(address,uint256)</td>
@@ -2489,7 +2489,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>4</td>
+    <td>3</td>
     <td><span class="type-event">event</span></td>
     <td>FailedLaunchRefunded</td>
     <td class="sig">FailedLaunchRefunded(address,uint256)</td>
@@ -2497,7 +2497,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>5</td>
+    <td>4</td>
     <td><span class="type-event">event</span></td>
     <td>NativeEthRecovered</td>
     <td class="sig">NativeEthRecovered(address,uint256)</td>
@@ -2505,7 +2505,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>6</td>
+    <td>5</td>
     <td><span class="type-event">event</span></td>
     <td>RoundCommitted</td>
     <td class="sig">RoundCommitted(address,uint8,uint256)</td>
@@ -2513,7 +2513,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>7</td>
+    <td>6</td>
     <td><span class="type-event">event</span></td>
     <td>RoundRefunded</td>
     <td class="sig">RoundRefunded(address,uint8,uint256,uint256)</td>
@@ -2521,7 +2521,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>8</td>
+    <td>7</td>
     <td><span class="type-event">event</span></td>
     <td>VaultSettlementCompleted</td>
     <td class="sig">VaultSettlementCompleted(address,address,address,address,uint256,uint256,uint256,uint256,uint256,uint256)</td>
@@ -2529,7 +2529,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>9</td>
+    <td>8</td>
     <td><span class="type-event">event</span></td>
     <td>WethWithdrawn</td>
     <td class="sig">WethWithdrawn(address,uint256)</td>
@@ -2537,7 +2537,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>10</td>
+    <td>9</td>
     <td><span class="type-fallback">fallback</span><br><code>payable</code></td>
     <td>fallback</td>
     <td class="sig">fallback</td>
@@ -2545,7 +2545,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>11</td>
+    <td>10</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>EXPECTED_LAUNCH_ID</td>
     <td class="sig">EXPECTED_LAUNCH_ID()</td>
@@ -2553,7 +2553,7 @@
     <td><div><span class="sig">bytes32</span> arg0</div></td>
   </tr>
         <tr>
-    <td>12</td>
+    <td>11</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>ROUND_COUNT</td>
     <td class="sig">ROUND_COUNT()</td>
@@ -2561,7 +2561,7 @@
     <td><div><span class="sig">uint8</span> arg0</div></td>
   </tr>
         <tr>
-    <td>13</td>
+    <td>12</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>accountedWeth</td>
     <td class="sig">accountedWeth()</td>
@@ -2569,7 +2569,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>14</td>
+    <td>13</td>
     <td><span class="type-function">function</span><br><code>payable</code></td>
     <td>commitToRound</td>
     <td class="sig">commitToRound(address,uint8,bytes32)</td>
@@ -2577,7 +2577,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>15</td>
+    <td>14</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>factory</td>
     <td class="sig">factory()</td>
@@ -2585,7 +2585,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>16</td>
+    <td>15</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>failedPenaltyWethRefunded</td>
     <td class="sig">failedPenaltyWethRefunded(address)</td>
@@ -2593,7 +2593,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>17</td>
+    <td>16</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>failedRefundDue</td>
     <td class="sig">failedRefundDue(address)</td>
@@ -2601,7 +2601,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>18</td>
+    <td>17</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>lockedWeth</td>
     <td class="sig">lockedWeth(address)</td>
@@ -2609,7 +2609,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>19</td>
+    <td>18</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>owner</td>
     <td class="sig">owner()</td>
@@ -2617,7 +2617,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>20</td>
+    <td>19</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>positions</td>
     <td class="sig">positions(address)</td>
@@ -2625,7 +2625,7 @@
     <td><div><span class="sig">bool</span> known</div><div><span class="sig">bool</span> liquiditySettled</div><div><span class="sig">address</span> token</div><div><span class="sig">address</span> liquidityVault</div><div><span class="sig">bytes32</span> rulesHash</div><div><span class="sig">uint256</span> ethCommitted</div><div><span class="sig">uint256</span> wethCommitted</div><div><span class="sig">uint256</span> wethRefunded</div><div><span class="sig">uint256</span> penaltyPaid</div><div><span class="sig">uint256</span> claimedSaleTokens</div><div><span class="sig">uint256</span> wethSentToVault</div><div><span class="sig">uint256</span> wethForLp</div><div><span class="sig">uint256</span> treasuryWeth</div><div><span class="sig">uint256</span> protocolFeeWeth</div><div><span class="sig">uint256</span> withdrawableTokens</div><div><span class="sig">uint256</span> residualWeth</div><div><span class="sig">bool</span> finalSaleTokensClaimed</div></td>
   </tr>
         <tr>
-    <td>21</td>
+    <td>20</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>recoverExcessWeth</td>
     <td class="sig">recoverExcessWeth(address,uint256)</td>
@@ -2633,7 +2633,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>22</td>
+    <td>21</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>recoverNativeEth</td>
     <td class="sig">recoverNativeEth(address,uint256)</td>
@@ -2641,7 +2641,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>23</td>
+    <td>22</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>refundCurrentRound</td>
     <td class="sig">refundCurrentRound(address)</td>
@@ -2649,7 +2649,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>24</td>
+    <td>23</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>refundFailedLaunch</td>
     <td class="sig">refundFailedLaunch(address,bytes32)</td>
@@ -2657,7 +2657,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>25</td>
+    <td>24</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>roundPosition</td>
     <td class="sig">roundPosition(address,uint8)</td>
@@ -2665,7 +2665,7 @@
     <td><div><span class="sig">uint256</span> roundWeth</div><div><span class="sig">uint256</span> roundSaleTokens</div><div><span class="sig">bool</span> refunded</div><div><span class="sig">bool</span> tokensClaimed</div></td>
   </tr>
         <tr>
-    <td>26</td>
+    <td>25</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>settleAfterGrace</td>
     <td class="sig">settleAfterGrace(address)</td>
@@ -2673,7 +2673,7 @@
     <td><div><span class="sig">uint256</span> claimedSaleTokens</div></td>
   </tr>
         <tr>
-    <td>27</td>
+    <td>26</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>settleAndClaim</td>
     <td class="sig">settleAndClaim(address,bytes32)</td>
@@ -2681,7 +2681,7 @@
     <td><div><span class="sig">uint256</span> claimedSaleTokens</div></td>
   </tr>
         <tr>
-    <td>28</td>
+    <td>27</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>verifyLaunch</td>
     <td class="sig">verifyLaunch(address,bytes32)</td>
@@ -2689,7 +2689,7 @@
     <td><div><span class="sig">bool</span> arg0</div></td>
   </tr>
         <tr>
-    <td>29</td>
+    <td>28</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>weth</td>
     <td class="sig">weth()</td>
@@ -2697,7 +2697,7 @@
     <td><div><span class="sig">address</span> arg0</div></td>
   </tr>
         <tr>
-    <td>30</td>
+    <td>29</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>withdrawUnlockedTokens</td>
     <td class="sig">withdrawUnlockedTokens(address,uint256)</td>
@@ -2705,7 +2705,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>31</td>
+    <td>30</td>
     <td><span class="type-function">function</span><br><code>nonpayable</code></td>
     <td>withdrawUnlockedWeth</td>
     <td class="sig">withdrawUnlockedWeth(address,uint256)</td>
@@ -2713,7 +2713,7 @@
     <td><span class="sig">none</span></td>
   </tr>
         <tr>
-    <td>32</td>
+    <td>31</td>
     <td><span class="type-function">function</span><br><code>view</code></td>
     <td>withdrawableWeth</td>
     <td class="sig">withdrawableWeth()</td>
@@ -2721,7 +2721,7 @@
     <td><div><span class="sig">uint256</span> arg0</div></td>
   </tr>
         <tr>
-    <td>33</td>
+    <td>32</td>
     <td><span class="type-receive">receive</span><br><code>payable</code></td>
     <td>receive</td>
     <td class="sig">receive</td>

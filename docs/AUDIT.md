@@ -11,28 +11,29 @@ professional audit is still welcome; findings go into V16.
 
 ## 1. Scope
 
-The production source is `contracts/contracts/` (12 contracts, 2 interface files and one
-library). Its exact bytes are fixed by `contracts/SHA256SUMS.txt`; please quote the commit
+The production source is `contracts/contracts/` (12 contracts, 2 interface files and two
+libraries). Its exact bytes are fixed by `contracts/SHA256SUMS.txt`; please quote the commit
 you reviewed in the report.
 
 | File | nSLOC | Role |
 |---|---:|---|
 | `D17Launch.sol` | 708 | The sale engine: rounds, refunds, finalization, settlement accounting, pool funding |
 | `D17Factory.sol` | 299 | Registry and validation of every launch configuration; mainnet guards |
-| `D17Locker.sol` | 284 | Per-participant escrow: WETH in, refunds, settlement, withdrawals |
+| `D17Locker.sol` | 288 | Per-participant escrow: WETH in, refunds, settlement, withdrawals. Deployed once; every locker is a clone of it |
 | `D17Token.sol` | 250 | The launch token (ERC-20), transfer gate until trading opens |
 | `D17LiquidityVault.sol` | 198 | Creates the official Uniswap V2 pair, holds the LP forever, creator vesting |
 | `D17LaunchFactory.sol` | 155 | Deploys token, launch and vault for one launch |
 | `interfaces/ID17.sol` | 113 | Shared interfaces |
 | `D17FeeSplitter.sol` | 68 | Ownerless fee recipient with fixed shares |
 | `D17FeeConfig.sol` | 50 | Protocol fee rate and recipient for future launches (renounced at deployment) |
-| `D17LockerFactory.sol` | 46 | Creates lockers; batch settlement of absent lockers |
+| `D17LockerFactory.sol` | 51 | Creates lockers; batch settlement of absent lockers |
 | `D17LaunchDeployer.sol` | 43 | Deploys `D17Launch` (keeps `D17LaunchFactory` under the size limit) |
 | `D17TokenFactory.sol` | 41 | Deploys `D17Token` |
 | `D17LiquidityVaultFactory.sol` | 41 | Deploys `D17LiquidityVault` |
 | `interfaces/ID17LaunchFactory.sol` | 40 | Launch factory interface |
+| `lib/D17LockerClone.sol` | 28 | Locker clone creation and reading its fixed addresses (assembly) |
 | `lib/D17SafeTransfer.sol` | 23 | Safe ERC-20 transfers |
-| **Total** | **about 2,360** | |
+| **Total** | **about 2,400** | |
 
 **Out of scope:** the test contracts in `contracts/contracts/test/`, the deployment and
 tooling scripts in `contracts/scripts/`, the web app (`apps/web`) and the API (`apps/api`).

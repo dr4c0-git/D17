@@ -27,7 +27,7 @@
     ]
   },
   "standardJsonInput": "solc-input.json",
-  "standardJsonInputSha256": "661a1e37b21fdbf9aabdf66c7cdcfa15f583a7e0627d4f955d152a5df746b5d4",
+  "standardJsonInputSha256": "f969a814410d5f84a9557b4524b919cfbf973222c8003b5c1857e7aace1fc854",
   "identities": {
     "factory": {
       "literal": "D17_FACTORY_V15_1",
@@ -88,10 +88,10 @@
       "sha256": "a7d8de69b6bd54182b0574c37907ad1d1864131e9e471d44c48dba52595693b6"
     },
     "contracts/contracts/D17Locker.sol": {
-      "sha256": "814105ba90286ea1fa040740ff3cb7ad049761913bae2b57094a2dd278cf2d87"
+      "sha256": "21be320155dff2c537fc4ed52ab55f9468160bc71919bb1a1bb6c2f15a9df823"
     },
     "contracts/contracts/D17LockerFactory.sol": {
-      "sha256": "943dc417eff6158e70b9d714efe77db6f62908c2e530adbeb7b4a0b0cddd6b4b"
+      "sha256": "8adbccc44357ddf283875f88e62dffb7d4d71839d5d033c32ba27ba81c32fbd5"
     },
     "contracts/contracts/D17Token.sol": {
       "sha256": "75466ffe92df9ccae8d1cb14c59196947c5b1567f17b39671778da95dc5f6f0a"
@@ -104,6 +104,9 @@
     },
     "contracts/contracts/interfaces/ID17LaunchFactory.sol": {
       "sha256": "8b2bf5fd6aa04c3a838ab919c89260612c8e8044bf7ab8663219b8cd1be8fc54"
+    },
+    "contracts/contracts/lib/D17LockerClone.sol": {
+      "sha256": "cb0a207cd225682c05be3b8c2fa6c627931db79256e5782f497de0840d80e7f7"
     },
     "contracts/contracts/lib/D17SafeTransfer.sol": {
       "sha256": "b1243497033f93f86cc7308f157b36c0c2a02b40ec3e4b332e479b218ad8e714"
@@ -304,24 +307,34 @@
     },
     "D17LockerFactory": {
       "source": "contracts/contracts/D17LockerFactory.sol",
-      "abiSha256": "9dadebec3c555970cab5d8b068ea29000acf64f309e2db0d33aa20c78f04986a",
-      "creationBytecodeBytes": 11392,
-      "creationBytecodeKeccak256": "0x24333f876e6974216ee53f00e82b472f3a8b1518fd47e9aeaf233ddd262d37f5",
-      "deployedBytecodeBytes": 11128,
-      "deployedBytecodeKeccak256": "0x3f5dc03d9c40261ed3680de2649e04e42550954fc2546bf517986379bdb5d8d6",
+      "abiSha256": "5a0915697a10efc48be33671b6b3ac02c5723acc5144149689f00b3c428484eb",
+      "creationBytecodeBytes": 11013,
+      "creationBytecodeKeccak256": "0x4aaebe6fb9f7bd5ad219970f12a66bd62145c904cd2ee7e180bf42677cfb6eda",
+      "deployedBytecodeBytes": 1915,
+      "deployedBytecodeKeccak256": "0x4c57aed12003d8cc4788101e90bbafd9b7038a2f0e44910c3356db00dd9a9036",
       "immutableReferences": {
-        "8886": [
+        "8902": [
           {
             "length": 32,
-            "start": 239
+            "start": 324
           },
           {
             "length": 32,
-            "start": 906
+            "start": 987
           },
           {
             "length": 32,
-            "start": 1392
+            "start": 1746
+          }
+        ],
+        "8905": [
+          {
+            "length": 32,
+            "start": 119
+          },
+          {
+            "length": 32,
+            "start": 1122
           }
         ]
       },
@@ -728,100 +741,24 @@
     },
     "D17Locker": {
       "source": "contracts/contracts/D17Locker.sol",
-      "abiSha256": "5f19609b570d550ca850b43ce5d6606003d22ea5fa85a74084862ba4cc56d2f2",
-      "creationBytecodeBytes": 9567,
-      "creationBytecodeKeccak256": "0x564f32bc966ac3a8ec0e1e5fdf5c32aa0f7a390d713c5019c2de3c5f31de739b",
-      "deployedBytecodeBytes": 9048,
-      "deployedBytecodeKeccak256": "0xf84d2131fe80bd44835ebbf80b3204e2b9726ae5ef02c554390240fa7f6e96b3",
+      "abiSha256": "97aaa30541d15af86d8170c32475e984a80b23af9f2342783ec860345067f9b2",
+      "creationBytecodeBytes": 8761,
+      "creationBytecodeKeccak256": "0x19893e0f293d6beb34508aee1153759daad7ac56d8c6169ca52521c855cf9f47",
+      "deployedBytecodeBytes": 8707,
+      "deployedBytecodeKeccak256": "0xfad6685c2b21ef383184e07670ef15c9e4a7d21e45bb983d55d0ca106abdcf4f",
       "immutableReferences": {
-        "7371": [
+        "7378": [
           {
             "length": 32,
-            "start": 1103
+            "start": 7002
           },
           {
             "length": 32,
-            "start": 1591
+            "start": 7118
           },
           {
             "length": 32,
-            "start": 2062
-          },
-          {
-            "length": 32,
-            "start": 2388
-          },
-          {
-            "length": 32,
-            "start": 3083
-          },
-          {
-            "length": 32,
-            "start": 4175
-          },
-          {
-            "length": 32,
-            "start": 4478
-          },
-          {
-            "length": 32,
-            "start": 4895
-          },
-          {
-            "length": 32,
-            "start": 5126
-          },
-          {
-            "length": 32,
-            "start": 8225
-          }
-        ],
-        "7373": [
-          {
-            "length": 32,
-            "start": 1014
-          },
-          {
-            "length": 32,
-            "start": 6824
-          }
-        ],
-        "7375": [
-          {
-            "length": 32,
-            "start": 1676
-          },
-          {
-            "length": 32,
-            "start": 3539
-          },
-          {
-            "length": 32,
-            "start": 4682
-          },
-          {
-            "length": 32,
-            "start": 4999
-          },
-          {
-            "length": 32,
-            "start": 5451
-          },
-          {
-            "length": 32,
-            "start": 6710
-          },
-          {
-            "length": 32,
-            "start": 8372
-          },
-          {
-            "length": 32,
-            "start": 8493
-          },
-          {
-            "length": 32,
-            "start": 8544
+            "start": 7182
           }
         ]
       },
@@ -1004,7 +941,7 @@
       "deployedBytecodeBytes": 9386,
       "deployedBytecodeKeccak256": "0xdf8291a7813c88e32b5c54af3870f1d8f9ea6b3e4c5a1bcbba914c439c619711",
       "immutableReferences": {
-        "9133": [
+        "9173": [
           {
             "length": 32,
             "start": 1617
