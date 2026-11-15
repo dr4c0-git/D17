@@ -24,6 +24,7 @@ const productionSources = [
   "contracts/D17TokenFactory.sol",
   "contracts/interfaces/ID17.sol",
   "contracts/interfaces/ID17LaunchFactory.sol",
+  "contracts/lib/D17LockerClone.sol",
   "contracts/lib/D17SafeTransfer.sol",
 ];
 

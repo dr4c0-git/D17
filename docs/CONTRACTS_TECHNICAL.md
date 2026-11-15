@@ -181,7 +181,7 @@ and so does the vault's `mintLateLiquidity` (D17LiquidityVault.sol:172-175).
 Notation: **AC** = access control. All state-changing functions in D17Launch, D17Locker,
 D17LiquidityVault are `nonReentrant` (storage-flag pattern, e.g. D17Launch.sol:192-197);
 not repeated per row. `receive()`/`fallback()` revert on D17Launch (:258-264), D17Locker
-(:89-95), D17LiquidityVault (:98-104).
+(:101-107), D17LiquidityVault (:98-104).
 
 ### 5.1 D17Factory (D17Factory.sol, 344 lines)
 
@@ -385,40 +385,42 @@ tokenUsed, wethUsed, lpMinted)`, `UnsoldSaleTokensBurned(amount)`,
 still declared for ABI compatibility but is never emitted in V15.1. V14's
 `UnsoldSaleTokensPaid` no longer exists.
 
-### 5.5 D17Locker (D17Locker.sol, 337 lines) - per-user escrow
+### 5.5 D17Locker (D17Locker.sol, 349 lines) - per-user escrow
 
 One locker per (user, deployment); registered in D17Factory; holds the user's WETH until
-refund/settlement and claimed sale tokens until withdrawal. `EXPECTED_LAUNCH_ID` (:10)
-pins the accepted launch version (`D17_LAUNCH_V15_1`). Immutables: `owner`,
-`factory`, `weth` (:13-15). Global ledgers: `withdrawableWeth`, `accountedWeth` (:17-18).
-Per-launch `LockerPosition` struct (:21-43); V15 inserted **`protocolFeeWeth` after
-`treasuryWeth`** (:34-35), shifting every later field of the public `positions` getter
-(:45) - decode it by field name. V15.1 adds `failedPenaltyWethRefunded[launch]` (:46).
+refund/settlement and claimed sale tokens until withdrawal. `EXPECTED_LAUNCH_ID` (:15)
+pins the accepted launch version (`D17_LAUNCH_V15_1`). Each locker is a 105-byte clone of the one shared `D17Locker`
+(EIP-1167 stub plus `owner`, `factory`, `weth`, see `lib/D17LockerClone.sol`); these three
+are fixed in the clone's code and read by the getters `owner()`,
+`factory()`, `weth()` (:84-94). Global ledgers: `withdrawableWeth`, `accountedWeth` (:20-21).
+Per-launch `LockerPosition` struct (:25-47); V15 inserted **`protocolFeeWeth` after
+`treasuryWeth`** (:38-39), shifting every later field of the public `positions` getter
+(:49) - decode it by field name. V15.1 adds `failedPenaltyWethRefunded[launch]` (:50).
 Every value-moving function updates the locker's ledgers **before** its external calls
 (checks-effects-interactions, V15.1).
 
 | Signature | Semantics | AC | Key reverts |
 |---|---|---|---|
-| `verifyLaunch(address launch, bytes32 expectedRulesHash) public view returns (bool)` (:97) | Authenticity gate: code exists, `D17_LAUNCH_ID == EXPECTED_LAUNCH_ID`, same WETH, `rulesHash` matches, canonical in factory | view | `NO_CODE`, `BAD_LAUNCH_ID`, `BAD_WETH`, `BAD_RULES`, `NOT_CANONICAL` |
-| `commitToRound(address launch, uint8 round, bytes32 expectedRulesHash) public payable` (:133) | Updates the ledgers and pins the rules hash (:146-155), calls `recordRoundCommitment` (:157), then wraps `msg.value` ETH→WETH, held **in the locker** (:158) | `onlyOwner` | `NO_ETH`, `ROUND`, verify failures, `LIQUIDITY_SETTLED` |
-| `refundCurrentRound(address launch) public` (:162) | Calls `releaseRoundRefund`; updates the ledgers (:170-180), then pays the penalty WETH to the **liquidity vault** (:183); refund stays in the locker as `residualWeth`/`withdrawableWeth` | `onlyOwner` | `UNKNOWN_LAUNCH`, `LIQUIDITY_SETTLED`, `NO_REFUND`, ledger guards (:170-171) |
-| `refundFailedLaunch(address launch, bytes32 expectedRulesHash) public` (:199) | Full failed-launch refund: remaining principal plus unreturned penalties (:208-209); ledgers first (:219-226), then `releaseFailedRefund`, whose amount must match (`FAILED_REFUND_MISMATCH`, :228). Works even when every round was already refunded, as long as a penalty is owed | `onlyOwner` | verify failures, `UNKNOWN_LAUNCH`, `LIQUIDITY_SETTLED`, `LOCKED_WETH_BALANCE`, launch reverts |
-| `failedRefundDue(address launch) external view returns (uint256)` (:111) | What `refundFailedLaunch` would return now (0 unless the launch failed) | view | - |
-| `settleAndClaim(address launch, bytes32 expectedRulesHash) public returns (uint256)` (:232) | Owner settlement any time after the final round (lazy finalize) and before the pool exists | `onlyOwner` | verify + `_settleVaultPosition` guards |
-| `settleAfterGrace(address launch) public returns (uint256)` (:237) | **Permissionless** settlement-for from `poolCreationOpensAt`; re-verifies with the **stored** rules hash (:240); tokens stay in this locker for its owner | any | `UNKNOWN_LAUNCH`, `NOT_FINALIZED`, `GRACE_OPEN` |
-| `withdrawUnlockedWeth(address launch, uint256 amount) public` (:187) | Withdraws refund residuals to owner | `onlyOwner` | ledger guards |
-| `withdrawUnlockedTokens(address launch, uint256 amount) public` (:307) | Withdraws claimed sale tokens; **gated on `launch.tradingOpen()`** (:311) | `onlyOwner` | `TOKEN_MISSING`, `TOKEN_WITHDRAW_LOCKED`, `TOKEN_BALANCE` |
-| `recoverNativeEth(address, uint256) external` (:318) / `recoverExcessWeth(address, uint256) public` (:327) | Force-sent ETH / WETH above `accountedWeth` | `onlyOwner` | balance guards |
-| `lockedWeth(address)` (:107); `roundPosition(address,uint8)` (:118); `positions(address)` (:45) | Views | view | - |
+| `verifyLaunch(address launch, bytes32 expectedRulesHash) public view returns (bool)` (:109) | Authenticity gate: code exists, `D17_LAUNCH_ID == EXPECTED_LAUNCH_ID`, same WETH, `rulesHash` matches, canonical in factory | view | `NO_CODE`, `BAD_LAUNCH_ID`, `BAD_WETH`, `BAD_RULES`, `NOT_CANONICAL` |
+| `commitToRound(address launch, uint8 round, bytes32 expectedRulesHash) public payable` (:145) | Updates the ledgers and pins the rules hash (:158-167), calls `recordRoundCommitment` (:169), then wraps `msg.value` ETH→WETH, held **in the locker** (:170) | `onlyOwner` | `NO_ETH`, `ROUND`, verify failures, `LIQUIDITY_SETTLED` |
+| `refundCurrentRound(address launch) public` (:174) | Calls `releaseRoundRefund`; updates the ledgers (:182-192), then pays the penalty WETH to the **liquidity vault** (:195); refund stays in the locker as `residualWeth`/`withdrawableWeth` | `onlyOwner` | `UNKNOWN_LAUNCH`, `LIQUIDITY_SETTLED`, `NO_REFUND`, ledger guards (:182-183) |
+| `refundFailedLaunch(address launch, bytes32 expectedRulesHash) public` (:211) | Full failed-launch refund: remaining principal plus unreturned penalties (:220-221); ledgers first (:231-238), then `releaseFailedRefund`, whose amount must match (`FAILED_REFUND_MISMATCH`, :240). Works even when every round was already refunded, as long as a penalty is owed | `onlyOwner` | verify failures, `UNKNOWN_LAUNCH`, `LIQUIDITY_SETTLED`, `LOCKED_WETH_BALANCE`, launch reverts |
+| `failedRefundDue(address launch) external view returns (uint256)` (:123) | What `refundFailedLaunch` would return now (0 unless the launch failed) | view | - |
+| `settleAndClaim(address launch, bytes32 expectedRulesHash) public returns (uint256)` (:244) | Owner settlement any time after the final round (lazy finalize) and before the pool exists | `onlyOwner` | verify + `_settleVaultPosition` guards |
+| `settleAfterGrace(address launch) public returns (uint256)` (:249) | **Permissionless** settlement-for from `poolCreationOpensAt`; re-verifies with the **stored** rules hash (:252); tokens stay in this locker for its owner | any | `UNKNOWN_LAUNCH`, `NOT_FINALIZED`, `GRACE_OPEN` |
+| `withdrawUnlockedWeth(address launch, uint256 amount) public` (:199) | Withdraws refund residuals to owner | `onlyOwner` | ledger guards |
+| `withdrawUnlockedTokens(address launch, uint256 amount) public` (:319) | Withdraws claimed sale tokens; **gated on `launch.tradingOpen()`** (:323) | `onlyOwner` | `TOKEN_MISSING`, `TOKEN_WITHDRAW_LOCKED`, `TOKEN_BALANCE` |
+| `recoverNativeEth(address, uint256) external` (:330) / `recoverExcessWeth(address, uint256) public` (:339) | Force-sent ETH / WETH above `accountedWeth` | `onlyOwner` | balance guards |
+| `lockedWeth(address)` (:119); `roundPosition(address,uint8)` (:130); `positions(address)` (:49) | Views | view | - |
 
-`_settleVaultPosition` (:246-305): recomputes per-round previews locally (:251-259) and
+`_settleVaultPosition` (:258-317): recomputes per-round previews locally (:263-271) and
 requires the launch-returned sale tokens to equal their sum (`FINAL_CLAIM_MISMATCH`,
-:267); calls `claimVaultSettlement` (:266), which reverts once the pool exists; requires
-`wethCommitted ≥ wethForVault + treasuryWeth + protocolFeeWeth` (:268-269); records the
-settlement and moves the leftover `wethCommitted` to the withdrawable residual (:271-287);
+:279); calls `claimVaultSettlement` (:278), which reverts once the pool exists; requires
+`wethCommitted ≥ wethForVault + treasuryWeth + protocolFeeWeth` (:280-281); records the
+settlement and moves the leftover `wethCommitted` to the withdrawable residual (:283-299);
 then transfers `wethForVault` to the vault, `treasuryWeth` to the treasury and
-`protocolFeeWeth` to `launch.protocolFeeRecipient()` **from the locker** (:289-291). Emits
-`VaultSettlementCompleted` (:293-304).
+`protocolFeeWeth` to `launch.protocolFeeRecipient()` **from the locker** (:301-303). Emits
+`VaultSettlementCompleted` (:305-316).
 
 ### 5.6 D17LiquidityVault (D17LiquidityVault.sol, 246 lines)
 
@@ -481,16 +483,17 @@ the pin (:37-41), `deployToken` (D17TokenFactory.sol:43-50) / `deployVault`
 (D17LiquidityVaultFactory.sol:43-50) callable only by the pinned launch factory. IDs at
 :7. Events at :13-15. Their owners must be zero before any launch (§3).
 
-### 5.9 D17LockerFactory (D17LockerFactory.sol, 62 lines)
+### 5.9 D17LockerFactory (D17LockerFactory.sol, 69 lines)
 
-Immutable `d17Factory` (:13); constants `MAX_SETTLEMENT_BATCH = 4` (:17) and
-`SETTLEMENT_CALL_GAS = 3_000_000` (:18). Events `LockerCreated(owner idx, locker idx)` and
-`BatchSettlementResult(launch idx, locker idx, success)` (:20-21).
+Immutables `d17Factory` and `lockerImplementation` (the shared `D17Locker`, deployed
+in the constructor) (:14, :17); constants `MAX_SETTLEMENT_BATCH = 4` (:21) and
+`SETTLEMENT_CALL_GAS = 3_000_000` (:22). Events `LockerCreated(owner idx, locker idx)` and
+`BatchSettlementResult(launch idx, locker idx, success)` (:24-25).
 
 | Signature | Semantics | AC | Key reverts |
 |---|---|---|---|
-| `createLockerFor(address lockerOwner) external returns (address locker)` (:29) | Deploys `D17Locker(lockerOwner, d17Factory, registry.weth())` and registers it; multiple lockers per owner are allowed | **`msg.sender == lockerOwner`** (`ONLY_SELF`, :31) | `OWNER_ZERO`, `ONLY_SELF` |
-| `settleAfterGraceBatch(address launch, address[] calldata lockers) external returns (uint256 completed)` (:42) | Calls `settleAfterGrace(launch)` on up to 4 lockers, each with a fixed 3,000,000 gas stipend in a `try` (:50-60); entries that are not registered lockers, duplicates, already-settled or failing positions are skipped and reported in `BatchSettlementResult` instead of reverting the batch; returns the number settled | **permissionless** | `BATCH_SIZE` (0 or more than 8, :44), `BATCH_GAS` (not enough gas forwarded for every item, :46) |
+| `createLockerFor(address lockerOwner) external returns (address locker)` (:34) | Creates a 105-byte clone of `lockerImplementation` carrying `lockerOwner`, `d17Factory` and `registry.weth()` in its code, and registers it; multiple lockers per owner are allowed | **`msg.sender == lockerOwner`** (`ONLY_SELF`, :36) | `OWNER_ZERO`, `ONLY_SELF`, `WETH_ZERO`, `LOCKER_CREATE_FAILED` |
+| `settleAfterGraceBatch(address launch, address[] calldata lockers) external returns (uint256 completed)` (:49) | Calls `settleAfterGrace(launch)` on up to 4 lockers, each with a fixed 3,000,000 gas stipend in a `try` (:57-67); entries that are not registered lockers, duplicates, already-settled or failing positions are skipped and reported in `BatchSettlementResult` instead of reverting the batch; returns the number settled | **permissionless** | `BATCH_SIZE` (0 or more than 8, :51), `BATCH_GAS` (not enough gas forwarded for every item, :53) |
 
 The batch adds no authority: each locker re-runs its own checks (stored rules hash,
 finalization, grace boundary) and the sale tokens stay in that locker for its owner.
@@ -534,7 +537,7 @@ allocation) (:817-828).
 `penalty = gross * (r < 2 ? EARLY_REFUND_PENALTY_BPS(=100) : refundPenaltyBps) / BPS`,
 `refund = gross − penalty` (:601-602). `roundRaised[r]` is decremented by the gross
 amount; `retainedPenaltyWeth += penalty` (:603). The locker sends the penalty WETH to the
-**liquidity vault** (D17Locker.sol:183). If the launch then succeeds, every penalty is
+**liquidity vault** (D17Locker.sol:195). If the launch then succeeds, every penalty is
 paired into the initial pool (§6.6). If it fails (only round-0 penalties can exist at that
 point), each locker's `refundFailedLaunch` returns its remaining principal **and** the
 penalties it paid: the launch tracks them per locker (`position.penaltyWeth`,
@@ -613,13 +616,13 @@ the published manifest says so): `D17_FACTORY_ID` (D17Factory.sol:18), `D17_FEE_
 `D17_LAUNCH_ID` (D17Launch.sol:10), `D17_TOKEN_ID` (D17Token.sol:15),
 `D17_TOKEN_FACTORY_ID` (D17TokenFactory.sol:7), `D17_LIQUIDITY_VAULT_ID`
 (D17LiquidityVault.sol:13), `D17_LIQUIDITY_VAULT_FACTORY_ID`
-(D17LiquidityVaultFactory.sol:7), and `D17Locker.EXPECTED_LAUNCH_ID` (D17Locker.sol:10),
+(D17LiquidityVaultFactory.sol:7), and `D17Locker.EXPECTED_LAUNCH_ID` (D17Locker.sol:15),
 which **must equal** the launch ID - lockers reject V14 and other incompatible launches
 with `BAD_LAUNCH_ID` in `verifyLaunch`. `D17_FEE_SPLITTER_ID` (D17FeeSplitter.sol:19) is
 `D17_FEE_SPLITTER_V1`. `rulesHash()` covers every economic parameter, including the
 protocol fee rate and recipient and the failed-refund policy, with the launch ID as its
-first field (D17Launch.sol:275-305); lockers pin the hash at commit (D17Locker.sol:150)
-and `settleAfterGrace` re-verifies against the **stored** hash (D17Locker.sol:240).
+first field (D17Launch.sol:275-305); lockers pin the hash at commit (D17Locker.sol:162)
+and `settleAfterGrace` re-verifies against the **stored** hash (D17Locker.sol:252).
 
 **Protocol fee isolation.** The fee is read once, at creation, from `D17FeeConfig`
 (D17Factory.sol:170), checked against the creator's `maxProtocolFeeBps` (:180) and stored
@@ -629,8 +632,8 @@ mainnet there is no fee owner at all: `createLaunch` requires the fee config's `
 `pendingOwner` to be zero (:173-179).
 
 Self-registration: `createLockerFor` requires `msg.sender == lockerOwner`
-(D17LockerFactory.sol:31); registration is restricted to the pinned locker factory
-(D17Factory.sol:114-123) - `isLocker` contains only canonical locker bytecode, which is
+(D17LockerFactory.sol:36); registration is restricted to the pinned locker factory
+(D17Factory.sol:114-123) - `isLocker` contains only clones of the canonical locker created by that factory, which is
 the basis for `onlyLocker` on the launch and the `NOT_D17_LOCKER` check of
 `returnFailedPenalty` on the vault. The vault pays a failed-launch penalty only when its
 own launch calls it with an amount taken from that launch's per-locker record.
@@ -640,8 +643,8 @@ Deliberately permissionless entry points and why they are safe:
 | Entry point | Why safe |
 |---|---|
 | `finalizeLaunch()` (D17Launch.sol:693) | Pure state transition from immutable timing + committed totals; one-shot |
-| `settleAfterGrace(launch)` (D17Locker.sol:237) | Only after the fixed grace boundary; outcome identical to owner settlement; tokens stay in the owner's locker; stored-rules-hash verification |
-| `settleAfterGraceBatch(launch, lockers)` (D17LockerFactory.sol:42) | Only calls `settleAfterGrace` on registered lockers; bounded to 4 items with a fixed gas stipend; failures are skipped, never forwarded |
+| `settleAfterGrace(launch)` (D17Locker.sol:249) | Only after the fixed grace boundary; outcome identical to owner settlement; tokens stay in the owner's locker; stored-rules-hash verification |
+| `settleAfterGraceBatch(launch, lockers)` (D17LockerFactory.sol:49) | Only calls `settleAfterGrace` on registered lockers; bounded to 4 items with a fixed gas stipend; failures are skipped, never forwarded |
 | `createOfficialPool(minLp, deadline)` (D17LiquidityVault.sol:119) | Time-gated; requires every commitment settled; virgin-pair + preseed checks; amounts come from launch accounting |
 | `releaseCreatorTokens()` (D17LiquidityVault.sol:179) | Amount from a deterministic schedule; recipient fixed in the rules |
 | `burnResidualTokens()` (D17Launch.sol:750) | Only burns the launch's own token balance; only once the pool exists and every commitment settled |
@@ -652,23 +655,23 @@ Deliberately permissionless entry points and why they are safe:
 | # | Invariant | Enforcing check(s) |
 |---|---|---|
 | 1 | Supply conservation: `sale + lp + manual + dead == tokenSupply ≤ 2^112 − 1`; mint one-shot; no post-deploy authority | D17Factory.sol:217-225; D17LaunchFactory.sol:155-163; D17Token.sol:196-214 |
-| 2 | Timing-invariant buyer outcome: owner, third-party and batch settlement give the same amounts | single `_settlePosition` + `_vaultSettlementAmounts` (D17Launch.sol:659-691, 804-815); `FINAL_CLAIM_MISMATCH` (D17Locker.sol:267) |
+| 2 | Timing-invariant buyer outcome: owner, third-party and batch settlement give the same amounts | single `_settlePosition` + `_vaultSettlementAmounts` (D17Launch.sol:659-691, 804-815); `FINAL_CLAIM_MISMATCH` (D17Locker.sol:279) |
 | 3 | `gross = wethForVault + treasuryWeth + protocolFeeWeth`; pool share ≥ 88% | D17Launch.sol:812-814; caps D17Factory.sol:247, D17FeeConfig.sol:18 |
-| 4 | Creator income = `treasuryBps` share + vested allocation only (no penalties, no unsold tokens) | penalties → vault (D17Locker.sol:183); burns (D17Launch.sol:788-790); vesting (D17LiquidityVault.sol:179-186) |
+| 4 | Creator income = `treasuryBps` share + vested allocation only (no penalties, no unsold tokens) | penalties → vault (D17Locker.sol:195); burns (D17Launch.sol:788-790); vesting (D17LiquidityVault.sol:179-186) |
 | 5 | Fee immutability per launch; mainnet fee frozen for the suite | immutables + `rulesHash` (D17Launch.sol:44,53,283,294); fee config never read after creation; `MAINNET_FEE_NOT_FROZEN` (D17Factory.sol:173-179) |
 | 6 | No launch while an admin key exists in the creation path | D17Factory.sol:167; D17LaunchFactory.sol:95-100 |
 | 7 | No round sells below the anchor | `roundAnchorTargetWeth`/`roundSoldTokens` for r ≥ 1 (D17Launch.sol:376-399) |
 | 8 | Sale-token conservation; single claim per position | claim flags (D17Launch.sol:672-673, 679-680); `_soldSaleTokenAmount` cap (:830-833) |
-| 9 | Custody isolation: user WETH lives in the user's locker until refund/settlement | D17Locker.sol:158 (wrap-and-hold); no WETH inflow path in D17Launch |
+| 9 | Custody isolation: user WETH lives in the user's locker until refund/settlement | D17Locker.sol:170 (wrap-and-hold); no WETH inflow path in D17Launch |
 | 10 | Exact pool ledger: `exactCommittedLiquidityWeth == Σ_lockers wethForVault` at all times | delta updates (D17Launch.sol:567-571, 591-596, 630); `LIQUIDITY_ACCOUNTING` at pool creation (:708) |
 | 11 | Complete funding before trading: the pool opens only once every final commitment is settled; no liquidity is added afterwards | `UNSETTLED_COMMITMENTS` (D17Launch.sol:707); `claimVaultSettlement` reverts after the pool (:650); `claimLateSettlement` / `mintLateLiquidity` revert (D17Launch.sol:655-657; D17LiquidityVault.sol:172-175) |
-| 12 | No hostage: absent buyers cannot block the pool; claims never expire before it | permissionless `settleAfterGrace` (D17Locker.sol:237-244) and `settleAfterGraceBatch` (D17LockerFactory.sol:42-61); no deadline on settlement |
+| 12 | No hostage: absent buyers cannot block the pool; claims never expire before it | permissionless `settleAfterGrace` (D17Locker.sol:249-256) and `settleAfterGraceBatch` (D17LockerFactory.sol:49-68); no deadline on settlement |
 | 13 | One-time pool creation; write-once pool records; pool takes exactly `L` tokens and `E + P` WETH | D17Launch.sol:704-705, 713-714, 734-743; D17LiquidityVault.sol:124 |
-| 14 | Failed launch returns everything: principal plus recorded penalties to their payer; nothing burned | D17Launch.sol:611-642; D17Locker.sol:199-230; D17LiquidityVault.sol:189-204 |
+| 14 | Failed launch returns everything: principal plus recorded penalties to their payer; nothing burned | D17Launch.sol:611-642; D17Locker.sol:211-242; D17LiquidityVault.sol:189-204 |
 | 15 | LP permanence | no LP-moving function; recovery excludes `officialPair` (D17LiquidityVault.sol:221) |
 | 16 | Creator tokens unusable for liquidity and locked until vested | `lockedCreatorTokens()` balance check (D17LiquidityVault.sol:145-148) |
 | 17 | No transfer/burn before trading open (except launch & vault→pair) | D17Token.sol:187, 231-241 |
-| 18 | Incompatible-contract rejection | `EXPECTED_LAUNCH_ID` (D17Locker.sol:10); `rulesHash` domain separation |
+| 18 | Incompatible-contract rejection | `EXPECTED_LAUNCH_ID` (D17Locker.sol:15); `rulesHash` domain separation |
 
 ## 9. Event catalogue (indexer/UI contract)
 

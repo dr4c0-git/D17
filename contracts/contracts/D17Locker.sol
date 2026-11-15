@@ -1,22 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {D17LockerClone} from "./lib/D17LockerClone.sol";
 import {D17SafeTransfer} from "./lib/D17SafeTransfer.sol";
 import {ID17FactoryView, ID17Launch, IWETH} from "./interfaces/ID17.sol";
 
+/// @notice Shared Locker code. D17LockerFactory deploys it once; every Locker is a small
+/// clone (see D17LockerClone) that runs this code on its own storage and carries its own
+/// owner, factory and WETH in its code. Calling this contract directly does nothing useful:
+/// it has no owner, is not a registered Locker and every owner, factory or WETH read reverts.
 contract D17Locker {
     using D17SafeTransfer for address;
 
     bytes32 public constant EXPECTED_LAUNCH_ID = keccak256("D17_LAUNCH_V15_1");
     uint8 public constant ROUND_COUNT = 5;
 
-    address public immutable owner;
-    address public immutable factory;
-    address public immutable weth;
+    address private immutable implementation = address(this);
 
     uint256 public withdrawableWeth;
     uint256 public accountedWeth;
-    uint256 private entered = 1;
+    // 0 in a new Locker, 1 after its first guarded call, 2 while a call is running.
+    uint256 private entered;
 
     struct LockerPosition {
         bool known;
@@ -66,24 +70,32 @@ contract D17Locker {
     event ExcessWethRecovered(address indexed recipient, uint256 amount);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "NOT_OWNER");
+        require(msg.sender == owner(), "NOT_OWNER");
         _;
     }
 
     modifier nonReentrant() {
-        require(entered == 1, "REENTRANT");
+        require(entered != 2, "REENTRANT");
         entered = 2;
         _;
         entered = 1;
     }
 
-    constructor(address owner_, address factory_, address weth_) {
-        require(owner_ != address(0), "OWNER_ZERO");
-        require(factory_ != address(0), "FACTORY_ZERO");
-        require(weth_ != address(0), "WETH_ZERO");
-        owner = owner_;
-        factory = factory_;
-        weth = weth_;
+    function owner() public view returns (address) {
+        return _cloneArg(D17LockerClone.OWNER);
+    }
+
+    function factory() public view returns (address) {
+        return _cloneArg(D17LockerClone.FACTORY);
+    }
+
+    function weth() public view returns (address) {
+        return _cloneArg(D17LockerClone.WETH);
+    }
+
+    function _cloneArg(uint256 position) private view returns (address) {
+        require(address(this) != implementation, "NOT_A_LOCKER");
+        return D17LockerClone.arg(position);
     }
 
     receive() external payable {
@@ -98,9 +110,9 @@ contract D17Locker {
         require(launch.code.length > 0, "NO_CODE");
         ID17Launch candidate = ID17Launch(launch);
         require(candidate.D17_LAUNCH_ID() == EXPECTED_LAUNCH_ID, "BAD_LAUNCH_ID");
-        require(candidate.weth() == weth, "BAD_WETH");
+        require(candidate.weth() == weth(), "BAD_WETH");
         require(candidate.rulesHash() == expectedRulesHash, "BAD_RULES");
-        require(ID17FactoryView(factory).isCanonicalLaunch(launch, expectedRulesHash), "NOT_CANONICAL");
+        require(ID17FactoryView(factory()).isCanonicalLaunch(launch, expectedRulesHash), "NOT_CANONICAL");
         return true;
     }
 
@@ -155,7 +167,7 @@ contract D17Locker {
         accountedWeth += msg.value;
 
         ID17Launch(launch).recordRoundCommitment(round, msg.value);
-        IWETH(weth).deposit{value: msg.value}();
+        IWETH(weth()).deposit{value: msg.value}();
         emit RoundCommitted(launch, round, msg.value);
     }
 
@@ -180,7 +192,7 @@ contract D17Locker {
         if (penaltyWeth > 0) accountedWeth -= penaltyWeth;
 
         // Penalties deepen the official pool (vault), they never reach the creator.
-        if (penaltyWeth > 0) weth.safeTransfer(ID17Launch(launch).liquidityVault(), penaltyWeth);
+        if (penaltyWeth > 0) weth().safeTransfer(ID17Launch(launch).liquidityVault(), penaltyWeth);
         emit RoundRefunded(launch, round, refundWeth, penaltyWeth);
     }
 
@@ -192,7 +204,7 @@ contract D17Locker {
         position.residualWeth -= amount;
         withdrawableWeth -= amount;
         accountedWeth -= amount;
-        weth.safeTransfer(owner, amount);
+        weth().safeTransfer(owner(), amount);
         emit WethWithdrawn(launch, amount);
     }
 
@@ -286,15 +298,15 @@ contract D17Locker {
         withdrawableWeth += position.wethCommitted;
         position.wethCommitted = 0;
 
-        if (wethForVault > 0) weth.safeTransfer(position.liquidityVault, wethForVault);
-        if (treasuryWeth > 0) weth.safeTransfer(ID17Launch(launch).treasury(), treasuryWeth);
-        if (protocolFeeWeth > 0) weth.safeTransfer(ID17Launch(launch).protocolFeeRecipient(), protocolFeeWeth);
+        if (wethForVault > 0) weth().safeTransfer(position.liquidityVault, wethForVault);
+        if (treasuryWeth > 0) weth().safeTransfer(ID17Launch(launch).treasury(), treasuryWeth);
+        if (protocolFeeWeth > 0) weth().safeTransfer(ID17Launch(launch).protocolFeeRecipient(), protocolFeeWeth);
 
         emit VaultSettlementCompleted(
             launch,
             position.liquidityVault,
             msg.sender,
-            owner,
+            owner(),
             claimedSaleTokens,
             wethForVault,
             treasuryWeth,
@@ -311,7 +323,7 @@ contract D17Locker {
         require(ID17Launch(launch).tradingOpen(), "TOKEN_WITHDRAW_LOCKED");
         require(amount <= position.withdrawableTokens, "TOKEN_BALANCE");
         position.withdrawableTokens -= amount;
-        position.token.safeTransfer(owner, amount);
+        position.token.safeTransfer(owner(), amount);
         emit ClaimedTokensWithdrawn(launch, amount);
     }
 
@@ -327,10 +339,10 @@ contract D17Locker {
     function recoverExcessWeth(address recipient, uint256 amount) public onlyOwner nonReentrant {
         require(recipient != address(0), "RECIPIENT_ZERO");
         require(amount > 0, "AMOUNT_ZERO");
-        uint256 balance = IWETH(weth).balanceOf(address(this));
+        uint256 balance = IWETH(weth()).balanceOf(address(this));
         require(balance > accountedWeth, "NO_EXCESS_WETH");
         require(amount <= balance - accountedWeth, "EXCESS_WETH_BALANCE");
-        weth.safeTransfer(recipient, amount);
+        weth().safeTransfer(recipient, amount);
         emit ExcessWethRecovered(recipient, amount);
     }
 

@@ -1,26 +1,5 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "factory_",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "weth_",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
     "inputs": [],
     "name": "TransferFailed",
     "type": "error"

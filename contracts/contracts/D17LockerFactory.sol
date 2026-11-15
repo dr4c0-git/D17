@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {D17Locker} from "./D17Locker.sol";
+import {D17LockerClone} from "./lib/D17LockerClone.sol";
 
 interface ID17LockerRegistry {
     function weth() external view returns (address);
@@ -11,6 +12,9 @@ interface ID17LockerRegistry {
 
 contract D17LockerFactory {
     address public immutable d17Factory;
+    /// @notice The shared D17Locker code, deployed once here. Each Locker is a 105-byte clone
+    /// of it, so a wallet no longer pays to store the whole Locker bytecode again.
+    address public immutable lockerImplementation;
     // One settlement used about 1M gas on Sepolia (0.5-0.7M on a local chain), so each locker
     // gets a wide margin. A full batch must also fit the 16,777,216 gas cap per transaction
     // (EIP-7825): 4 x (3,000,000 + 25,000) + 100,000 = 12.2M.
@@ -24,13 +28,16 @@ contract D17LockerFactory {
         require(d17Factory_ != address(0), "FACTORY_ZERO");
         require(d17Factory_.code.length > 0, "FACTORY_NO_CODE");
         d17Factory = d17Factory_;
+        lockerImplementation = address(new D17Locker());
     }
 
     function createLockerFor(address lockerOwner) external returns (address locker) {
         require(lockerOwner != address(0), "OWNER_ZERO");
         require(msg.sender == lockerOwner, "ONLY_SELF");
         ID17LockerRegistry registry = ID17LockerRegistry(d17Factory);
-        locker = address(new D17Locker(lockerOwner, d17Factory, registry.weth()));
+        address weth = registry.weth();
+        require(weth != address(0), "WETH_ZERO");
+        locker = D17LockerClone.deploy(lockerImplementation, lockerOwner, d17Factory, weth);
         registry.registerLockerFor(lockerOwner, locker);
         emit LockerCreated(lockerOwner, locker);
     }
