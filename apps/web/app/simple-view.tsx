@@ -94,6 +94,8 @@ export type SimpleModel = {
   canSend: boolean;
   canRecover: boolean;
   tokenAddress: string;
+  creatorAddress: string; // the wallet that created the launch
+  creatorHref: string; // that wallet on the explorer
   creatorVesting: { total: number; unlocked: number; sent: number; fullyUnlockedAt: number; canSend: boolean } | null;
   otherLaunches: { address: string; label: string; status: string; current: boolean }[];
   launchesLoaded: boolean; // false until the list of launches has been read once
@@ -209,6 +211,14 @@ function LaunchHeader({ m }: { m: SimpleModel }) {
         </h1>
         {launch.verified && (
           <p className="mt-1 text-[13px] text-live">✓ Official D17 launch: rules checked and locked</p>
+        )}
+        {m.creatorAddress && (
+          <p className="mt-1 text-[13px] text-dim">
+            Created by{" "}
+            <a href={m.creatorHref} target="_blank" rel="noreferrer" className="font-mono text-electric underline-offset-2 hover:text-ink hover:underline">
+              {m.creatorAddress.slice(0, 6)}…{m.creatorAddress.slice(-4)} ↗
+            </a>
+          </p>
         )}
         {launch.description && <p className="mt-2 text-[15px] leading-relaxed text-dim">{launch.description}</p>}
         {launch.links.length > 0 && (

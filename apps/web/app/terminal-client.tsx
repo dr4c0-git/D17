@@ -848,6 +848,10 @@ function ParticipantsTerminal() {
   const [roundPositions, setRoundPositions] = useState<RoundSnapshot[]>([]);
   const [position, setPosition] = useState<PositionSnapshot | null>(null);
   const [tokenAddress, setTokenAddress] = useState("");
+  // The wallet that created the launch (it receives the creator allocation) and the
+  // treasury that receives the treasury fee, both fixed in the launch rules.
+  const [creatorAddress, setCreatorAddress] = useState("");
+  const [treasuryAddress, setTreasuryAddress] = useState("");
   const [poolAddress, setPoolAddress] = useState("");
   // Creator allocation vesting (V15): held by the liquidity vault, released linearly
   // from pool creation. Releasable amount is recomputed every second from nowSeconds.
@@ -2020,6 +2024,13 @@ function ParticipantsTerminal() {
         deadTokens: loadedDeadTokens,
         manualTokens: loadedManualTokens,
       });
+      const [loadedCreator, loadedTreasury] = await Promise.all([
+        launch.manualDistributionRecipient().catch(() => "") as Promise<string>,
+        launch.treasury().catch(() => "") as Promise<string>,
+      ]);
+      if (isStale()) return;
+      setCreatorAddress(ethers.isAddress(loadedCreator) ? ethers.getAddress(loadedCreator) : "");
+      setTreasuryAddress(ethers.isAddress(loadedTreasury) ? ethers.getAddress(loadedTreasury) : "");
 
       if (ethers.isAddress(loadedFactory)) {
         setFactoryAddress(ethers.getAddress(loadedFactory));
@@ -2816,6 +2827,8 @@ function ParticipantsTerminal() {
     setStateStale(false);
     setIndexLoaded(false);
     setTokenAddress("");
+    setCreatorAddress("");
+    setTreasuryAddress("");
     setLiquidityVaultAddress("");
     setPosition(null);
     setRoundPositions([]);
@@ -3429,6 +3442,8 @@ function ParticipantsTerminal() {
     canSend: canWithdrawTokens && !isReplay,
     canRecover: canFailedRefund && hasLocker && Number(position?.lockedWeth || 0) > 0 && !isReplay,
     tokenAddress,
+    creatorAddress,
+    creatorHref: creatorAddress ? `${EXPLORER_BASE}/address/${creatorAddress}` : "",
     creatorVesting: creatorVesting
       ? (() => {
           const computed = vestedCreatorAmount(creatorVesting, nowSeconds);
@@ -3825,7 +3840,7 @@ function ParticipantsTerminal() {
 
         <section className="@container order-1 min-w-0 max-sm:contents xl:order-2 xl:min-h-0 xl:overflow-y-auto">
           {launchMetadata && (
-            <LaunchMasthead metadata={launchMetadata} config={launchConfig} tokenAddress={tokenAddress} poolAddress={poolAddress} />
+            <LaunchMasthead metadata={launchMetadata} config={launchConfig} tokenAddress={tokenAddress} poolAddress={poolAddress} creatorAddress={creatorAddress} treasuryAddress={treasuryAddress} />
           )}
           {/* Mobile/tablet discovery surface - the same LaunchList as the
               desktop rail tab. xl:hidden: desktop discovery is the rail tab. */}
@@ -4749,11 +4764,15 @@ function LaunchMasthead({
   config,
   tokenAddress,
   poolAddress,
+  creatorAddress,
+  treasuryAddress,
 }: {
   metadata: LaunchMetadata;
   config: LaunchConfig | null;
   tokenAddress: string;
   poolAddress: string;
+  creatorAddress: string;
+  treasuryAddress: string;
 }) {
   const name = metadata.tokenName?.trim();
   const symbol = metadata.tokenSymbol?.trim();
@@ -4826,8 +4845,34 @@ function LaunchMasthead({
               ))}
             </div>
           )}
-          {(ethers.isAddress(tokenAddress) || ethers.isAddress(poolAddress)) && (
+          {(ethers.isAddress(tokenAddress) || ethers.isAddress(poolAddress) || ethers.isAddress(creatorAddress)) && (
             <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+              {ethers.isAddress(creatorAddress) && (
+                <a
+                  href={`${EXPLORER_BASE}/address/${creatorAddress}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={`Wallet that created this launch: ${creatorAddress}. It receives the creator allocation. Opens on the explorer.`}
+                  className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink max-xl:min-h-11"
+                >
+                  <span>Creator</span>
+                  <span className="font-semibold normal-case text-ink">{shortAddress(creatorAddress)}</span>
+                  <span aria-hidden>↗</span>
+                </a>
+              )}
+              {ethers.isAddress(treasuryAddress) && treasuryAddress !== creatorAddress && (
+                <a
+                  href={`${EXPLORER_BASE}/address/${treasuryAddress}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={`Treasury of this launch: ${treasuryAddress}. It receives the treasury fee. Opens on the explorer.`}
+                  className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.02em] text-quiet transition-colors hover:text-ink max-xl:min-h-11"
+                >
+                  <span>Treasury</span>
+                  <span className="font-semibold normal-case text-ink">{shortAddress(treasuryAddress)}</span>
+                  <span aria-hidden>↗</span>
+                </a>
+              )}
               {ethers.isAddress(tokenAddress) && (
                 <button
                   type="button"
