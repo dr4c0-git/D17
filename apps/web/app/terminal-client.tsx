@@ -75,6 +75,26 @@ const EVENT_LOOKBACK_BLOCKS = Number(process.env.NEXT_PUBLIC_D17_LOOKBACK_BLOCKS
 const EVENT_CHUNK_SIZE = Number(process.env.NEXT_PUBLIC_D17_EVENT_CHUNK_SIZE || "5000");
 const EVENT_POLL_SECONDS = Number(process.env.NEXT_PUBLIC_D17_EVENT_POLL_SECONDS || "12");
 const STATE_POLL_SECONDS = Number(process.env.NEXT_PUBLIC_D17_STATE_POLL_SECONDS || "15");
+// Every read goes from the visitor's browser to a paid RPC, so polling has a real cost.
+// While nothing is happening on a launch (not started yet, trading open, failed), the page
+// refreshes once a minute instead; phase boundaries still trigger an immediate re-read.
+const QUIET_POLL_SECONDS = Number(process.env.NEXT_PUBLIC_D17_QUIET_POLL_SECONDS || "60");
+const LAUNCH_LIST_POLL_MS = 60_000;
+/** Round share, start and end per launch (`chainId:launch`): immutable once created. */
+const ROUND_SCHEDULE_CACHE = new Map<string, [bigint, bigint, bigint][]>();
+
+/** Like setInterval, but skips the call while the tab is hidden: a forgotten background
+ *  tab makes no RPC request. Each effect re-reads as soon as the tab is visible again. */
+function visibleInterval(callback: () => void, ms: number) {
+  return window.setInterval(() => {
+    if (document.visibilityState === "visible") callback();
+  }, ms);
+}
+
+/** Phases where people are acting on the launch and need fresh numbers quickly. */
+function isActivePhase(phaseKind: number | undefined) {
+  return phaseKind !== undefined && phaseKind !== PHASE.NOT_STARTED && phaseKind !== PHASE.TRADING_OPEN && phaseKind !== PHASE.FAILED;
+}
 // Optional ETH/USD display. Hosted (api) only - the local/rpc build has no
 // backend price collector. Env kill-switch, default on.
 const USD_ENABLED = process.env.NEXT_PUBLIC_ENABLE_USD !== "false";
@@ -1590,7 +1610,7 @@ function ParticipantsTerminal() {
     // immediately on any lifecycle activity, with one reconciliation on
     // open/reconnect. The 30s API safety poll ALSO stays (indexed-API, never
     // Ethereum RPC) - it catches gaps if the socket sleeps/misses events.
-    const interval = window.setInterval(fetchLaunches, 30_000);
+    const interval = visibleInterval(fetchLaunches, LAUNCH_LIST_POLL_MS);
     if (apiMode) {
       const unsubscribe = subscribeWs(null, {
         onOpen: () => {
@@ -2047,17 +2067,40 @@ function ParticipantsTerminal() {
         }
       }
 
+      // A round's share, start and end are fixed when the launch is created: read them once
+      // per launch, then only the values that move (raised, price, target) on each refresh.
+      const scheduleKey = `${CHAIN_ID}:${launchAddress.toLowerCase()}`;
+      let schedule = ROUND_SCHEDULE_CACHE.get(scheduleKey);
+      if (!schedule) {
+        const loadedSchedule = await Promise.all(
+          Array.from({ length: ROUND_COUNT }, (_, round) =>
+            Promise.all([
+              launch.roundSharesBps(round).catch(() => null) as Promise<bigint | null>,
+              launch.roundStart(round).catch(() => null) as Promise<bigint | null>,
+              launch.roundEnd(round).catch(() => null) as Promise<bigint | null>,
+            ])
+          )
+        );
+        if (isStale()) return;
+        const complete = loadedSchedule.every((row) => row.every((value) => value !== null && value > 0n));
+        schedule = loadedSchedule.map(([shareBps, startAt, endAt], round) => [
+          shareBps ?? BigInt(defaultRounds[round].allocationPct * 100),
+          startAt ?? 0n,
+          endAt ?? 0n,
+        ]) as [bigint, bigint, bigint][];
+        // Only a complete read is kept: a failed one is retried on the next refresh.
+        if (complete) ROUND_SCHEDULE_CACHE.set(scheduleKey, schedule);
+      }
+      const roundSchedule = schedule;
       const roundData = await Promise.all(
-        Array.from({ length: ROUND_COUNT }, (_, round) =>
-          Promise.all([
-            launch.roundSharesBps(round).catch(() => BigInt(defaultRounds[round].allocationPct * 100)) as Promise<bigint>,
-            launch.roundStart(round).catch(() => 0n) as Promise<bigint>,
-            launch.roundEnd(round).catch(() => 0n) as Promise<bigint>,
+        Array.from({ length: ROUND_COUNT }, async (_, round) => {
+          const [raised, priceWad, anchorTarget] = await Promise.all([
             launch.roundRaised(round).catch(() => 0n) as Promise<bigint>,
             launch.roundDiscoveredPriceWad(round).catch(() => 0n) as Promise<bigint>,
             launch.roundAnchorTargetWeth(round).catch(() => 0n) as Promise<bigint>,
-          ])
-        )
+          ]);
+          return [...roundSchedule[round], raised, priceWad, anchorTarget] as const;
+        })
       );
       if (isStale()) return;
       const loadedRounds: RoundTerm[] = [];
@@ -2265,7 +2308,10 @@ function ParticipantsTerminal() {
     // Skip boundaries long past (chain clock behind the wall clock) so this never turns into a tight poll.
     if (livePhase && isFiniteEnd(endsAt) && endsAt > 0 && endsAt * 1000 > Date.now() - 30_000) {
       const delayMs = Math.max(1500, endsAt * 1000 + 1500 - Date.now());
-      timer = window.setTimeout(() => void refreshState({ announce: false }), delayMs);
+      timer = window.setTimeout(() => {
+        // A hidden tab waits: the visibility handler above re-reads when it is shown again.
+        if (document.visibilityState === "visible") void refreshState({ announce: false });
+      }, delayMs);
     }
     return () => {
       document.removeEventListener("visibilitychange", onVisible);
@@ -2580,24 +2626,33 @@ function ParticipantsTerminal() {
 
   useEffect(() => {
     if (!ethers.isAddress(launchAddress)) return;
-    void refreshState({ announce: false });
+    if (document.visibilityState === "visible") void refreshState({ announce: false });
     // WS is primary, but this low-frequency indexed-API safety refresh stays
     // in every mode: it catches gaps if the socket sleeps or misses events.
     // (Indexed-API reads only - never a browser Ethereum RPC.)
-    const interval = window.setInterval(() => {
+    const seconds = isActivePhase(phase?.phaseKind) ? STATE_POLL_SECONDS : Math.max(STATE_POLL_SECONDS, QUIET_POLL_SECONDS);
+    const interval = visibleInterval(() => {
       void refreshState({ announce: false });
-    }, STATE_POLL_SECONDS * 1000);
+    }, seconds * 1000);
     return () => window.clearInterval(interval);
-  }, [launchAddress, lockerAddress, walletAddress, refreshState]);
+  }, [launchAddress, lockerAddress, walletAddress, refreshState, phase?.phaseKind]);
 
   useEffect(() => {
     if (!ethers.isAddress(launchAddress)) return;
-    void refreshActivity();
-    const interval = window.setInterval(() => {
+    if (document.visibilityState === "visible") void refreshActivity();
+    const seconds = isActivePhase(phase?.phaseKind) ? EVENT_POLL_SECONDS : Math.max(EVENT_POLL_SECONDS, QUIET_POLL_SECONDS);
+    const interval = visibleInterval(() => {
       void refreshActivity();
-    }, EVENT_POLL_SECONDS * 1000);
-    return () => window.clearInterval(interval);
-  }, [launchAddress, liquidityVaultAddress, refreshActivity]);
+    }, seconds * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void refreshActivity();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [launchAddress, liquidityVaultAddress, refreshActivity, phase?.phaseKind]);
 
   useEffect(() => {
     if (!READ_WS_URL || !ethers.isAddress(launchAddress)) return;

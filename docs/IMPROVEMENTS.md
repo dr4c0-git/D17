@@ -17,6 +17,15 @@ Split in two, because the process is different:
   creator's wallet (it receives the creator allocation) and, when it is a different
   address, the treasury (it receives the treasury fee), each linked to the explorer.
   Status: live since 2026-11-15.
+- **Fewer RPC requests** (2026-11-17, approved by the project lead). The first $50 of dRPC
+  credit went in a few days: every visitor's browser reads the chain itself, and kept
+  polling even in a background tab. Done (status: on a preview link): no request at all
+  from a hidden tab, a refresh once a minute instead of every 12-15 s while a launch is
+  quiet (not started, trading, failed), the launch list every minute instead of 30 s, and
+  each round's share, start and end read once per launch instead of on every refresh
+  (27% fewer calls per refresh during a sale). Next step: group the ~40 reads of a refresh
+  into a single call through Multicall3, which should cut the cost by an order of
+  magnitude.
 - **A backup RPC for mainnet** (2026-11-17). The site reads every launch from the visitor's
   browser through one RPC (the project lead's dRPC key). When it hiccups, the launch
   list stops loading, as it did briefly on 2026-11-17. Idea: a second RPC in the site's
