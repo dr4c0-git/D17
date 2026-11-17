@@ -17,6 +17,12 @@ Split in two, because the process is different:
   creator's wallet (it receives the creator allocation) and, when it is a different
   address, the treasury (it receives the treasury fee), each linked to the explorer.
   Status: live since 2026-11-15.
+- **A backup RPC for mainnet** (2026-11-17). The site reads every launch from the visitor's
+  browser through one RPC (the project lead's dRPC key). When it hiccups, the launch
+  list stops loading, as it did briefly on 2026-11-17. Idea: a second RPC in the site's
+  settings that the site switches to automatically when the first one does not answer.
+  The app has no fallback today (`apps/web/lib/readProvider.ts` uses a single URL).
+  Errors and usage of the current RPC are visible in the dRPC dashboard, not in Cloudflare.
 - **Alerts for new launches** (suggested by a user, 2026-11-15). People without time to
   watch the site would like to be told when a launch is created, opens or opens trading:
   for example an X or Telegram bot, or alerts on the site.
