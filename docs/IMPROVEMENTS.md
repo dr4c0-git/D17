@@ -19,7 +19,7 @@ Split in two, because the process is different:
   Status: live since 2026-11-15.
 - **Fewer RPC requests** (2026-11-17, approved by the project lead). The first $50 of dRPC
   credit went in a few days: every visitor's browser reads the chain itself, and kept
-  polling even in a background tab. Done (status: on a preview link): no request at all
+  polling even in a background tab. Done (live since 2026-11-18): no request at all
   from a hidden tab, a refresh once a minute instead of every 12-15 s while a launch is
   quiet (not started, trading, failed), the launch list every minute instead of 30 s, and
   each round's share, start and end read once per launch instead of on every refresh

@@ -3,6 +3,17 @@
 All notable changes to this fork of [0xlocker/D17](https://github.com/0xlocker/D17),
 newest first. V15.1 is live on Ethereum mainnet and on Sepolia (testnet).
 
+## 2026-11-18 - Fewer RPC requests
+
+- **The site makes far fewer requests to the mainnet RPC**, which the project pays for.
+  A hidden tab no longer makes any request (it refreshes when it is shown again); a quiet
+  launch (not started, trading, failed) refreshes once a minute instead of every 12-15 s,
+  while phase boundaries still trigger an immediate re-read; the launch list refreshes
+  every minute; and each round's share, start and end are read once per launch (27% fewer
+  calls per refresh during a sale). Measured on a local chain: a hidden tab went from about
+  1,250 requests a minute to none.
+- Checked on a preview link, then approved by the project lead.
+
 ## 2026-11-15 - Creator wallet on the launch page
 
 - **Every launch page shows who created it**: the creator's wallet (it receives the
