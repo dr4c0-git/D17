@@ -48,6 +48,18 @@ Split in two, because the process is different:
   1. The last settlement creates the pool by itself: one step less, a small change.
   2. A full auto-settle: rethink where the WETH sits during the sale. That touches the
      "your money stays in your own contract" principle, so it needs a careful discussion.
+- **Lockers as small clones** (pull request
+  [#1](https://github.com/dr4c0-git/D17/pull/1) by whytrade, 2026-11-15). Every buyer pays
+  today to store the whole Locker code (9,048 bytes, about 2M gas, about 0.0064 ETH at
+  3 gwei). The proposal deploys that code once and makes each Locker a 105-byte EIP-1167
+  clone carrying its owner, factory and WETH in its own code: creating a Locker goes to
+  about 152k gas (-92%), each action costs about 3k gas more. Reviewed: the clone bytecode
+  and the argument reads are correct, there is no initializer to attack, and the tests
+  pass. Not mergeable as is: it targets the next version (V15.1 cannot change), its second
+  commit rewrites the V15.1 release files that `main` must keep (they match the mainnet
+  deployment and its Etherscan verification), and it conflicts with later changes. Before
+  adopting it: check on Sepolia how Etherscan shows the clones (transparency), and teach
+  the deployment and verification scripts about the shared Locker.
 - **Opening price equal to the average price paid** (observed on the first mainnet
   launches, 2026-11-15). The pool opens at the average price paid, minus the treasury and
   protocol fees, times sale tokens / LP tokens: below the average price with the usual
