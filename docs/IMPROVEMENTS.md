@@ -73,4 +73,5 @@ Split in two, because the process is different:
   [V16_POOL_LIQUIDITY.md](./V16_POOL_LIQUIDITY.md). The project lead prefers concentrated
   liquidity (Uniswap V3 or V4 from a floor price) over a dormancy trigger, which can always
   be gamed to some degree. Ownership principle: the liquidity belongs overwhelmingly to the
-  token's holders, a little to the developer, minimally to the ecosystem.
+  token's holders, a little to the developer, minimally to the ecosystem. Open to community
+  proposals since 2026-11-20 in issue [#2](https://github.com/dr4c0-git/D17/issues/2).

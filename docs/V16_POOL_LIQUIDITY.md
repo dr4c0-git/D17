@@ -1,5 +1,7 @@
 # V16 note - the liquidity that stays in the pool
 
+Community proposals are welcome in issue [#2](https://github.com/dr4c0-git/D17/issues/2).
+
 A discussion note for V16, not a decision: the problem in numbers, the options we see,
 their trade-offs, and a recommendation. Nothing here is implemented.
 
