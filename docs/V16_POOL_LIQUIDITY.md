@@ -129,9 +129,13 @@ who receives that remainder, and whether option B is in.
 
 ## 4. Other V16 candidates
 
-- **A contract rule for the opening price**: require the LP allocation to be at least a
-  share of the sale allocation (for example `lpTokens >= saleTokens / 2`), so a creator
-  can no longer open the pool far above what buyers paid. Today only the web app flags it.
+- **A contract rule for the opening price** (project lead, 2026-11-21): the pool must open
+  at a price between the round 1 and round 5 prices, `[min(R1, R5), max(R1, R5)]`, so that
+  round 1 buyers are rewarded for their risk and nobody opens far above what buyers paid.
+  The contract would compute the LP tokens to pair with the pool's WETH for a target price
+  in that range and burn the rest; a creator allocation too small to reach it would be
+  refused at creation. Details in [IMPROVEMENTS.md](./IMPROVEMENTS.md). Today only the web
+  app flags predatory openings.
 - **Bump the contract identity constants** for every new version (V15.1 moved to `*_V15_1`; V16 needs its own).
 - **Settlement cost**: every buyer must be settled before the pool opens; measuring the
   real cost on Sepolia for many small positions would tell us whether a cheaper settlement

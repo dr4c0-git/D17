@@ -60,12 +60,19 @@ Split in two, because the process is different:
   deployment and its Etherscan verification), and it conflicts with later changes. Before
   adopting it: check on Sepolia how Etherscan shows the clones (transparency), and teach
   the deployment and verification scripts about the shared Locker.
-- **Opening price equal to the average price paid** (observed on the first mainnet
-  launches, 2026-11-15). The pool opens at the average price paid, minus the treasury and
-  protocol fees, times sale tokens / LP tokens: below the average price with the usual
-  split, far above it with a predatory split. Idea: compute the LP tokens from the WETH
-  actually raised, so the pool always opens exactly at the average price paid, and burn
-  the rest. It fixes both directions at once.
+- **Opening price between the round 1 and round 5 prices** (rule set by the project lead,
+  2026-11-21; first observed on the mainnet launches, 2026-11-15). Today the pool opens at
+  the average price paid, minus the treasury and protocol fees, times sale tokens / LP
+  tokens. It ignores the round prices: when every round sells at the anchor, the pool
+  opens about 7% below the round 1 price (round 1 buyers are at a loss at the open), and
+  a predatory split opens it far above. Rule: the opening price must lie in
+  `[min(R1, R5), max(R1, R5)]`, so that taking the round 1 risk is worth it and nobody
+  gets a free gain above the last round. Mechanism: at finalization, pick a price in that
+  range (for example the average price paid, clamped into it), compute the LP tokens to
+  pair with the pool's WETH to open exactly at that price, and burn the rest of the LP
+  allocation. Open case: a creator who set too few LP tokens to reach the target (refuse
+  that configuration at creation, or return the extra WETH to buyers). It fits the floor
+  range: the floor could start at the round 1 price.
 - **Price discovery that flattens to a presale** (observed 2026-11-15). When no round
   goes over its target, every round sells at the anchor price and the five rounds behave
   like a single presale. Worth a look when the round rules are next revisited.
