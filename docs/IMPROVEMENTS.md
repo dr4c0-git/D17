@@ -66,11 +66,18 @@ Split in two, because the process is different:
   tokens. It ignores the round prices: when every round sells at the anchor, the pool
   opens about 7% below the round 1 price (round 1 buyers are at a loss at the open), and
   a predatory split opens it far above. Rule: the opening price must lie in
-  `[min(R1, R5), max(R1, R5)]`, so that taking the round 1 risk is worth it and nobody
-  gets a free gain above the last round. Mechanism: at finalization, pick a price in that
-  range (for example the average price paid, clamped into it), compute the LP tokens to
-  pair with the pool's WETH to open exactly at that price, and burn the rest of the LP
-  allocation. Open case: a creator who set too few LP tokens to reach the target (refuse
+  `[min(R1, R5), max(R1, R5)]`. It must not sit above R1 by construction either: a
+  guaranteed gain makes round 1 a near risk-free trade (a failed launch refunds everything)
+  and a dump at the first block of every launch. The round 1 gain has to be earned by
+  demand. Target under discussion (2026-11-21): the round 5 price, R5 acting as a
+  premarket whose buyers pay for the information of rounds 1-4. R5 buyers break even at
+  the open, earlier rounds gain only if demand pushed the price up, and when every round
+  sells at the anchor, R5 = R1 and nobody gains for free. Edge case: an under-filled R5
+  sells at the anchor while rounds 2-4 may have sold higher; candidate rule
+  `max(R5 price, average price paid)`. The V15 floor on R5 (never below the anchor) stays:
+  a round 5 that can sell very low makes everyone wait for it and empties the early rounds.
+  Mechanism: at finalization, compute the LP tokens to pair with the pool's WETH to open
+  exactly at the target price, and burn the rest of the LP allocation. Open case: a creator who set too few LP tokens to reach the target (refuse
   that configuration at creation, or return the extra WETH to buyers). It fits the floor
   range: the floor could start at the round 1 price.
 - **Price discovery that flattens to a presale** (observed 2026-11-15). When no round
